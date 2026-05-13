@@ -53,6 +53,7 @@ jobs:
     needs: validate
     if: github.event_name == 'pull_request'
     permissions:
+      contents: read
       issues: write
       pull-requests: write
 
