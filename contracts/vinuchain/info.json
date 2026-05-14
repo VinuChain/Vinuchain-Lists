@@ -1,7 +1,7 @@
 {
   "name": "VinuChain",
   "website": "https://vinuchain.com",
-  "description": "VinuChain core protocol contracts — Special Fee Contract (SFC) for validator staking, NodeDriver/NodeDriverAuth governance, and Quota/Payback contracts backing fee refunds",
+  "description": "VinuChain core protocol contracts \u2014 Special Fee Contract (SFC) for validator staking, NodeDriver/NodeDriverAuth governance, and Quota/Payback contracts backing fee refunds",
   "contact": "hello@vinuchain.com",
   "security": "hello@vinuchain.com",
   "contracts": [
@@ -9,19 +9,19 @@
       "name": "SFC",
       "address": "0xFC00FACE00000000000000000000000000000000",
       "type": "staking",
-      "description": "Special Fee Contract — manages validator creation, stake delegation, epoch rewards, lockups, and slashing"
+      "description": "Special Fee Contract \u2014 manages validator creation, stake delegation, epoch rewards, lockups, and slashing"
     },
     {
       "name": "NodeDriverAuth",
       "address": "0xD100ae0000000000000000000000000000000000",
       "type": "system",
-      "description": "Owner-controlled governance contract for network administration — queues and executes time-locked migrations, network rule updates, epoch advances, and nonce increments"
+      "description": "Owner-controlled governance contract for network administration \u2014 queues and executes time-locked migrations, network rule updates, epoch advances, and nonce increments"
     },
     {
       "name": "NodeDriver",
       "address": "0xd100A01E00000000000000000000000000000000",
       "type": "system",
-      "description": "EVM-facing relay contract between NodeDriverAuth and the EvmWriter precompile — emits canonical events for validator weight/pubkey changes, network rule updates, and epoch advances"
+      "description": "EVM-facing relay contract between NodeDriverAuth and the EvmWriter precompile \u2014 emits canonical events for validator weight/pubkey changes, network rule updates, and epoch advances"
     },
     {
       "name": "OptimizedTransparentUpgradeableProxy",
@@ -41,6 +41,12 @@
       "address": "0x80DA5f5e78c94EE5125Be515Ad4cd248469B57ba",
       "type": "staking",
       "description": "Verified receiver-capable Quota/Payback implementation with stakeFor(address), deployed on testnet for the pending proxy upgrade"
+    },
+    {
+      "name": "QuotaContractV2",
+      "address": "0xdEA4687FDBA2528d1b30222e199c90b63AF8c850",
+      "type": "staking",
+      "description": "Non-proxy Quota/Payback successor deployed on testnet via v2.0.18-elemont's PaybackV2 binary release. ABI superset of V1: adds stakeFor(address). Ownable, owner = NodeDriverAuth-owner EOA."
     }
   ],
   "social": {
