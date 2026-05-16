@@ -113,6 +113,31 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "staker",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "delegator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "StakeFor",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "delegator",
         "type": "address"
       },
@@ -138,6 +163,37 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "staker",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "delegator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "wrID",
+        "type": "uint256"
+      }
+    ],
+    "name": "UndelegatedFor",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "delegator",
         "type": "address"
       },
@@ -155,6 +211,37 @@
       }
     ],
     "name": "Withdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "staker",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "delegator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "wrID",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawnFor",
     "type": "event"
   },
   {
@@ -302,7 +389,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "staker",
         "type": "address"
       },
       {
@@ -331,7 +418,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "staker",
         "type": "address"
       },
       {
@@ -387,7 +474,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "staker",
         "type": "address"
       },
       {
@@ -443,7 +530,50 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "getExternallyFundedStake",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "getFundedStake",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "staker",
         "type": "address"
       }
     ],
@@ -462,7 +592,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "staker",
         "type": "address"
       }
     ],
@@ -544,7 +674,31 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "delegator",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "getWithdrawalRequestDelegator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "staker",
         "type": "address"
       },
       {
@@ -763,6 +917,30 @@
       }
     ],
     "name": "unstake",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "wrID",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "delegator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "unstakeFor",
     "outputs": [
       {
         "internalType": "uint256",

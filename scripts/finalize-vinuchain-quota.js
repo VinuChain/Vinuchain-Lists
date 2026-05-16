@@ -1,21 +1,27 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { ethers } = require('ethers');
+const fs = require("fs");
+const path = require("path");
+const { ethers } = require("ethers");
 
 const TESTNET_CHAIN_ID = 206n;
-const TESTNET_RPC = process.env.TESTNET_RPC || 'https://vinufoundation-rpc.com';
-const EXPLORER_API =
-  process.env.TESTNET_EXPLORER_API || 'https://testnet.vinuexplorer.org/api/v2';
-const QUOTA_PROXY = '0x824B93dE7221cf8a35FBd29d5202f6eFa3A29C5D';
-const PROXY_ADMIN = '0xcE154534e1E8F4Cc9Ab642Ad1816Ee1A237055F4';
-const VERIFIED_IMPLEMENTATION = '0x80DA5f5e78c94EE5125Be515Ad4cd248469B57ba';
-const STAKE_FOR_SELECTOR = '4bf69206';
-const INFO_PATH = path.join(process.cwd(), 'contracts/vinuchain/info.json');
+const TESTNET_RPC = process.env.TESTNET_RPC || "https://vinufoundation-rpc.com";
+const INFO_PATH = path.join(process.cwd(), "contracts/vinuchain/info.json");
+const CORRECTED_PAYBACK_V2 = "0x89D1cBD9DEAaB4dFf6f800a336FBDd9A5c6829e4";
+const KNOWN_BUG_PAYBACK_V2 = "0xdEA4687FDBA2528d1b30222e199c90b63AF8c850";
+const STALE_RECEIVER_IMPLEMENTATION =
+  "0x80DA5f5e78c94EE5125Be515Ad4cd248469B57ba";
 
-const proxyAdminAbi = [
-  'function getProxyImplementation(address proxy) view returns (address)',
+const quotaV2Abi = [
+  "function owner() view returns (address)",
+  "function feeRefundBlockCount() view returns (uint256)",
+  "function minStake() view returns (uint256)",
+  "function quotaFactor() view returns (uint256)",
+  "function holdTime() view returns (uint256)",
+  "function getFundedStake(address,address) view returns (uint256)",
+  "function getWithdrawalRequestDelegator(address,uint256) view returns (address)",
+  "function stakeFor(address) payable",
+  "function unstakeFor(address,uint256)",
 ];
 
 function hasFlag(name) {
@@ -23,108 +29,103 @@ function hasFlag(name) {
 }
 
 function readInfo() {
-  return JSON.parse(fs.readFileSync(INFO_PATH, 'utf8'));
+  return JSON.parse(fs.readFileSync(INFO_PATH, "utf8"));
 }
 
 function writeInfo(info) {
   fs.writeFileSync(INFO_PATH, `${JSON.stringify(info, null, 2)}\n`);
 }
 
-function getContract(info, name) {
-  const contract = info.contracts.find((entry) => entry.name === name);
-  if (!contract) {
-    throw new Error(`Missing ${name} entry in contracts/vinuchain/info.json`);
-  }
-  return contract;
-}
-
-async function getExplorerContract(implementation) {
-  const response = await fetch(`${EXPLORER_API}/smart-contracts/${implementation}`);
-  if (!response.ok) {
-    throw new Error(
-      `VinuExplorer returned HTTP ${response.status} for ${implementation}`
-    );
-  }
-  return response.json();
-}
-
 async function main() {
-  const dryRun = hasFlag('--dry-run');
-  const info = readInfo();
+  const dryRun = hasFlag("--dry-run");
   const provider = new ethers.JsonRpcProvider(TESTNET_RPC);
-  const proxyAdmin = new ethers.Contract(PROXY_ADMIN, proxyAdminAbi, provider);
+  const contract = new ethers.Contract(
+    CORRECTED_PAYBACK_V2,
+    quotaV2Abi,
+    provider,
+  );
 
-  const [network, liveImplementation] = await Promise.all([
+  const [
+    network,
+    code,
+    owner,
+    feeRefundBlockCount,
+    minStake,
+    quotaFactor,
+    holdTime,
+  ] = await Promise.all([
     provider.getNetwork(),
-    proxyAdmin.getProxyImplementation(QUOTA_PROXY),
+    provider.getCode(CORRECTED_PAYBACK_V2),
+    contract.owner(),
+    contract.feeRefundBlockCount(),
+    contract.minStake(),
+    contract.quotaFactor(),
+    contract.holdTime(),
   ]);
 
   if (network.chainId !== TESTNET_CHAIN_ID) {
-    throw new Error(`Unexpected chain ${network.chainId}; expected ${TESTNET_CHAIN_ID}`);
-  }
-
-  const normalizedLiveImplementation = ethers.getAddress(liveImplementation);
-  if (
-    normalizedLiveImplementation !== ethers.getAddress(VERIFIED_IMPLEMENTATION)
-  ) {
     throw new Error(
-      `Live Quota proxy still points at ${normalizedLiveImplementation}; expected verified receiver implementation ${VERIFIED_IMPLEMENTATION}`
+      `Unexpected chain ${network.chainId}; expected ${TESTNET_CHAIN_ID}`,
     );
   }
-
-  const code = await provider.getCode(normalizedLiveImplementation);
-  if (!code.toLowerCase().includes(STAKE_FOR_SELECTOR)) {
-    throw new Error(
-      `Live implementation ${normalizedLiveImplementation} does not contain stakeFor selector`
-    );
+  if (code === "0x") {
+    throw new Error(`No code at corrected PaybackV2 ${CORRECTED_PAYBACK_V2}`);
   }
 
-  const explorer = await getExplorerContract(normalizedLiveImplementation);
-  if (!explorer.is_verified) {
-    throw new Error(
-      `Live implementation ${normalizedLiveImplementation} is not verified on VinuExplorer`
+  const info = readInfo();
+  info.contracts = info.contracts.filter((entry) => {
+    const address = String(entry.address || "").toLowerCase();
+    return (
+      entry.name !== "QuotaContractReceiverImplementation" &&
+      address !== KNOWN_BUG_PAYBACK_V2.toLowerCase() &&
+      address !== STALE_RECEIVER_IMPLEMENTATION.toLowerCase()
     );
-  }
-  if (!explorer.is_fully_verified) {
-    throw new Error(
-      `Live implementation ${normalizedLiveImplementation} is not fully verified on VinuExplorer`
-    );
-  }
-  if (explorer.is_partially_verified) {
-    throw new Error(
-      `Live implementation ${normalizedLiveImplementation} is only partially verified on VinuExplorer`
-    );
-  }
-  if (explorer.is_changed_bytecode) {
-    throw new Error(
-      `VinuExplorer reports changed bytecode for ${normalizedLiveImplementation}`
-    );
+  });
+
+  for (const entry of info.contracts) {
+    if (entry.name === "OptimizedTransparentUpgradeableProxy") {
+      entry.description =
+        "Legacy testnet Quota/Payback EIP-1967 proxy kept for historical transactions. PaybackV2 switched active quota accounting to the non-proxy QuotaContractV2 entry on 2026-05-16.";
+    }
+    if (entry.name === "QuotaContract") {
+      entry.description =
+        "Historical verified pre-PaybackV2 Quota/Payback implementation behind the legacy testnet proxy. Active testnet payback now uses QuotaContractV2.";
+    }
   }
 
-  const proxyEntry = getContract(info, 'OptimizedTransparentUpgradeableProxy');
-  if (ethers.getAddress(proxyEntry.address) !== ethers.getAddress(QUOTA_PROXY)) {
-    throw new Error(`Unexpected proxy entry address ${proxyEntry.address}`);
-  }
-
-  const quotaEntry = getContract(info, 'QuotaContract');
-  quotaEntry.address = normalizedLiveImplementation;
-  quotaEntry.description =
-    'Current verified receiver-capable Quota/Payback implementation behind the proxy; supports stakeFor(address) so one wallet can fund stake for another wallet receiving refunds';
-
-  info.contracts = info.contracts.filter(
-    (entry) => entry.name !== 'QuotaContractReceiverImplementation'
+  const paybackV2Entry = {
+    name: "QuotaContractV2",
+    artifact: "QuotaContractV2",
+    address: CORRECTED_PAYBACK_V2,
+    type: "staking",
+    description:
+      "Active testnet PaybackV2 non-proxy contract. stakeFor(address) credits receiver refunds; funding wallet owns/withdraws stake via unstakeFor(address,uint256). Deployed 2026-05-16.",
+  };
+  const existingIndex = info.contracts.findIndex(
+    (entry) => entry.name === "QuotaContractV2",
   );
+  if (existingIndex >= 0) {
+    info.contracts[existingIndex] = paybackV2Entry;
+  } else {
+    const quotaIndex = info.contracts.findIndex(
+      (entry) => entry.name === "QuotaContract",
+    );
+    info.contracts.splice(
+      quotaIndex >= 0 ? quotaIndex + 1 : info.contracts.length,
+      0,
+      paybackV2Entry,
+    );
+  }
 
   const result = {
     rpc: TESTNET_RPC,
-    explorerApi: EXPLORER_API,
-    proxy: QUOTA_PROXY,
-    implementation: normalizedLiveImplementation,
-    explorerName: explorer.name || null,
-    explorerVerified: Boolean(explorer.is_verified),
-    explorerFullyVerified: Boolean(explorer.is_fully_verified),
-    explorerPartiallyVerified: Boolean(explorer.is_partially_verified),
-    explorerChangedBytecode: Boolean(explorer.is_changed_bytecode),
+    contract: CORRECTED_PAYBACK_V2,
+    owner,
+    codeBytes: (code.length - 2) / 2,
+    feeRefundBlockCount: feeRefundBlockCount.toString(),
+    minStake: minStake.toString(),
+    quotaFactor: quotaFactor.toString(),
+    holdTime: holdTime.toString(),
     dryRun,
   };
 

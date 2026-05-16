@@ -42,18 +42,41 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
     mapping(address => EnumerableSet.UintSet)
         private _activeWithdrawalRequestIDs;
     mapping(address => uint256[]) public completedWithdrawalRequestIDs;
+    // Appended after the original V1 storage slots so proxy upgrades do not
+    // shift existing withdrawal request or active-request mappings.
+    mapping(address => mapping(address => uint256)) public getFundedStake;
+    mapping(address => mapping(uint256 => address))
+        public getWithdrawalRequestDelegator;
+    mapping(address => uint256) public getExternallyFundedStake;
 
     event FeeRefundBlockCountUpdated(uint16 indexed newFeeRefundBlockCount);
     event MinStakeUpdated(uint256 indexed newMinStake);
     event HoldTimeUpdated(uint256 indexed newHoldTime);
     event QuotaFactorUpdated(uint256 indexed newQuotaFactor);
     event Delegate(address indexed delegator, uint256 amount);
+    event StakeFor(
+        address indexed staker,
+        address indexed delegator,
+        uint256 amount
+    );
     event Undelegated(
         address indexed delegator,
         uint256 amount,
         uint256 indexed wrID
     );
+    event UndelegatedFor(
+        address indexed staker,
+        address indexed delegator,
+        uint256 amount,
+        uint256 indexed wrID
+    );
     event Withdrawn(
+        address indexed delegator,
+        uint256 amount,
+        uint256 indexed wrID
+    );
+    event WithdrawnFor(
+        address indexed staker,
         address indexed delegator,
         uint256 amount,
         uint256 indexed wrID
@@ -127,18 +150,19 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
      * @dev Delegates stake to a validator.
      */
     function stake() external payable {
-        _rawDelegate(msg.sender, msg.value);
+        _rawDelegate(msg.sender, msg.sender, msg.value);
         emit Delegate(msg.sender, msg.value);
     }
 
     /**
      * @dev Delegates stake for another address.
-     * @param delegator The address that receives the payback stake balance.
+     * @param delegator The address that receives payback quota credit.
      */
     function stakeFor(address delegator) external payable {
         require(delegator != address(0), 'Delegator: zero address');
-        _rawDelegate(delegator, msg.value);
+        _rawDelegate(msg.sender, delegator, msg.value);
         emit Delegate(delegator, msg.value);
+        emit StakeFor(msg.sender, delegator, msg.value);
     }
 
     /**
@@ -146,13 +170,39 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
      * @param amount The amount of stake to undelegate.
      */
     function unstake(uint256 amount) external returns (uint256 wrID) {
+        return _unstakeFor(msg.sender, amount);
+    }
+
+    function unstakeFor(address delegator, uint256 amount)
+        external
+        returns (uint256 wrID)
+    {
+        require(delegator != address(0), 'Delegator: zero address');
+        return _unstakeFor(delegator, amount);
+    }
+
+    function _unstakeFor(address delegator, uint256 amount)
+        internal
+        returns (uint256 wrID)
+    {
         require(amount > 0, 'zero amount');
-        require(getStake[msg.sender] >= amount, 'Not enough stake');
+        if (msg.sender == delegator) {
+            require(
+                getStake[delegator] - getExternallyFundedStake[delegator] >=
+                    amount,
+                'Not enough stake'
+            );
+        } else {
+            require(
+                getFundedStake[msg.sender][delegator] >= amount,
+                'Not enough stake'
+            );
+        }
 
         wrID = _generateWithdrawalRequestId();
         uint256 unlockTime = block.timestamp + holdTime;
 
-        _rawUndelegate(msg.sender, amount);
+        _rawUndelegate(msg.sender, delegator, amount);
 
         getWithdrawalRequest[msg.sender][wrID] = WithdrawalRequest({
             id: wrID,
@@ -161,10 +211,12 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
             unlockTime: unlockTime,
             completed: false
         });
+        getWithdrawalRequestDelegator[msg.sender][wrID] = delegator;
 
         _activeWithdrawalRequestIDs[msg.sender].add(wrID);
 
-        emit Undelegated(msg.sender, amount, wrID);
+        emit Undelegated(delegator, amount, wrID);
+        emit UndelegatedFor(msg.sender, delegator, amount, wrID);
 
         return wrID;
     }
@@ -213,7 +265,13 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
 
         _activeWithdrawalRequestIDs[msg.sender].remove(wrID);
 
+        address delegator = getWithdrawalRequestDelegator[msg.sender][wrID];
+        if (delegator == address(0)) {
+            delegator = msg.sender;
+        }
+
         emit Withdrawn(msg.sender, amount, wrID);
+        emit WithdrawnFor(msg.sender, delegator, amount, wrID);
 
         (bool sent, ) = msg.sender.call{value: amount}('');
         require(sent, 'Failed to send Ether');
@@ -231,23 +289,21 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Returns wrIDs withdrawal requests for a delegator.
-     * @param delegator The address of the delegator.
+     * @dev Returns wrIDs withdrawal requests for a staker.
+     * @param staker The address that owns the withdrawal requests.
      * @param offset Offset to start with
      * @param limit Return size limit
      * @return wrIDs and values of withdrawal requests.
      */
     function getActiveWrRequests(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (WithdrawalRequest[] memory) {
         WithdrawalRequest[] memory requests = new WithdrawalRequest[](limit);
         for (uint256 i = 0; i < limit; ) {
-            uint256 wrID = _activeWithdrawalRequestIDs[delegator].at(
-                i + offset
-            );
-            requests[i] = getWithdrawalRequest[delegator][wrID];
+            uint256 wrID = _activeWithdrawalRequestIDs[staker].at(i + offset);
+            requests[i] = getWithdrawalRequest[staker][wrID];
             unchecked {
                 ++i;
             }
@@ -257,19 +313,19 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
 
     /**
      * @dev Returns the active withdrawal request IDs for a user.
-     * @param delegator The address of the delegator.
+     * @param staker The address that owns the withdrawal requests.
      * @param offset Offset to start with
      * @param limit Return size limit
      * @return The active withdrawal request IDs for the user.
      */
     function getActiveWithdrawalRequestIDs(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](limit);
         for (uint256 i = 0; i < limit; ) {
-            ids[i] = _activeWithdrawalRequestIDs[delegator].at(i + offset);
+            ids[i] = _activeWithdrawalRequestIDs[staker].at(i + offset);
             unchecked {
                 ++i;
             }
@@ -279,47 +335,47 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Gets the number of _activeWithdrawalRequestIDs by delegator.
-     * @param delegator Delegator address
+     * @dev Gets the number of _activeWithdrawalRequestIDs by staker.
+     * @param staker Staker address
      */
-    function getNumberOfActiveWithdrawalRequestIDs(address delegator)
+    function getNumberOfActiveWithdrawalRequestIDs(address staker)
         external
         view
         returns (uint256)
     {
-        return _activeWithdrawalRequestIDs[delegator].length();
+        return _activeWithdrawalRequestIDs[staker].length();
     }
 
     /**
-     * @dev Checks if a withdrawal request ID is active for a delegator.
-     * @param delegator The address of the delegator.
+     * @dev Checks if a withdrawal request ID is active for a staker.
+     * @param staker The address that owns the withdrawal request.
      * @param wrID The withdrawal request ID.
      * @return True if the withdrawal request ID is active for the delegator, otherwise false.
      */
-    function hasActiveWithdrawalRequestId(address delegator, uint256 wrID)
+    function hasActiveWithdrawalRequestId(address staker, uint256 wrID)
         external
         view
         returns (bool)
     {
-        return _activeWithdrawalRequestIDs[delegator].contains(wrID);
+        return _activeWithdrawalRequestIDs[staker].contains(wrID);
     }
 
     /**
      * @dev Returns the completed withdrawal request IDs for a user.
-     * @param delegator The address of the delegator.
+     * @param staker The address that owns the withdrawal requests.
      * @param offset Offset to start with
      * @param limit Return size limit
      * @return The completed withdrawal request IDs for the user.
      */
     function getCompletedWrRequests(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (WithdrawalRequest[] memory) {
         WithdrawalRequest[] memory requests = new WithdrawalRequest[](limit);
         for (uint256 i = 0; i < limit; ) {
-            uint256 wrID = completedWithdrawalRequestIDs[delegator][i + offset];
-            requests[i] = getWithdrawalRequest[delegator][wrID];
+            uint256 wrID = completedWithdrawalRequestIDs[staker][i + offset];
+            requests[i] = getWithdrawalRequest[staker][wrID];
             unchecked {
                 ++i;
             }
@@ -328,15 +384,15 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Gets the number of completed withdrawal request IDs by delegator.
-     * @param delegator Delegator address
+     * @dev Gets the number of completed withdrawal request IDs by staker.
+     * @param staker Staker address
      */
-    function getNumberOfCompletedWithdrawalRequestIDs(address delegator)
+    function getNumberOfCompletedWithdrawalRequestIDs(address staker)
         external
         view
         returns (uint256)
     {
-        return completedWithdrawalRequestIDs[delegator].length;
+        return completedWithdrawalRequestIDs[staker].length;
     }
 
     /**
@@ -344,9 +400,17 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
      * @param delegator The address of the delegator.
      * @param amount The amount of stake to delegate.
      */
-    function _rawDelegate(address delegator, uint256 amount) internal {
+    function _rawDelegate(
+        address staker,
+        address delegator,
+        uint256 amount
+    ) internal {
         require(amount > 0, 'zero amount');
 
+        getFundedStake[staker][delegator] += amount;
+        if (staker != delegator) {
+            getExternallyFundedStake[delegator] += amount;
+        }
         getStake[delegator] += amount;
         totalStake += amount;
     }
@@ -356,7 +420,20 @@ contract QuotaContract is Initializable, OwnableUpgradeable {
      * @param delegator The address of the delegator.
      * @param amount The amount of stake to undelegate.
      */
-    function _rawUndelegate(address delegator, uint256 amount) internal {
+    function _rawUndelegate(
+        address staker,
+        address delegator,
+        uint256 amount
+    ) internal {
+        uint256 fundedStake = getFundedStake[staker][delegator];
+        if (fundedStake >= amount) {
+            getFundedStake[staker][delegator] = fundedStake - amount;
+        } else {
+            getFundedStake[staker][delegator] = 0;
+        }
+        if (staker != delegator) {
+            getExternallyFundedStake[delegator] -= amount;
+        }
         getStake[delegator] -= amount;
         totalStake -= amount;
     }

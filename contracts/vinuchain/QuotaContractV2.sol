@@ -23,11 +23,15 @@ import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
  *        - stake()                  payable
  *        - stakeFor(address)        payable
  *        - unstake(uint256)         returns (wrID)
- *      Storage layout, function selectors, and event signatures match V1
- *      so explorers, indexers, and the node treat the new contract as a
- *      drop-in successor. The only intentional difference is removal of
- *      Initializable / OwnableUpgradeable (replaced with constructor-set
- *      Ownable) so there is no proxy and no ProxyAdmin to lose keys for.
+ *        - unstakeFor(address,uint256) returns (wrID)
+ *      The original V1 node-facing selectors and events remain available so
+ *      explorers, indexers, and the node can treat the new contract as a
+ *      successor. V2 additionally records the funding wallet for each
+ *      receiver stake so the receiver gets quota credit while the staker
+ *      keeps withdrawal ownership. The other intentional difference is
+ *      removal of Initializable / OwnableUpgradeable (replaced with
+ *      constructor-set Ownable) so there is no proxy and no ProxyAdmin to
+ *      lose keys for.
  */
 contract QuotaContractV2 is Ownable {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -63,8 +67,11 @@ contract QuotaContractV2 is Ownable {
     uint16 public feeRefundBlockCount;
 
     mapping(address => uint256) public getStake;
+    mapping(address => mapping(address => uint256)) public getFundedStake;
     mapping(address => mapping(uint256 => WithdrawalRequest))
         public getWithdrawalRequest;
+    mapping(address => mapping(uint256 => address))
+        public getWithdrawalRequestDelegator;
     mapping(address => EnumerableSet.UintSet)
         private _activeWithdrawalRequestIDs;
     mapping(address => uint256[]) public completedWithdrawalRequestIDs;
@@ -74,12 +81,29 @@ contract QuotaContractV2 is Ownable {
     event HoldTimeUpdated(uint256 indexed newHoldTime);
     event QuotaFactorUpdated(uint256 indexed newQuotaFactor);
     event Delegate(address indexed delegator, uint256 amount);
+    event StakeFor(
+        address indexed staker,
+        address indexed delegator,
+        uint256 amount
+    );
     event Undelegated(
         address indexed delegator,
         uint256 amount,
         uint256 indexed wrID
     );
+    event UndelegatedFor(
+        address indexed staker,
+        address indexed delegator,
+        uint256 amount,
+        uint256 indexed wrID
+    );
     event Withdrawn(
+        address indexed delegator,
+        uint256 amount,
+        uint256 indexed wrID
+    );
+    event WithdrawnFor(
+        address indexed staker,
         address indexed delegator,
         uint256 amount,
         uint256 indexed wrID
@@ -106,7 +130,7 @@ contract QuotaContractV2 is Ownable {
         require(_quotaFactor >= MIN_QUOTA_FACTOR, 'QuotaFactor < 10^3');
         require(_quotaFactor <= MAX_QUOTA_FACTOR, 'QuotaFactor > 10^18');
         require(_holdTime >= MIN_HOLD_TIME, 'HoldTime must be at least 1');
-        require(_holdTime <= MAX_HOLD_TIME, 'HoldTime must be at most 10^9');
+        require(_holdTime <= MAX_HOLD_TIME, 'HoldTime must be at most 90 days');
 
         _transferOwnership(owner_);
 
@@ -133,30 +157,49 @@ contract QuotaContractV2 is Ownable {
     }
 
     function stake() external payable {
-        _rawDelegate(msg.sender, msg.value);
+        _rawDelegate(msg.sender, msg.sender, msg.value);
         emit Delegate(msg.sender, msg.value);
     }
 
     /**
      * @dev Stake on behalf of another address. Credits `delegator` with the
-     *      stake balance; msg.sender supplies the funds. Recognised by the
-     *      VinuChain node as a stake-type transaction (see
-     *      payback/payback_cache.go stakeForSelector).
+     *      node-facing payback balance; msg.sender supplies and owns the
+     *      funds. Recognised by the VinuChain node as a stake-type
+     *      transaction (see payback/payback_cache.go stakeForSelector).
      */
     function stakeFor(address delegator) external payable {
         require(delegator != address(0), 'Delegator: zero address');
-        _rawDelegate(delegator, msg.value);
+        _rawDelegate(msg.sender, delegator, msg.value);
         emit Delegate(delegator, msg.value);
+        emit StakeFor(msg.sender, delegator, msg.value);
     }
 
     function unstake(uint256 amount) external returns (uint256 wrID) {
+        return _unstakeFor(msg.sender, amount);
+    }
+
+    function unstakeFor(address delegator, uint256 amount)
+        external
+        returns (uint256 wrID)
+    {
+        require(delegator != address(0), 'Delegator: zero address');
+        return _unstakeFor(delegator, amount);
+    }
+
+    function _unstakeFor(address delegator, uint256 amount)
+        internal
+        returns (uint256 wrID)
+    {
         require(amount > 0, 'zero amount');
-        require(getStake[msg.sender] >= amount, 'Not enough stake');
+        require(
+            getFundedStake[msg.sender][delegator] >= amount,
+            'Not enough stake'
+        );
 
         wrID = _generateWithdrawalRequestId();
         uint256 unlockTime = block.timestamp + holdTime;
 
-        _rawUndelegate(msg.sender, amount);
+        _rawUndelegate(msg.sender, delegator, amount);
 
         getWithdrawalRequest[msg.sender][wrID] = WithdrawalRequest({
             id: wrID,
@@ -165,10 +208,12 @@ contract QuotaContractV2 is Ownable {
             unlockTime: unlockTime,
             completed: false
         });
+        getWithdrawalRequestDelegator[msg.sender][wrID] = delegator;
 
         _activeWithdrawalRequestIDs[msg.sender].add(wrID);
 
-        emit Undelegated(msg.sender, amount, wrID);
+        emit Undelegated(delegator, amount, wrID);
+        emit UndelegatedFor(msg.sender, delegator, amount, wrID);
 
         return wrID;
     }
@@ -182,7 +227,7 @@ contract QuotaContractV2 is Ownable {
 
     function setHoldTime(uint256 _holdTime) external onlyOwner {
         require(_holdTime >= MIN_HOLD_TIME, 'HoldTime must be at least 1');
-        require(_holdTime <= MAX_HOLD_TIME, 'HoldTime must be at most 10^9');
+        require(_holdTime <= MAX_HOLD_TIME, 'HoldTime must be at most 90 days');
         holdTime = _holdTime;
         emit HoldTimeUpdated(_holdTime);
     }
@@ -205,7 +250,13 @@ contract QuotaContractV2 is Ownable {
 
         _activeWithdrawalRequestIDs[msg.sender].remove(wrID);
 
+        address delegator = getWithdrawalRequestDelegator[msg.sender][wrID];
+        if (delegator == address(0)) {
+            delegator = msg.sender;
+        }
+
         emit Withdrawn(msg.sender, amount, wrID);
+        emit WithdrawnFor(msg.sender, delegator, amount, wrID);
 
         (bool sent, ) = msg.sender.call{value: amount}('');
         require(sent, 'Failed to send Ether');
@@ -219,16 +270,14 @@ contract QuotaContractV2 is Ownable {
     }
 
     function getActiveWrRequests(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (WithdrawalRequest[] memory) {
         WithdrawalRequest[] memory requests = new WithdrawalRequest[](limit);
         for (uint256 i = 0; i < limit; ) {
-            uint256 wrID = _activeWithdrawalRequestIDs[delegator].at(
-                i + offset
-            );
-            requests[i] = getWithdrawalRequest[delegator][wrID];
+            uint256 wrID = _activeWithdrawalRequestIDs[staker].at(i + offset);
+            requests[i] = getWithdrawalRequest[staker][wrID];
             unchecked {
                 ++i;
             }
@@ -237,13 +286,13 @@ contract QuotaContractV2 is Ownable {
     }
 
     function getActiveWithdrawalRequestIDs(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](limit);
         for (uint256 i = 0; i < limit; ) {
-            ids[i] = _activeWithdrawalRequestIDs[delegator].at(i + offset);
+            ids[i] = _activeWithdrawalRequestIDs[staker].at(i + offset);
             unchecked {
                 ++i;
             }
@@ -251,31 +300,31 @@ contract QuotaContractV2 is Ownable {
         return ids;
     }
 
-    function getNumberOfActiveWithdrawalRequestIDs(address delegator)
+    function getNumberOfActiveWithdrawalRequestIDs(address staker)
         external
         view
         returns (uint256)
     {
-        return _activeWithdrawalRequestIDs[delegator].length();
+        return _activeWithdrawalRequestIDs[staker].length();
     }
 
-    function hasActiveWithdrawalRequestId(address delegator, uint256 wrID)
+    function hasActiveWithdrawalRequestId(address staker, uint256 wrID)
         external
         view
         returns (bool)
     {
-        return _activeWithdrawalRequestIDs[delegator].contains(wrID);
+        return _activeWithdrawalRequestIDs[staker].contains(wrID);
     }
 
     function getCompletedWrRequests(
-        address delegator,
+        address staker,
         uint256 offset,
         uint256 limit
     ) external view returns (WithdrawalRequest[] memory) {
         WithdrawalRequest[] memory requests = new WithdrawalRequest[](limit);
         for (uint256 i = 0; i < limit; ) {
-            uint256 wrID = completedWithdrawalRequestIDs[delegator][i + offset];
-            requests[i] = getWithdrawalRequest[delegator][wrID];
+            uint256 wrID = completedWithdrawalRequestIDs[staker][i + offset];
+            requests[i] = getWithdrawalRequest[staker][wrID];
             unchecked {
                 ++i;
             }
@@ -283,22 +332,32 @@ contract QuotaContractV2 is Ownable {
         return requests;
     }
 
-    function getNumberOfCompletedWithdrawalRequestIDs(address delegator)
+    function getNumberOfCompletedWithdrawalRequestIDs(address staker)
         external
         view
         returns (uint256)
     {
-        return completedWithdrawalRequestIDs[delegator].length;
+        return completedWithdrawalRequestIDs[staker].length;
     }
 
-    function _rawDelegate(address delegator, uint256 amount) internal {
+    function _rawDelegate(
+        address staker,
+        address delegator,
+        uint256 amount
+    ) internal {
         require(amount > 0, 'zero amount');
 
+        getFundedStake[staker][delegator] += amount;
         getStake[delegator] += amount;
         totalStake += amount;
     }
 
-    function _rawUndelegate(address delegator, uint256 amount) internal {
+    function _rawUndelegate(
+        address staker,
+        address delegator,
+        uint256 amount
+    ) internal {
+        getFundedStake[staker][delegator] -= amount;
         getStake[delegator] -= amount;
         totalStake -= amount;
     }
