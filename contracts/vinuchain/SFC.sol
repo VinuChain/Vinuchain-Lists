@@ -773,8 +773,8 @@ contract StakersConstants {
 
 contract Version {
     function version() external pure returns (bytes3) {
-        // version 3.0.4
-        return "304";
+        // version 3.0.5
+        return "305";
     }
 }
 
@@ -1010,6 +1010,15 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         address indexed delegator,
         uint256 indexed toValidatorID,
         uint256 amount
+    );
+    /// Emitted when an orphaned (delegator, validator) pair is back-registered
+    /// into the `stakes[]` enumeration array. Orphans exist because the V1 SFC
+    /// path that produced them updated `getStake[]` without pushing a matching
+    /// `stakes[]` entry; V2 inherits that storage state across bytecode swaps.
+    event RegisteredStake(
+        address indexed delegator,
+        uint256 indexed toValidatorID,
+        uint256 position
     );
     event Undelegated(
         address indexed delegator,
@@ -1607,7 +1616,14 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
 
         if (getStake[delegator][toValidatorID] == 0) {
             uint256 stakePos = stakePosition[delegator][toValidatorID];
-            _removeStake(stakePos);
+            // Orphaned entries (getStake > 0 but stakePosition == 0) exist on
+            // mainnet/testnet for legacy V1-era stakes. Skipping _removeStake
+            // for them unblocks full undelegate-to-zero; the sentinel guard in
+            // _removeStake still protects against accidental position-0 removal
+            // for non-orphaned entries.
+            if (stakePos != 0) {
+                _removeStake(stakePos);
+            }
         }
 
         if (getValidator[toValidatorID].status == OK_STATUS) {
@@ -1650,6 +1666,84 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
 
         stakePosition[removedDelegator][removedValidatorId] = 0;
     }
+
+    // Permissionless self-registration of an orphaned (msg.sender, toValidatorID)
+    // pair into the `stakes[]` enumeration array.
+    //
+    // An orphan is a delegation where `getStake[delegator][toValidatorID] > 0`
+    // but `stakePosition[delegator][toValidatorID] == 0` (no entry in stakes[]).
+    // Orphans exist on both mainnet and testnet for delegations made under V1
+    // SFC code paths that did not push to stakes[]. They are functionally
+    // affected in two ways: (1) they are hidden from `getStakes()` enumeration,
+    // (2) a full undelegate to zero would have reverted on _removeStake(0)
+    // (this revert is fixed in the companion change to _rawUndelegate).
+    //
+    // Anyone with an orphaned stake may call this to publish themselves. The
+    // recorded timestamp reflects the registration block, not the original
+    // delegation block — the original timestamp is unrecoverable on-chain.
+    function registerStake(uint256 toValidatorID) external nonReentrant {
+        address delegator = msg.sender;
+        require(getStake[delegator][toValidatorID] > 0, "no stake to register");
+        require(
+            stakePosition[delegator][toValidatorID] == 0,
+            "stake already registered"
+        );
+        require(block.timestamp <= 2**96 - 1, "timestamp overflow for uint96");
+
+        uint256 position = stakes.length;
+        stakePosition[delegator][toValidatorID] = position;
+        stakes.push(
+            StakeWithoutAmount({
+                delegator: delegator,
+                timestamp: uint96(block.timestamp),
+                validatorId: toValidatorID
+            })
+        );
+        emit RegisteredStake(delegator, toValidatorID, position);
+    }
+
+    // Owner-only bulk back-fill for orphaned (delegator, validator) pairs.
+    //
+    // Equivalent to a sequence of registerStake() calls performed on behalf of
+    // affected users so the explorer enumeration and the orphan-aware
+    // _rawUndelegate guard converge without requiring every user to send a
+    // transaction. Skips any pair that is already registered or whose stake
+    // is zero, so the same call list is safe to retry on partial failure.
+    //
+    // MAX_BACKFILL_BATCH bounds the loop to keep a single call well below the
+    // block gas limit; ops should split larger lists into multiple calls.
+    function backfillStakes(
+        address[] calldata delegators,
+        uint256[] calldata validatorIDs
+    ) external onlyOwner {
+        uint256 length = delegators.length;
+        require(length == validatorIDs.length, "mismatched array lengths");
+        require(length <= MAX_BACKFILL_BATCH, "batch too large");
+        require(block.timestamp <= 2**96 - 1, "timestamp overflow for uint96");
+
+        for (uint256 i = 0; i < length; ) {
+            address delegator = delegators[i];
+            uint256 toValidatorID = validatorIDs[i];
+            if (
+                getStake[delegator][toValidatorID] > 0 &&
+                stakePosition[delegator][toValidatorID] == 0
+            ) {
+                uint256 position = stakes.length;
+                stakePosition[delegator][toValidatorID] = position;
+                stakes.push(
+                    StakeWithoutAmount({
+                        delegator: delegator,
+                        timestamp: uint96(block.timestamp),
+                        validatorId: toValidatorID
+                    })
+                );
+                emit RegisteredStake(delegator, toValidatorID, position);
+            }
+            i = i.add(1);
+        }
+    }
+
+    uint256 internal constant MAX_BACKFILL_BATCH = 200;
 
     function undelegate(
         uint256 toValidatorID,
