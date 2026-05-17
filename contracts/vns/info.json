@@ -1,0 +1,116 @@
+{
+  "name": "VinuChain Name Service",
+  "website": "https://vinuchain.org",
+  "description": "VinuChain Name Service (VNS) testnet deployment, ported from @ensdomains/ens-contracts v1.7.0 with the registrar and wrapper targeting the .vinu TLD.",
+  "contact": "hello@vinuchain.com",
+  "security": "hello@vinuchain.com",
+  "contracts": [
+    {
+      "name": "VNSRegistry",
+      "artifact": "ENSRegistry",
+      "address": "0x75a267fe2910BF96bA42924a67411E1091Be97C3",
+      "type": "other",
+      "description": "Canonical VNS registry for name owner, resolver, and TTL records on VinuChain testnet."
+    },
+    {
+      "name": "Root",
+      "address": "0xeC612586627a4315954fA80ba3982D28c15735bE",
+      "type": "governance",
+      "description": "Ownable root controller that manages top-level VNS subnodes such as .vinu and reverse."
+    },
+    {
+      "name": "ReverseRegistrar",
+      "address": "0xB7d2D6C6c897cEfe6D4a92164DCBdAA9a6294FD7",
+      "type": "controller",
+      "description": "ENS-compatible addr.reverse registrar used for VNS primary-name reverse records."
+    },
+    {
+      "name": "DefaultReverseRegistrar",
+      "address": "0x787e8D94D39a2c296E8Aeca482a522BCDA5d2F2E",
+      "type": "controller",
+      "description": "Standalone default.reverse registrar for chain-default reverse name records."
+    },
+    {
+      "name": "DefaultReverseResolver",
+      "address": "0x22Df7D962e56619145ec448a0F7cEB6A7C844cD2",
+      "type": "helper",
+      "description": "Resolver for default.reverse records backed by DefaultReverseRegistrar."
+    },
+    {
+      "name": "VNSBaseRegistrar",
+      "artifact": "BaseRegistrarImplementation",
+      "address": "0x9e450D84E12090c7A927ec369D514c969F76f11C",
+      "type": "nft",
+      "description": "ERC-721 base registrar for second-level .vinu names."
+    },
+    {
+      "name": "OwnedResolver",
+      "address": "0xF45Ee4Be3C1f93B6daD46d3d4A5264151C084794",
+      "type": "helper",
+      "description": "Owner-controlled resolver assigned to the .vinu node for interface records."
+    },
+    {
+      "name": "DummyOracle",
+      "address": "0xa99e68A0E3e78d16252f6C6460b8c8F8D613a0B9",
+      "type": "oracle",
+      "description": "Static USD price oracle used by the testnet VNS price oracle."
+    },
+    {
+      "name": "ExponentialPremiumPriceOracle",
+      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+      "type": "oracle",
+      "description": "ENS exponential premium price oracle configured for VNS testnet registrations."
+    },
+    {
+      "name": "StaticMetadataService",
+      "address": "0xAE8B12256B7AFEdc250914501867cbaC0a5A9eeB",
+      "type": "helper",
+      "description": "Static metadata URL service for wrapped VNS name tokens."
+    },
+    {
+      "name": "NameWrapper",
+      "address": "0x7e82c20DB1E128F73D0370Ea05CA98d0CCDB5E26",
+      "type": "nft",
+      "description": "Patched ENS NameWrapper using .vinu constants and DNS wire names."
+    },
+    {
+      "name": "VNSRegistrarController",
+      "artifact": "ETHRegistrarController",
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "type": "controller",
+      "description": "Patched ENS registrar controller that registers .vinu names and writes VNS reverse records."
+    },
+    {
+      "name": "VNSBulkRenewal",
+      "artifact": "StaticBulkRenewal",
+      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "type": "helper",
+      "description": "Bulk renewal helper for .vinu names."
+    },
+    {
+      "name": "VNSPublicResolver",
+      "artifact": "PublicResolver",
+      "address": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
+      "type": "helper",
+      "description": "Public resolver for VNS address, text, contenthash, interface, pubkey, and multicall records."
+    },
+    {
+      "name": "GatewayProvider",
+      "address": "0xbd3D532604cDC469aF0C69e7D8fbC11420eB7BaC",
+      "type": "helper",
+      "description": "Gateway provider used by the universal resolver for offchain lookup routing."
+    },
+    {
+      "name": "UniversalResolver",
+      "address": "0x79165046bac745Aad2649b2278EEb1389AA577AA",
+      "type": "helper",
+      "description": "ENS universal resolver deployed against the VNS registry."
+    }
+  ],
+  "social": {
+    "github": "https://github.com/VinuChain",
+    "twitter": "https://x.com/vinuchain",
+    "telegram": "https://t.me/vinuchain",
+    "discord": "https://discord.gg/vinu"
+  }
+}

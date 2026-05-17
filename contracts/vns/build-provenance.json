@@ -1,0 +1,151 @@
+{
+  "source": {
+    "package": "@ensdomains/ens-contracts",
+    "version": "1.7.0",
+    "tag": "v1.7.0",
+    "commit": "9b034936a42f462fc04bc0a929a419ede5e18d59",
+    "tarball": "https://registry.npmjs.org/@ensdomains/ens-contracts/-/ens-contracts-1.7.0.tgz",
+    "integrity": "sha512-B5S7CzWGx0RYyseBkIBQRclZLTWjXaRAtNbP7+Pwvt/Xh9P7jCXlRbyu/6gydwdxFqQfRVM8EVD3R6bj0zRAqw==",
+    "shasum": "f616dca202e20b7d4c94dcae4b903d2d4278af69"
+  },
+  "patchedFiles": [
+    "contracts/ethregistrar/ETHRegistrarController.sol",
+    "contracts/wrapper/NameWrapper.sol",
+    "contracts/utils/NameCoder.sol"
+  ],
+  "patchFile": "vns-port.patch",
+  "sourceSnapshot": "source/contracts",
+  "buildInfo": {
+    "hardhatConfig": {
+      "path": "source/hardhat.config.ts",
+      "sha256": "ffd8b1b4932ab48700e60caa0fa181b893cc5604f0b6a5aa58a748ba5c86d2ae"
+    },
+    "packageLock": {
+      "path": "source/package-lock.json",
+      "sha256": "e1944c8c86c40fe0660f1edc4a9ab93a8b88a4621b03cac26fb6989b2738bf20"
+    },
+    "files": {
+      "source/artifacts/build-info/solc-0_8_17-94e308d830e4d48df386cbcaa4f262015b17c3eb.json": "eb321bf63b865d05ace19642ff3cda920d78c5abfae8cdacba9ca6d3b4a1df8b",
+      "source/artifacts/build-info/solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272.json": "e46851b3229da5d67b7552d5af00a0b56dda324f5a9251e1e968b78ca3941fce"
+    }
+  },
+  "compilerSettings": {
+    "default": {
+      "version": "0.8.26",
+      "optimizer": {
+        "enabled": true,
+        "runs": 1000000
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs",
+        "useLiteralContent": true
+      },
+      "evmVersion": "paris"
+    },
+    "legacy": {
+      "version": "0.8.17",
+      "optimizer": {
+        "enabled": true,
+        "runs": 1200
+      }
+    },
+    "overrides": {
+      "contracts/wrapper/NameWrapper.sol": {
+        "version": "0.8.17",
+        "optimizer": {
+          "enabled": true,
+          "runs": 1200
+        }
+      }
+    }
+  },
+  "deployedArtifactHashes": {
+    "ENSRegistry": {
+      "artifact": "artifacts/contracts/registry/ENSRegistry.sol/ENSRegistry.json",
+      "bytecodeHash": "0xdfc5a81975d4c68ce0405dc936606caf0bfee6edf9636eaeee0b58f29d0367d0",
+      "deployedBytecodeHash": "0x24c2480951e13704e7f454e2ac4c94ac09f80ccddfe8a2d796e9bb03b872dfff"
+    },
+    "Root": {
+      "artifact": "artifacts/contracts/root/Root.sol/Root.json",
+      "bytecodeHash": "0x72ee8d7620a3316ed3b04c9ddddd0cb4d6cd4ff4d7cfcb6123be58cd20a67ab0",
+      "deployedBytecodeHash": "0xed15e572c18da955b50ccbdc1313144810b8cc4d55cfd9935985e6bb62caca3e"
+    },
+    "ReverseRegistrar": {
+      "artifact": "artifacts/contracts/reverseRegistrar/ReverseRegistrar.sol/ReverseRegistrar.json",
+      "bytecodeHash": "0x55dc1422b2805c812491d027ebd4aaa22002b686fa1e3dd664b70e95c4924ac5",
+      "deployedBytecodeHash": "0x056d6fc1afa6dbdcd62961bee5cd2e8fd9f5110b71289e67cba66aaa53b13fd6"
+    },
+    "DefaultReverseRegistrar": {
+      "artifact": "artifacts/contracts/reverseRegistrar/DefaultReverseRegistrar.sol/DefaultReverseRegistrar.json",
+      "bytecodeHash": "0xd4e8dfa2c7869b78a7a45ef1e47dd005a4e2168a94e3b8947eb374ba151ec588",
+      "deployedBytecodeHash": "0xc7a0f45254638abb2609940df39fd3fa07a0d3f1b59d8c8be772d5c58ce00bca"
+    },
+    "DefaultReverseResolver": {
+      "artifact": "artifacts/contracts/reverseResolver/DefaultReverseResolver.sol/DefaultReverseResolver.json",
+      "bytecodeHash": "0x779e315a162f8f9b7901ab2126aa3938077164722cc09bd084330a649217307c",
+      "deployedBytecodeHash": "0x3a7c5deee338f6126156906ed6b99d508ca978e890686165a5e29bb984cfe157"
+    },
+    "BaseRegistrarImplementation": {
+      "artifact": "artifacts/contracts/ethregistrar/BaseRegistrarImplementation.sol/BaseRegistrarImplementation.json",
+      "bytecodeHash": "0x667e304a033913fb5a874dea85641a8a070544985dbbfcb0c81b9e3a647e521e",
+      "deployedBytecodeHash": "0x34342def39263bc0e11b04de9eb3ef494d95709e9e5cdaa699703c535c2e0f98"
+    },
+    "OwnedResolver": {
+      "artifact": "artifacts/contracts/resolvers/OwnedResolver.sol/OwnedResolver.json",
+      "bytecodeHash": "0x477a1c1f5c824fbe5de3b8265d3c7be70f500b2052eb5edb2a0db01e97e340d0",
+      "deployedBytecodeHash": "0xa285f4118bb8accb421edb5c0ceb6d7455f5a56d025f5bff49736aba7c2764ab"
+    },
+    "DummyOracle": {
+      "artifact": "artifacts/contracts/ethregistrar/DummyOracle.sol/DummyOracle.json",
+      "bytecodeHash": "0x456a2a23e4020a22934f7311c260b12d7d947fd673ffb6cea9c9d3d5847ed394",
+      "deployedBytecodeHash": "0xc8992e58cf7ea532ae8430a1e2ecf896b43fc2f76b349f9187027e9038b647e5"
+    },
+    "ExponentialPremiumPriceOracle": {
+      "artifact": "artifacts/contracts/ethregistrar/ExponentialPremiumPriceOracle.sol/ExponentialPremiumPriceOracle.json",
+      "bytecodeHash": "0x9c1b463d5d6b4b157aa93c5cc2f312a50ae6a0e83cbc8e62c306ab056edef9ca",
+      "deployedBytecodeHash": "0xe4e26813d9c60bb43629fe91538f2b83a5339ccc436c33b25b2437da943c32ad"
+    },
+    "StaticMetadataService": {
+      "artifact": "artifacts/contracts/wrapper/StaticMetadataService.sol/StaticMetadataService.json",
+      "bytecodeHash": "0x4f4cd0a38bf80b686fe9e62fde472b71ad67ca68661af91841cfc28848ae6bc2",
+      "deployedBytecodeHash": "0x09cde84f26c8556b418d5829c75de515d8202cd0aa1f7cb56fe75aab05fbdc91"
+    },
+    "NameWrapper": {
+      "artifact": "artifacts/contracts/wrapper/NameWrapper.sol/NameWrapper.json",
+      "bytecodeHash": "0xdc7142378affe9bb3f1ce669c672d3748967f6725eb9e29882d192594925e615",
+      "deployedBytecodeHash": "0x508e1d9bc798d35d825aef1d0af4eafd2766885db7b5d3db241472b8a4f2aae8"
+    },
+    "ETHRegistrarController": {
+      "artifact": "artifacts/contracts/ethregistrar/ETHRegistrarController.sol/ETHRegistrarController.json",
+      "bytecodeHash": "0x476986a42be9625a284fa62a6134091cf5677ddc0920370fc98b9dd62fd676ab",
+      "deployedBytecodeHash": "0x4be99b6ffa00d08481ce1569151a71331d2cfcdeca32fb30121ce2c263fce189"
+    },
+    "StaticBulkRenewal": {
+      "artifact": "artifacts/contracts/ethregistrar/StaticBulkRenewal.sol/StaticBulkRenewal.json",
+      "bytecodeHash": "0x010312d9f2f77ff97cbba6ed9e2f3782ddbd4103582d7bb33d8ed05f26e42744",
+      "deployedBytecodeHash": "0xc0c39a55b32a477578c648eb4324ea3a0c008cf938cf97e5cfe804d5637908b5"
+    },
+    "PublicResolver": {
+      "artifact": "artifacts/contracts/resolvers/PublicResolver.sol/PublicResolver.json",
+      "bytecodeHash": "0x8d2fd7643a1150fffe0bc400bf1c52fec2e65c46a33670198ad85666cc44652b",
+      "deployedBytecodeHash": "0x20f66c4323f6cfed1d32c2095e46de2723edac3028813eb9a8bb3608cd51503e"
+    },
+    "GatewayProvider": {
+      "artifact": "artifacts/contracts/ccipRead/GatewayProvider.sol/GatewayProvider.json",
+      "bytecodeHash": "0x903a66dc0f6778134d0efcc47f887aabcfc8d28cadf43c79b1595b7c9dcb459f",
+      "deployedBytecodeHash": "0xaed9fc896b6fb0d4dba9bbc499884a1d1b8646ac5d0a0c24f11977bd8db790bb"
+    },
+    "UniversalResolver": {
+      "artifact": "artifacts/contracts/universalResolver/UniversalResolver.sol/UniversalResolver.json",
+      "bytecodeHash": "0x4d8ac385de64062641333497908627860cdc30247b081f5cbc4a96e0ff62fdbc",
+      "deployedBytecodeHash": "0x1b8eb861be07ddda89f14570cc724ffddfcfb72342e4f5f2a82c7b1d44932e88"
+    }
+  },
+  "intentionalExclusions": [
+    "DNSSEC oracle and DNS registrar",
+    "offchain DNS resolver flow",
+    "P-256 verification path",
+    "L2 reverse registrar",
+    "migration contracts"
+  ]
+}

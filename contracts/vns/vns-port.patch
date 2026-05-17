@@ -1,0 +1,119 @@
+diff --git a/contracts/ethregistrar/ETHRegistrarController.sol b/contracts/ethregistrar/ETHRegistrarController.sol
+index 81fcc9c..471effa 100644
+--- a/contracts/ethregistrar/ETHRegistrarController.sol
++++ b/contracts/ethregistrar/ETHRegistrarController.sol
+@@ -32,9 +32,9 @@ contract ETHRegistrarController is
+     /// @notice The minimum duration for a registration.
+     uint256 public constant MIN_REGISTRATION_DURATION = 28 days;
+ 
+-    // @notice The node (i.e. namehash) for the eth TLD.
++    // @notice The node (i.e. namehash) for the vinu TLD.
+     bytes32 private constant ETH_NODE =
+-        0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
++        0x8b2c096e21786c9afa7a1fedd1b69a27848cce61a49ec6363cd582b31efa6694;
+ 
+     /// @notice The maximum expiry time for a registration.
+     uint64 private constant MAX_EXPIRY = type(uint64).max;
+@@ -42,7 +42,7 @@ contract ETHRegistrarController is
+     /// @notice The ENS registry.
+     ENS public immutable ens;
+ 
+-    // @notice The base registrar implementation for the eth TLD.
++    // @notice The base registrar implementation for the vinu TLD.
+     BaseRegistrarImplementation immutable base;
+ 
+     /// @notice The minimum time a commitment must exist to be valid.
+@@ -57,7 +57,7 @@ contract ETHRegistrarController is
+     /// @notice The registrar for default.reverse. (i.e. fallback reverse for all EVM chains)
+     IDefaultReverseRegistrar public immutable defaultReverseRegistrar;
+ 
+-    /// @notice The price oracle for the eth TLD.
++    /// @notice The price oracle for the vinu TLD.
+     IPriceOracle public immutable prices;
+ 
+     /// @notice A mapping of commitments to their timestamp.
+@@ -321,12 +321,12 @@ contract ETHRegistrarController is
+                     msg.sender,
+                     msg.sender,
+                     registration.resolver,
+-                    string.concat(registration.label, ".eth")
++                    string.concat(registration.label, ".vinu")
+                 );
+             if (registration.reverseRecord & REVERSE_RECORD_DEFAULT_BIT != 0)
+                 defaultReverseRegistrar.setNameForAddr(
+                     msg.sender,
+-                    string.concat(registration.label, ".eth")
++                    string.concat(registration.label, ".vinu")
+                 );
+         }
+ 
+diff --git a/contracts/utils/NameCoder.sol b/contracts/utils/NameCoder.sol
+index e5d9a4c..b77c664 100755
+--- a/contracts/utils/NameCoder.sol
++++ b/contracts/utils/NameCoder.sol
+@@ -16,9 +16,9 @@ import {BytesUtils} from "./BytesUtils.sol";
+ /// * `dns.length == 2 + ens.length` and the mapping is injective.
+ ///
+ library NameCoder {
+-    /// @dev The namehash of "eth".
++    /// @dev The namehash of "vinu".
+     bytes32 public constant ETH_NODE =
+-        0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
++        0x8b2c096e21786c9afa7a1fedd1b69a27848cce61a49ec6363cd582b31efa6694;
+ 
+     /// @dev The label was empty.
+     ///      Error selector: `0xbf9a2740`
+@@ -359,14 +359,14 @@ library NameCoder {
+         return abi.encodePacked(assertLabelSize(label), label, name);
+     }
+ 
+-    /// @dev Transform `label` to DNS-encoded `{label}.eth`.
+-    ///      * `ethName("eth") = "\x04test\x03eth\x00"`
++    /// @dev Transform `label` to DNS-encoded `{label}.vinu`.
++    ///      * `ethName("vinu") = "\x04test\x04vinu\x00"`
+     ///      Behaves like `addLabel()`.
+     ///
+     /// @param label The label to encode.
+     ///
+     /// @return The DNS-encoded name.
+     function ethName(string memory label) internal pure returns (bytes memory) {
+-        return addLabel("\x03eth\x00", label);
++        return addLabel("\x04vinu\x00", label);
+     }
+ }
+diff --git a/contracts/wrapper/NameWrapper.sol b/contracts/wrapper/NameWrapper.sol
+index 667580a..13a8590 100644
+--- a/contracts/wrapper/NameWrapper.sol
++++ b/contracts/wrapper/NameWrapper.sol
+@@ -47,9 +47,9 @@ contract NameWrapper is
+ 
+     uint64 private constant GRACE_PERIOD = 90 days;
+     bytes32 private constant ETH_NODE =
+-        0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
++        0x8b2c096e21786c9afa7a1fedd1b69a27848cce61a49ec6363cd582b31efa6694;
+     bytes32 private constant ETH_LABELHASH =
+-        0x4f5b812789fc606be1b3b16908db13fc7a9adf7ca72641f84d75b47069d3d7f0;
++        0xf51f7b42cfc94df97ddae258deab475433ad9c881402cfc605a5e6b28b861605;
+     bytes32 private constant ROOT_NODE =
+         0x0000000000000000000000000000000000000000000000000000000000000000;
+ 
+@@ -80,7 +80,7 @@ contract NameWrapper is
+             MAX_EXPIRY
+         );
+         names[ROOT_NODE] = "\x00";
+-        names[ETH_NODE] = "\x03eth\x00";
++        names[ETH_NODE] = "\x04vinu\x00";
+     }
+ 
+     function supportsInterface(
+@@ -1002,8 +1002,8 @@ contract NameWrapper is
+     ) private {
+         bytes32 labelhash = keccak256(bytes(label));
+         bytes32 node = _makeNode(ETH_NODE, labelhash);
+-        // hardcode dns-encoded eth string for gas savings
+-        bytes memory name = _addLabel(label, "\x03eth\x00");
++        // hardcode dns-encoded vinu string for gas savings
++        bytes memory name = _addLabel(label, "\x04vinu\x00");
+         names[node] = name;
+ 
+         _wrap(
