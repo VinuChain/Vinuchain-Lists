@@ -15,6 +15,13 @@ const SHOULD_SEND = process.argv.includes('--send');
 const DISABLE_COINGECKO =
   process.env.VNS_ORACLE_DISABLE_COINGECKO === '1' ||
   process.argv.includes('--no-coingecko');
+const REQUIRE_POOL_GUARD =
+  SHOULD_SEND ||
+  process.env.VNS_ORACLE_REQUIRE_POOL_GUARD === '1' ||
+  process.argv.includes('--require-pool-guard');
+const ALLOW_SINGLE_SOURCE =
+  process.env.VNS_ORACLE_ALLOW_SINGLE_SOURCE === '1' ||
+  process.argv.includes('--allow-single-source');
 
 const COINGECKO_MAX_AGE_SECONDS = Number(
   process.env.VNS_COINGECKO_MAX_AGE_SECONDS || 15 * 60,
@@ -22,8 +29,25 @@ const COINGECKO_MAX_AGE_SECONDS = Number(
 const TWAP_WINDOW_SECONDS = Number(
   process.env.VNS_ORACLE_TWAP_WINDOW_SECONDS || 10 * 60,
 );
+const TWAP_WINDOWS_SECONDS = Array.from(
+  new Set(
+    [
+      TWAP_WINDOW_SECONDS,
+      5 * 60,
+      2 * 60,
+      60,
+      30,
+    ].filter((seconds) => Number.isFinite(seconds) && seconds > 0),
+  ),
+).sort((a, b) => b - a);
 const MAX_DEVIATION_BPS = Number(process.env.VNS_ORACLE_MAX_DEVIATION_BPS || 1000);
-const MIN_POOL_LIQUIDITY = BigInt(process.env.VNS_ORACLE_MIN_POOL_LIQUIDITY || '1');
+const MAX_UPDATE_BPS = Number(process.env.VNS_ORACLE_MAX_UPDATE_BPS || 2000);
+const EXPECTED_ORACLE_MAX_AGE = BigInt(
+  process.env.VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS || 24 * 60 * 60,
+);
+const MIN_POOL_LIQUIDITY = BigInt(
+  process.env.VNS_ORACLE_MIN_POOL_LIQUIDITY || '1000000000000',
+);
 
 const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/simple/price?ids=vinuchain&vs_currencies=usd&include_last_updated_at=true';
@@ -36,9 +60,17 @@ const V3_POOL_ABI = [
 ];
 const ORACLE_ABI = [
   'function setLatestAnswer(int256 newAnswer, string newSource) external',
+  'function decimals() view returns (uint8)',
+  'function description() view returns (string)',
   'function latestStoredAnswer() external view returns (int256)',
+  'function maxAge() view returns (uint256)',
+  'function maxAnswer() view returns (uint256)',
+  'function maxChangeBps() view returns (uint256)',
+  'function minAnswer() view returns (uint256)',
+  'function owner() view returns (address)',
   'function source() external view returns (string)',
   'function updatedAt() external view returns (uint256)',
+  'function version() view returns (uint256)',
 ];
 
 const POOLS = {
@@ -136,19 +168,37 @@ function tokenMeta(pool, address) {
 
 async function readPoolTwap(provider, pool) {
   const contract = new Contract(pool.poolAddress, V3_POOL_ABI, provider);
-  const [token0Address, token1Address, liquidity, observed] = await Promise.all([
+  const [token0Address, token1Address, liquidity] = await Promise.all([
     contract.token0(),
     contract.token1(),
     contract.liquidity(),
-    contract.observe([TWAP_WINDOW_SECONDS, 0]),
   ]);
   if (liquidity < MIN_POOL_LIQUIDITY) {
     throw new Error(`${pool.label} liquidity below minimum`);
   }
 
+  let observed = null;
+  let windowSeconds = null;
+  let lastError = null;
+  for (const candidateWindow of TWAP_WINDOWS_SECONDS) {
+    try {
+      observed = await contract.observe([candidateWindow, 0]);
+      windowSeconds = candidateWindow;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (!String(error?.message || error).includes('OLD')) {
+        throw error;
+      }
+    }
+  }
+  if (!observed || !windowSeconds) {
+    throw lastError || new Error(`${pool.label} TWAP observe failed`);
+  }
+
   const tickCumulatives = observed[0];
   const tickDelta = tickCumulatives[1] - tickCumulatives[0];
-  const avgTick = Number(divFloor(tickDelta, BigInt(TWAP_WINDOW_SECONDS)));
+  const avgTick = Number(divFloor(tickDelta, BigInt(windowSeconds)));
   const token0 = tokenMeta(pool, token0Address);
   const token1 = tokenMeta(pool, token1Address);
   const token1PerToken0 =
@@ -164,6 +214,7 @@ async function readPoolTwap(provider, pool) {
     token1: token1.symbol,
     token1PerToken0,
     liquidity: liquidity.toString(),
+    windowSeconds,
   };
 }
 
@@ -179,6 +230,11 @@ function quote(quoteData, base, counter) {
 
 function deviationBps(a, b) {
   return (Math.abs(a - b) / ((a + b) / 2)) * 10_000;
+}
+
+function deviationBpsBigInt(a, b) {
+  const delta = a > b ? a - b : b - a;
+  return (delta * 10_000n) / a;
 }
 
 async function fetchPoolPrice() {
@@ -226,6 +282,120 @@ function toOracleAnswer(usd) {
   return BigInt(scaled);
 }
 
+async function resolveVnsOraclePrice() {
+  const [coingeckoResult, poolResult] = await Promise.allSettled([
+    fetchCoinGeckoPrice(),
+    fetchPoolPrice(),
+  ]);
+  const coingecko =
+    coingeckoResult.status === 'fulfilled' ? coingeckoResult.value : null;
+  const pool = poolResult.status === 'fulfilled' ? poolResult.value : null;
+  const coingeckoError =
+    coingeckoResult.status === 'rejected' ? coingeckoResult.reason?.message : null;
+  const poolError = poolResult.status === 'rejected' ? poolResult.reason?.message : null;
+
+  if (coingecko && pool) {
+    const deviation = deviationBps(coingecko.usd, pool.usd);
+    if (deviation > MAX_DEVIATION_BPS) {
+      throw new Error(
+        `CoinGecko/V3 TWAP deviation ${deviation.toFixed(1)} bps exceeds ${MAX_DEVIATION_BPS}`,
+      );
+    }
+    return {
+      usd: coingecko.usd,
+      source: 'coingecko+v3-twap',
+      updatedAt: coingecko.updatedAt,
+      priceChainId: pool.priceChainId,
+      deviationBps: Math.round(deviation),
+      poolDeviationBps: pool.deviationBps,
+      coingeckoUsd: coingecko.usd,
+      poolUsd: pool.usd,
+      pools: pool.pools,
+    };
+  }
+
+  if (coingecko) {
+    if (REQUIRE_POOL_GUARD && !ALLOW_SINGLE_SOURCE) {
+      throw new Error(
+        `CoinGecko price is available but V3 TWAP guard failed: ${poolError || 'no pool price'}`,
+      );
+    }
+    return { ...coingecko, poolError };
+  }
+
+  if (pool) {
+    if (REQUIRE_POOL_GUARD && !ALLOW_SINGLE_SOURCE) {
+      throw new Error(
+        `V3 TWAP fallback is available but CoinGecko guard failed: ${coingeckoError || 'no CoinGecko price'}`,
+      );
+    }
+    return { ...pool, coingeckoError };
+  }
+
+  throw new Error('Unable to price VC from CoinGecko or guarded V3 TWAP pools');
+}
+
+async function verifyOracleForUpdate(provider, signer, oracle, answer) {
+  const address = await oracle.getAddress();
+  const code = await provider.getCode(address);
+  if (code === '0x') {
+    throw new Error(`No contract code at ${address}`);
+  }
+
+  const [
+    owner,
+    decimals,
+    description,
+    version,
+    maxAge,
+    minAnswer,
+    maxAnswer,
+    maxChangeBps,
+    previousAnswer,
+  ] = await Promise.all([
+    oracle.owner(),
+    oracle.decimals(),
+    oracle.description(),
+    oracle.version(),
+    oracle.maxAge(),
+    oracle.minAnswer(),
+    oracle.maxAnswer(),
+    oracle.maxChangeBps(),
+    oracle.latestStoredAnswer(),
+  ]);
+  const signerAddress = await signer.getAddress();
+  if (owner.toLowerCase() !== signerAddress.toLowerCase()) {
+    throw new Error(`Oracle owner is ${owner}; signer is ${signerAddress}`);
+  }
+  if (decimals !== 8n && decimals !== 8) {
+    throw new Error(`Oracle decimals is ${decimals}; expected 8`);
+  }
+  if (description !== 'VC / USD') {
+    throw new Error(`Oracle description is ${description}; expected VC / USD`);
+  }
+  if (version !== 1n && version !== 1) {
+    throw new Error(`Oracle version is ${version}; expected 1`);
+  }
+  if (maxAge !== EXPECTED_ORACLE_MAX_AGE) {
+    throw new Error(
+      `Oracle maxAge is ${maxAge}; expected ${EXPECTED_ORACLE_MAX_AGE}`,
+    );
+  }
+  if (answer < minAnswer || answer > maxAnswer) {
+    throw new Error(`Answer ${answer} outside oracle bounds ${minAnswer}-${maxAnswer}`);
+  }
+  if (previousAnswer > 0n) {
+    const updateBps = deviationBpsBigInt(previousAnswer, answer);
+    const allowedBps =
+      maxChangeBps < BigInt(MAX_UPDATE_BPS) ? maxChangeBps : BigInt(MAX_UPDATE_BPS);
+    if (updateBps > allowedBps) {
+      throw new Error(
+        `Answer update deviation ${updateBps} bps exceeds ${allowedBps}`,
+      );
+    }
+  }
+}
+
 async function main() {
   const targetProvider = new JsonRpcProvider(TARGET_RPC_URL);
   const targetChainId = await assertChain(
@@ -233,11 +403,7 @@ async function main() {
     EXPECTED_TARGET_CHAIN_ID,
     'target oracle',
   );
-  const price = (await fetchCoinGeckoPrice()) || (await fetchPoolPrice());
-
-  if (!price) {
-    throw new Error('Unable to price VC from CoinGecko or guarded V3 TWAP pools');
-  }
+  const price = await resolveVnsOraclePrice();
 
   const answer = toOracleAnswer(price.usd);
   console.log(
@@ -249,6 +415,9 @@ async function main() {
         targetChainId,
         priceChainId: price.priceChainId || null,
         deviationBps: price.deviationBps ?? null,
+        coingeckoUsd: price.coingeckoUsd ?? null,
+        poolUsd: price.poolUsd ?? null,
+        requirePoolGuard: REQUIRE_POOL_GUARD,
         mode: SHOULD_SEND ? 'send' : 'dry-run',
       },
       null,
@@ -262,13 +431,24 @@ async function main() {
 
   const signer = new Wallet(PRIVATE_KEY, targetProvider);
   const oracle = new Contract(ORACLE_ADDRESS, ORACLE_ABI, signer);
+  await verifyOracleForUpdate(targetProvider, signer, oracle, answer);
   const tx = await oracle.setLatestAnswer(answer, price.source);
   console.log(`submitted ${tx.hash}`);
   await tx.wait();
   console.log('confirmed');
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  assertChain,
+  fetchCoinGeckoPrice,
+  fetchPoolPrice,
+  resolveVnsOraclePrice,
+  toOracleAnswer,
+};

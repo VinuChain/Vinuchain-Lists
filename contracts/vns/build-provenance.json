@@ -34,7 +34,7 @@
     "files": {
       "source/artifacts/build-info/solc-0_8_17-94e308d830e4d48df386cbcaa4f262015b17c3eb.json": "eb321bf63b865d05ace19642ff3cda920d78c5abfae8cdacba9ca6d3b4a1df8b",
       "source/artifacts/build-info/solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272.json": "e46851b3229da5d67b7552d5af00a0b56dda324f5a9251e1e968b78ca3941fce",
-      "source/artifacts/build-info/solc-0_8_26-7f70ded34219c06ae9bb960d1457037613201fd2.json": "f6482725c2af72fc3af7091bdf4449976e52b483e55efd510477a9a84fce1e72"
+      "source/artifacts/build-info/solc-0_8_26-f3be6b93158cf2b96a8c61188bba319a88f864f0.json": "ba7e5f7e0c2c7be2c00430d8bde4a18f70086192defe0371e0c980188142d194"
     }
   },
   "compilerSettings": {
@@ -162,7 +162,7 @@
       "source": "source/contracts/ethregistrar/VinuUsdOracle.sol",
       "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
       "abi": "abis/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle_abi.json",
-      "purpose": "Owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data first and guarded VinuSwap V3 TWAP prices as fallback."
+      "purpose": "Bounded owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data and requires guarded VinuSwap V3 TWAP agreement before normal sends."
     }
   ]
 }

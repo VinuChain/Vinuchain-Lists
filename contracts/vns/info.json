@@ -50,16 +50,17 @@
       "description": "Owner-controlled resolver assigned to the .vinu node for interface records."
     },
     {
-      "name": "DummyOracle",
+      "name": "LegacyDummyOracle",
       "address": "0xa99e68A0E3e78d16252f6C6460b8c8F8D613a0B9",
       "type": "oracle",
-      "description": "Static USD price oracle used by the testnet VNS price oracle."
+      "description": "Legacy static USD price oracle retained for provenance; no longer used by the active VNS registrar controller.",
+      "artifact": "DummyOracle"
     },
     {
       "name": "ExponentialPremiumPriceOracle",
-      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+      "address": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
       "type": "oracle",
-      "description": "ENS exponential premium price oracle configured for VNS testnet registrations."
+      "description": "Active ENS exponential premium price oracle for VNS testnet registrations, wired to VinuUsdOracle."
     },
     {
       "name": "StaticMetadataService",
@@ -76,16 +77,16 @@
     {
       "name": "VNSRegistrarController",
       "artifact": "ETHRegistrarController",
-      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
       "type": "controller",
-      "description": "Patched ENS registrar controller that registers .vinu names and writes VNS reverse records."
+      "description": "Active patched ENS registrar controller that registers .vinu names, reads the real VinuUsdOracle-backed price oracle, and writes VNS reverse records."
     },
     {
       "name": "VNSBulkRenewal",
       "artifact": "StaticBulkRenewal",
-      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
       "type": "helper",
-      "description": "Bulk renewal helper for .vinu names."
+      "description": "Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller."
     },
     {
       "name": "VNSPublicResolver",
@@ -105,6 +106,33 @@
       "address": "0x79165046bac745Aad2649b2278EEb1389AA577AA",
       "type": "helper",
       "description": "ENS universal resolver deployed against the VNS registry."
+    },
+    {
+      "name": "VinuUsdOracle",
+      "address": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+      "type": "oracle",
+      "description": "Owner-updated VC/USD oracle used by the active VNS price oracle. Updates are sourced from CoinGecko first and guarded VinuSwap V3 TWAP fallback pricing."
+    },
+    {
+      "name": "LegacyExponentialPremiumPriceOracle",
+      "artifact": "ExponentialPremiumPriceOracle",
+      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+      "type": "oracle",
+      "description": "Legacy VNS premium price oracle that read the static DummyOracle before the real oracle-stack switch."
+    },
+    {
+      "name": "LegacyVNSRegistrarController",
+      "artifact": "ETHRegistrarController",
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "type": "controller",
+      "description": "Legacy VNS registrar controller retained for provenance after controller permissions were moved to the real oracle stack."
+    },
+    {
+      "name": "LegacyVNSBulkRenewal",
+      "artifact": "StaticBulkRenewal",
+      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "type": "helper",
+      "description": "Legacy bulk renewal helper that targets the pre-switch VNS registrar controller."
     }
   ],
   "social": {

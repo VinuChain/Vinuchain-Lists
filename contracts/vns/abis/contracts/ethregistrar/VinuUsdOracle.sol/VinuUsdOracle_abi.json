@@ -15,10 +15,62 @@
         "internalType": "uint256",
         "name": "initialMaxAge",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialMinAnswer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialMaxAnswer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialMaxChangeBps",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "previousAnswer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newAnswer",
+        "type": "uint256"
+      }
+    ],
+    "name": "AnswerChangeTooLarge",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "answer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minAnswer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxAnswer",
+        "type": "uint256"
+      }
+    ],
+    "name": "AnswerOutOfBounds",
+    "type": "error"
   },
   {
     "inputs": [],
@@ -27,7 +79,17 @@
   },
   {
     "inputs": [],
+    "name": "InvalidBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidMaxAge",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidMaxChangeBps",
     "type": "error"
   },
   {
@@ -82,11 +144,43 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "minAnswer",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxAnswer",
+        "type": "uint256"
+      }
+    ],
+    "name": "BoundsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "maxAge",
         "type": "uint256"
       }
     ],
     "name": "MaxAgeUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxChangeBps",
+        "type": "uint256"
+      }
+    ],
+    "name": "MaxChangeBpsUpdated",
     "type": "event"
   },
   {
@@ -107,6 +201,19 @@
     ],
     "name": "OwnershipTransferred",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BPS_DENOMINATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -175,6 +282,45 @@
   },
   {
     "inputs": [],
+    "name": "maxAnswer",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxChangeBps",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minAnswer",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -189,6 +335,24 @@
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newMinAnswer",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newMaxAnswer",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBounds",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -220,6 +384,19 @@
       }
     ],
     "name": "setMaxAge",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newMaxChangeBps",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMaxChangeBps",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

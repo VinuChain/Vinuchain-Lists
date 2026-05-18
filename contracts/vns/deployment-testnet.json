@@ -64,9 +64,9 @@
       "blockNumber": 1461402
     },
     "ExponentialPremiumPriceOracle": {
-      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
-      "transactionHash": "0x8a4639e49132fc6d7d9af474bc26c0f8648479f2828e5f03afcce3188cf89987",
-      "blockNumber": 1461403
+      "address": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
+      "transactionHash": "0x18939ffc040996a6f881288277d98d4517bcf6fbfc6d14e90fc7ea93802b25ba",
+      "blockNumber": 1462330
     },
     "StaticMetadataService": {
       "address": "0xAE8B12256B7AFEdc250914501867cbaC0a5A9eeB",
@@ -79,14 +79,14 @@
       "blockNumber": 1461405
     },
     "ETHRegistrarController": {
-      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
-      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
-      "blockNumber": 1461407
+      "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
+      "transactionHash": "0x1cda163b31d9682178cf2dbb2270f6177e50f078e2b9860b8acb1bb62d676075",
+      "blockNumber": 1462331
     },
     "StaticBulkRenewal": {
-      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
-      "transactionHash": "0x1bcda91c35235f37b533564b42e2b57be1ca14e0fae7985c22eca900fc697a2d",
-      "blockNumber": 1461412
+      "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
+      "transactionHash": "0x71de7626a9c57fff8df1f28e248833e1c5406734709f23de7d73ece849ccc8d8",
+      "blockNumber": 1462332
     },
     "PublicResolver": {
       "address": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
@@ -104,9 +104,9 @@
       "blockNumber": 1461416
     },
     "VNSRegistrarController": {
-      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
-      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
-      "blockNumber": 1461407
+      "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
+      "transactionHash": "0x1cda163b31d9682178cf2dbb2270f6177e50f078e2b9860b8acb1bb62d676075",
+      "blockNumber": 1462331
     },
     "VNSRegistry": {
       "address": "0x75a267fe2910BF96bA42924a67411E1091Be97C3",
@@ -124,9 +124,44 @@
       "blockNumber": 1461413
     },
     "VNSBulkRenewal": {
+      "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
+      "transactionHash": "0x71de7626a9c57fff8df1f28e248833e1c5406734709f23de7d73ece849ccc8d8",
+      "blockNumber": 1462332
+    },
+    "LegacyDummyOracle": {
+      "address": "0xa99e68A0E3e78d16252f6C6460b8c8F8D613a0B9",
+      "transactionHash": "0xc4624c403a3874a4b54661fed6c320dc303381c5247bec9781413b7939caf75b",
+      "blockNumber": 1461402
+    },
+    "LegacyExponentialPremiumPriceOracle": {
+      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+      "transactionHash": "0x8a4639e49132fc6d7d9af474bc26c0f8648479f2828e5f03afcce3188cf89987",
+      "blockNumber": 1461403
+    },
+    "LegacyETHRegistrarController": {
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
+      "blockNumber": 1461407
+    },
+    "LegacyVNSRegistrarController": {
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
+      "blockNumber": 1461407
+    },
+    "LegacyStaticBulkRenewal": {
       "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
       "transactionHash": "0x1bcda91c35235f37b533564b42e2b57be1ca14e0fae7985c22eca900fc697a2d",
       "blockNumber": 1461412
+    },
+    "LegacyVNSBulkRenewal": {
+      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "transactionHash": "0x1bcda91c35235f37b533564b42e2b57be1ca14e0fae7985c22eca900fc697a2d",
+      "blockNumber": 1461412
+    },
+    "VinuUsdOracle": {
+      "address": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+      "transactionHash": "0xb79708a615b3c578ffdff1a251ea9196560c454eccc31e395a6d0816c7cdc263",
+      "blockNumber": 1462329
     }
   },
   "transactions": {
@@ -185,6 +220,54 @@
     "controller.register(codexvns.vinu)": {
       "hash": "0x82503ba54552d43b30c0f2c3b957ba1bf72085a74eaf8809a1c62a558cc9c03b",
       "blockNumber": 1461429
+    },
+    "vnsOracleStack.deploy.VinuUsdOracle": {
+      "hash": "0xb79708a615b3c578ffdff1a251ea9196560c454eccc31e395a6d0816c7cdc263",
+      "blockNumber": 1462329
+    },
+    "vnsOracleStack.deploy.ExponentialPremiumPriceOracle": {
+      "hash": "0x18939ffc040996a6f881288277d98d4517bcf6fbfc6d14e90fc7ea93802b25ba",
+      "blockNumber": 1462330
+    },
+    "vnsOracleStack.deploy.ETHRegistrarController": {
+      "hash": "0x1cda163b31d9682178cf2dbb2270f6177e50f078e2b9860b8acb1bb62d676075",
+      "blockNumber": 1462331
+    },
+    "vnsOracleStack.deploy.StaticBulkRenewal": {
+      "hash": "0x71de7626a9c57fff8df1f28e248833e1c5406734709f23de7d73ece849ccc8d8",
+      "blockNumber": 1462332
+    },
+    "baseRegistrar.addController(newController)": {
+      "hash": "0x28cc7a0caf66dd85542adae51050d410b43a77ee75fc1e2cefd0c4265a47fef7",
+      "blockNumber": 1462333
+    },
+    "nameWrapper.setController(newController)": {
+      "hash": "0x048e4b422f81dfa7063ec12b91194d37696df9549a5fb58abd33de151db3ecbd",
+      "blockNumber": 1462334
+    },
+    "reverseRegistrar.setController(newController)": {
+      "hash": "0x370af3d0a681a895797f82b86005b4cf48b2ab876081536b6bb2eb101fa4714a",
+      "blockNumber": 1462335
+    },
+    "defaultReverseRegistrar.setController(newController)": {
+      "hash": "0xa6f2b434328696ceb700f8ba4ed3bdb2eb1d6ac66ad1b0481d1f9b1930ab6b54",
+      "blockNumber": 1462336
+    },
+    "baseRegistrar.removeController(oldController)": {
+      "hash": "0xdf3f0991a2d8fffd5f148fb6ec1a7d3afc8606e827f4b8ae1889dba79f690866",
+      "blockNumber": 1462337
+    },
+    "nameWrapper.removeController(oldController)": {
+      "hash": "0x83e9bcbf61210264a5861b9e0a8db0e601b615a81c20c9edbed3d1c0a025db2a",
+      "blockNumber": 1462338
+    },
+    "reverseRegistrar.removeController(oldController)": {
+      "hash": "0xb9d2d588b74bcdfba61d58f93aa707cc725228523b4614fb47848c64c0e96aed",
+      "blockNumber": 1462339
+    },
+    "defaultReverseRegistrar.removeController(oldController)": {
+      "hash": "0xe1278818525c633e8849ab5c1703639daffeb08646477ea43c0dd2e7a02b382b",
+      "blockNumber": 1462340
     }
   },
   "smoke": {
@@ -192,6 +275,69 @@
     "node": "0x083e64b73b42885c8b58586f144e1bb568800fdf31f0a07ff26eff93de2ec0df",
     "owner": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
     "resolver": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
-    "priceWei": "3125000000003490"
+    "priceWei": "457051446853456371582826",
+    "controller": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21"
+  },
+  "oracleStack": {
+    "switchedAt": "2026-05-18T14:09:41.267Z",
+    "source": "coingecko+v3-twap",
+    "vcUsd": 0.00035007,
+    "oracleAnswer": "35007",
+    "oracleDecimals": 8,
+    "oracleMaxAgeSeconds": "86400",
+    "minOracleAnswer": "1000",
+    "maxOracleAnswer": "1000000",
+    "maxOracleChangeBps": "2000",
+    "rentPrices": [
+      "0",
+      "0",
+      "20294266869609",
+      "5073566717402",
+      "158548959919"
+    ],
+    "startPremium": "100000000000000000000000000",
+    "premiumDays": "21",
+    "minCommitmentAge": "60",
+    "maxCommitmentAge": "86400",
+    "oldUsdOracle": "0xa99e68A0E3e78d16252f6C6460b8c8F8D613a0B9",
+    "newUsdOracle": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+    "oldPriceOracle": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+    "newPriceOracle": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
+    "oldController": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+    "newController": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
+    "oldControllerRevoked": true,
+    "verification": {
+      "oracle": {
+        "latestAnswer": "35007",
+        "latestStoredAnswer": "35007",
+        "maxAge": "86400",
+        "minAnswer": "1000",
+        "maxAnswer": "1000000",
+        "maxChangeBps": "2000",
+        "owner": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
+        "source": "coingecko+v3-twap",
+        "updatedAt": "1779113315"
+      },
+      "priceOracle": {
+        "usdOracle": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+        "price1Letter": "0",
+        "price2Letter": "0",
+        "price3Letter": "20294266869609",
+        "price4Letter": "5073566717402",
+        "price5Letter": "158548959919"
+      },
+      "controller": {
+        "prices": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
+        "minCommitmentAge": "60",
+        "maxCommitmentAge": "86400",
+        "nameAvailable": true
+      },
+      "renewalQuote": {
+        "label": "name",
+        "duration": "31536000",
+        "base": "457051446853456371582826",
+        "premium": "0"
+      }
+    }
   }
 }

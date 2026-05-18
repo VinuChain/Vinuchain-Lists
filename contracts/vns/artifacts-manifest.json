@@ -541,10 +541,10 @@
       "sourceName": "contracts/ethregistrar/VinuUsdOracle.sol",
       "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
       "abi": "abis/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle_abi.json",
-      "artifactSha256": "fea9d0d1905048603c7d3d1bf23edcec33ae67dd4e09d969e65ac1977e479b1e",
-      "abiSha256": "063df51172c68dea81e49c83a15c640d3e7dcb05fdcd3de31735f4c5edd46ed1",
-      "bytecodeSha256": "04ce7e724316edc67290429e8e0838b95eede6bb5150b169ad48b9fff7033571",
-      "deployedBytecodeSha256": "dd4e97805c335e23eccacde182d4e6929d4adc3b5880764d6c0f6e8a17063d0d"
+      "artifactSha256": "83bb40f5be01a7b16c12f684391bcd5ed5dfb704e834f84c1baee40457035d1b",
+      "abiSha256": "e93eeb802bfa7d0927576bb2c354d4dc25799de4ef9dda61ef4b7d88c842977b",
+      "bytecodeSha256": "8da810db83fa86ceea45be58fed63340497b6c5febaf5681b4dc93b91428e6b0",
+      "deployedBytecodeSha256": "b1cb630b3c1689e7c4e69c9438e2c0ae0e8aa200e6076c699254335596322d86"
     },
     {
       "contractName": "ENS",
