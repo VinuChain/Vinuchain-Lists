@@ -48,8 +48,8 @@ contract QuotaContractV2 is Ownable {
     // 90 days. V1's MAX_HOLD_TIME was 10^9 sec (~31.7 years) — that ceiling
     // had no operational justification and meant a compromised owner key
     // could setHoldTime(MAX) and effectively freeze every new unstake
-    // request's withdrawStake path. 90 days is comfortably above V1's
-    // live setting of 7 days, leaves headroom for protocol-policy changes,
+    // request's withdrawStake path. 90 days is comfortably above the intended
+    // production policy, leaves headroom for protocol-policy changes,
     // and caps owner-key-compromise blast radius to a known horizon.
     uint256 public constant MAX_HOLD_TIME = 90 * 24 * 60 * 60;
     uint256 public constant MIN_QUOTA_FACTOR = 10**3;
