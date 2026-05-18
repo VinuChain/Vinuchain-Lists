@@ -12,7 +12,9 @@ The full patched source snapshot is under `source/contracts/`. Compiled
 Hardhat artifacts for every contract in that snapshot are under
 `source/artifacts/contracts/`, with ABI-only copies mirrored under
 `abis/contracts/`. `artifacts-manifest.json` records the artifact path, ABI
-path, and SHA-256 hashes for each compiled output.
+path, and SHA-256 hashes for each compiled output. `build-provenance.json`
+also pins the bytecode and deployed-bytecode hashes for the compiled artifact
+set used by the contracts recorded in `deployment-testnet.json`.
 
 The flat `*.sol` and `*_abi.json` files in this directory are compatibility
 copies used by the existing `vinuchain-lists` validator and contract registry
