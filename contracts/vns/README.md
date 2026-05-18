@@ -18,6 +18,20 @@ The flat `*.sol` and `*_abi.json` files in this directory are compatibility
 copies used by the existing `vinuchain-lists` validator and contract registry
 schema for the deployed VNS contracts.
 
+`VinuUsdOracle.sol` is a VinuChain-specific replacement price-feed contract for
+the next VNS controller deployment. It exposes the `latestAnswer()` interface
+expected by `StablePriceOracle`, stores VC/USD with 8 decimals, restricts price
+updates to the owner, and reverts when the answer is stale. The companion
+operator script `scripts/update-vns-oracle.js` prices VC from CoinGecko first
+and falls back to guarded VinuSwap V3 TWAP reads before submitting
+`setLatestAnswer(...)`. The script preflights the target oracle chain ID and
+the VinuSwap pricing chain ID before any send.
+
+The already-recorded testnet controller still points at the legacy
+`DummyOracle` deployment. Public registration should remain disabled until a
+new `VinuUsdOracle`, price oracle, and registrar controller are deployed,
+registered as base-registrar controllers, and audited.
+
 The VNS port patch is recorded in `vns-port.patch`. It changes the ENS `.eth`
 constants and DNS wire-name helpers in:
 

@@ -1,8 +1,8 @@
 {
   "name": "VinuChain Name Service compiled artifacts",
   "source": "@ensdomains/ens-contracts@1.7.0 patched for .vinu",
-  "artifactCount": 165,
-  "abiCount": 165,
+  "artifactCount": 166,
+  "abiCount": 166,
   "artifactRoot": "source/artifacts/contracts",
   "abiRoot": "abis/contracts",
   "entries": [
@@ -535,6 +535,16 @@
       "abiSha256": "a727694d4196d0fd90a74a9394b7535d1a3dac9371c92b355434a77e8683a4b2",
       "bytecodeSha256": "a11ddf1d0e727b770a7fae7597a1fe4b1ed3ed33abc8ad55a228a804215a0a10",
       "deployedBytecodeSha256": "4c920f45c1f6145960d91d1ed8fcaafc46d4bee2dbd4be0e9460c91aac4fae16"
+    },
+    {
+      "contractName": "VinuUsdOracle",
+      "sourceName": "contracts/ethregistrar/VinuUsdOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
+      "abi": "abis/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle_abi.json",
+      "artifactSha256": "fea9d0d1905048603c7d3d1bf23edcec33ae67dd4e09d969e65ac1977e479b1e",
+      "abiSha256": "063df51172c68dea81e49c83a15c640d3e7dcb05fdcd3de31735f4c5edd46ed1",
+      "bytecodeSha256": "04ce7e724316edc67290429e8e0838b95eede6bb5150b169ad48b9fff7033571",
+      "deployedBytecodeSha256": "dd4e97805c335e23eccacde182d4e6929d4adc3b5880764d6c0f6e8a17063d0d"
     },
     {
       "contractName": "ENS",
