@@ -1,0 +1,30 @@
+[
+  {
+    "inputs": [],
+    "name": "InvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SignatureExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SignatureExpiryTooHigh",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "validator",
+    "outputs": [
+      {
+        "internalType": "contract IUniversalSignatureValidator",
+        "name": "",
+        "type": "IUniversalSignatureValidator"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

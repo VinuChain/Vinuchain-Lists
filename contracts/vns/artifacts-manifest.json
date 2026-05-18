@@ -1,0 +1,1660 @@
+{
+  "name": "VinuChain Name Service compiled artifacts",
+  "source": "@ensdomains/ens-contracts@1.7.0 patched for .vinu",
+  "artifactCount": 165,
+  "abiCount": 165,
+  "artifactRoot": "source/artifacts/contracts",
+  "abiRoot": "abis/contracts",
+  "entries": [
+    {
+      "contractName": "CCIPBatcher",
+      "sourceName": "contracts/ccipRead/CCIPBatcher.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/CCIPBatcher.sol/CCIPBatcher.json",
+      "abi": "abis/contracts/ccipRead/CCIPBatcher.sol/CCIPBatcher_abi.json",
+      "artifactSha256": "2b5f440a0d4d11025ffe2eb16b638dbdfefe80c1304354b7d6b7a4a656cb30fc",
+      "abiSha256": "85eb40d2fc7565bd005ca1dd01057a9d81b587ada6253b0ff66f09ca0c1b090a",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "CCIPReader",
+      "sourceName": "contracts/ccipRead/CCIPReader.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/CCIPReader.sol/CCIPReader.json",
+      "abi": "abis/contracts/ccipRead/CCIPReader.sol/CCIPReader_abi.json",
+      "artifactSha256": "e5d0ea435cc08fc3b36bf73cc7d7aadb8833c275bd95b5d174a4eb666801d1aa",
+      "abiSha256": "e1afaebbe2e190d1152875a53ac384d98561ce3279cc36be39aa5f795b3ae5f6",
+      "bytecodeSha256": "f59cde1c52226f547b5f7551df52d8706ab2e86f3b9e304c2bad2c680743f001",
+      "deployedBytecodeSha256": "857ae03e98ec3dd1ecb411f5dfbe8079b55b338f4aeb2a548066152053f65a7d"
+    },
+    {
+      "contractName": "EIP3668",
+      "sourceName": "contracts/ccipRead/EIP3668.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/EIP3668.sol/EIP3668.json",
+      "abi": "abis/contracts/ccipRead/EIP3668.sol/EIP3668_abi.json",
+      "artifactSha256": "cb673e504fe4e6972e4be2bba373abf2a673e50ec779f0f5b614bff8958506f6",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "bb18228c1315fdbe07630c1ebe07fb2e312e975a878f4ca760b16d6a7a66366b",
+      "deployedBytecodeSha256": "9b8ea3abb00dbdc61afc1f9aed87cf7e1ee782e43e3c508705673672e89ef4e5"
+    },
+    {
+      "contractName": "GatewayProvider",
+      "sourceName": "contracts/ccipRead/GatewayProvider.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/GatewayProvider.sol/GatewayProvider.json",
+      "abi": "abis/contracts/ccipRead/GatewayProvider.sol/GatewayProvider_abi.json",
+      "artifactSha256": "b7079e5277f44027f635362a15a9c793daae3d4a694c373d1b5af1e655af933a",
+      "abiSha256": "5c9c2e9ae040cb319e4f8dc9457ac745e26b5b71c21e8ba31ddc40a9d441d65a",
+      "bytecodeSha256": "146d9be5b3e81140a244fd6f07bed0f8906d04efbc89b244c1eaf04b519379d9",
+      "deployedBytecodeSha256": "2d6fd1d3accc739754b36c0f858d481f972aba782864494a754baf7fef015a22"
+    },
+    {
+      "contractName": "IBatchGateway",
+      "sourceName": "contracts/ccipRead/IBatchGateway.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/IBatchGateway.sol/IBatchGateway.json",
+      "abi": "abis/contracts/ccipRead/IBatchGateway.sol/IBatchGateway_abi.json",
+      "artifactSha256": "1851a772a962b10c9de28c6e7e604049f523d4f9a479c23e205adfe08523b4f2",
+      "abiSha256": "b91d549a861b96fdca884162e4a4813f38c7ee3fcf3ba3c5a1e1ce5feb84a5a5",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IGatewayProvider",
+      "sourceName": "contracts/ccipRead/IGatewayProvider.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/IGatewayProvider.sol/IGatewayProvider.json",
+      "abi": "abis/contracts/ccipRead/IGatewayProvider.sol/IGatewayProvider_abi.json",
+      "artifactSha256": "9101258218b32bac422486496cf96e19149bc9f2d35d84f061dbc5cd54a916d3",
+      "abiSha256": "78cd73e3201e26390e148fba722d45ba81c6c7d2bc1ed4be7296373479bb3c12",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ShuffledGatewayProvider",
+      "sourceName": "contracts/ccipRead/ShuffledGatewayProvider.sol",
+      "artifact": "source/artifacts/contracts/ccipRead/ShuffledGatewayProvider.sol/ShuffledGatewayProvider.json",
+      "abi": "abis/contracts/ccipRead/ShuffledGatewayProvider.sol/ShuffledGatewayProvider_abi.json",
+      "artifactSha256": "96925c0fe6c232b0ba2f50d6c97dfcab87405a84616ff13b6d9b6333380ede0c",
+      "abiSha256": "23223967682a0219fea8fd71bd023f3318f380dbff9c8dac0bf2edc50c718717",
+      "bytecodeSha256": "85e7f658fe130763e51a4edc89752cba24efb7ca81136c1c26ee25ae24f08807",
+      "deployedBytecodeSha256": "0f2df6cf83486f781fc39e84c29844dbb7d5aff2151e2a331594a9c546dce4e0"
+    },
+    {
+      "contractName": "DNSClaimChecker",
+      "sourceName": "contracts/dnsregistrar/DNSClaimChecker.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/DNSClaimChecker.sol/DNSClaimChecker.json",
+      "abi": "abis/contracts/dnsregistrar/DNSClaimChecker.sol/DNSClaimChecker_abi.json",
+      "artifactSha256": "5119fd71f479e8ddc8459be47ba95724a7c5cf3c36476e19fdd599af8ec31310",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "f07b1d454e4912c9c860b8fff6f72720942be67266e9f4b2d7946434ec0573ea",
+      "deployedBytecodeSha256": "b69673d1cf84adb2efec7a0b8672e89f93abc69f5472ff47cb02aaf29e71895e"
+    },
+    {
+      "contractName": "DNSRegistrar",
+      "sourceName": "contracts/dnsregistrar/DNSRegistrar.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/DNSRegistrar.sol/DNSRegistrar.json",
+      "abi": "abis/contracts/dnsregistrar/DNSRegistrar.sol/DNSRegistrar_abi.json",
+      "artifactSha256": "bdbd07fec32a3cdf503ba6f76c68e8876daf6427c409565125dc8f44ef6b9f5a",
+      "abiSha256": "9e29fd53891ca7deb76d461e80d8cdfd4720f1facccaefb7ac54ce3d2e68fd86",
+      "bytecodeSha256": "6b847f587f25b2e6f37a0c1d51a0b98ff45f3d3160a533d4c31244efdcaf8d61",
+      "deployedBytecodeSha256": "677fff7dbbe0ecf5e21d1ae65c83dc950f128cf33b8dbf8455e3116bd067a100"
+    },
+    {
+      "contractName": "IDNSRegistrar",
+      "sourceName": "contracts/dnsregistrar/IDNSRegistrar.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/IDNSRegistrar.sol/IDNSRegistrar.json",
+      "abi": "abis/contracts/dnsregistrar/IDNSRegistrar.sol/IDNSRegistrar_abi.json",
+      "artifactSha256": "540d3ac17d9c1f9c5d5cb1add4e26dff309e836ed018f65c0ac11c01588ff31e",
+      "abiSha256": "c4e4d787f22819e284dda5a4053bff50d1bfff95b905cd1b9bdce76af8897923",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DummyDNSSEC",
+      "sourceName": "contracts/dnsregistrar/mocks/DummyDnsRegistrarDNSSEC.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/mocks/DummyDnsRegistrarDNSSEC.sol/DummyDNSSEC.json",
+      "abi": "abis/contracts/dnsregistrar/mocks/DummyDnsRegistrarDNSSEC.sol/DummyDNSSEC_abi.json",
+      "artifactSha256": "34c3eb816ca2623eb205c5ea55674b60ca1f56a5336eba34bdf23e76f12bc7f9",
+      "abiSha256": "0ce9dcfc16820f981647146f47c64b82e1e69c8ff047b607120950e949a29164",
+      "bytecodeSha256": "13b23cc4cfc9d83c278de3e9419c4f6fc428f6cbc063f9091cf84034b7e9270a",
+      "deployedBytecodeSha256": "95313947a4c12894f607ff6cfbcec99e7e6b270652c055744875c7d24bd63265"
+    },
+    {
+      "contractName": "DummyExtendedDNSSECResolver",
+      "sourceName": "contracts/dnsregistrar/mocks/DummyExtendedDNSSECResolver.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/mocks/DummyExtendedDNSSECResolver.sol/DummyExtendedDNSSECResolver.json",
+      "abi": "abis/contracts/dnsregistrar/mocks/DummyExtendedDNSSECResolver.sol/DummyExtendedDNSSECResolver_abi.json",
+      "artifactSha256": "ddd2b713547799979da37b01f20be2c4ae819ef7de080b11a3062fbb25d7ed97",
+      "abiSha256": "b3916192cc61f2deaf221337cd0513eefd2811a71b873eefb436049432188ca2",
+      "bytecodeSha256": "1c7c92476bdfa343d0764fd0706d3f8013dcf51a08cea6f5e62c432e98107582",
+      "deployedBytecodeSha256": "dc5174b38d947b3a323fb8c3362c042df51997c1288a327bab84a35335ce402e"
+    },
+    {
+      "contractName": "DummyLegacyTextResolver",
+      "sourceName": "contracts/dnsregistrar/mocks/DummyLegacyTextResolver.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/mocks/DummyLegacyTextResolver.sol/DummyLegacyTextResolver.json",
+      "abi": "abis/contracts/dnsregistrar/mocks/DummyLegacyTextResolver.sol/DummyLegacyTextResolver_abi.json",
+      "artifactSha256": "27d566c796a3bc0285b91e9bcedada55b1c2047b205b80abc4ed317c644174bd",
+      "abiSha256": "6cb99a269d14f1374b02e2901f0c6c599b1634e8dff4a4c4d20fa1914e1b06bd",
+      "bytecodeSha256": "96c2ac9df5cbbe8348d7093eb35488878bcaf9a4c815f552873f1cd042be0625",
+      "deployedBytecodeSha256": "b6e76a154ceb2e038f1aa0644476d62ae1c459b9bdfc3e1e628b4d300f38a41c"
+    },
+    {
+      "contractName": "DummyNonCCIPAwareResolver",
+      "sourceName": "contracts/dnsregistrar/mocks/DummyNonCCIPAwareResolver.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/mocks/DummyNonCCIPAwareResolver.sol/DummyNonCCIPAwareResolver.json",
+      "abi": "abis/contracts/dnsregistrar/mocks/DummyNonCCIPAwareResolver.sol/DummyNonCCIPAwareResolver_abi.json",
+      "artifactSha256": "b6a0774608d06c7b5b4fb0a6a576a0dabaf69d753b4f1742ae7014f17f156c3b",
+      "abiSha256": "06b9a0371b8b58bf76945f0bbf32d8beee2417c9c797838740b589a085e3a5f3",
+      "bytecodeSha256": "db57371448ea142599444532fdbe5222bcd1dc8793343cab4972fddab4d15f83",
+      "deployedBytecodeSha256": "95f379467d6186572c3fcad5dd1171b2474df1d45ae7337690eaaed26716a5e7"
+    },
+    {
+      "contractName": "OffchainDNSResolver",
+      "sourceName": "contracts/dnsregistrar/OffchainDNSResolver.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/OffchainDNSResolver.sol/OffchainDNSResolver.json",
+      "abi": "abis/contracts/dnsregistrar/OffchainDNSResolver.sol/OffchainDNSResolver_abi.json",
+      "artifactSha256": "d80b9f0336bc89f434e32646c89c1006c6df2114ac27a4f16642c58f24169618",
+      "abiSha256": "6295e6f32b4b162b12f1588494a091062e5fa62f9fd9abc27ef42b9a0d5cee2b",
+      "bytecodeSha256": "af378bd48b43c604c566df8a167e60b80e29de92aa65e4d32e0c3002c3953c03",
+      "deployedBytecodeSha256": "67fde898c5a7a56dabe30fe3d4ac60a764b583f9ac5e929848ec971f50445561"
+    },
+    {
+      "contractName": "PublicSuffixList",
+      "sourceName": "contracts/dnsregistrar/PublicSuffixList.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/PublicSuffixList.sol/PublicSuffixList.json",
+      "abi": "abis/contracts/dnsregistrar/PublicSuffixList.sol/PublicSuffixList_abi.json",
+      "artifactSha256": "04a9d0f2053ef8eddc0e91b77abcd43a0bb180e5681a1fcc0a51838148f6223e",
+      "abiSha256": "6c096061605a8874181ce63bc1ca251eddbad111ce280902c772aeedf48b9dda",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "SimplePublicSuffixList",
+      "sourceName": "contracts/dnsregistrar/SimplePublicSuffixList.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/SimplePublicSuffixList.sol/SimplePublicSuffixList.json",
+      "abi": "abis/contracts/dnsregistrar/SimplePublicSuffixList.sol/SimplePublicSuffixList_abi.json",
+      "artifactSha256": "040a37c898d2f3a5845c5083bdf295c18d35e482a6077e027b0b8ecb9b56a0b1",
+      "abiSha256": "8dec1d79d4e70ac7ecca7e97aba6d60e5cb89d84f762969d9206d627f0b10dcf",
+      "bytecodeSha256": "90837272646ba36e9331682b25e80fa301a2c4ae8c81a6eea75ea4a7eee4204e",
+      "deployedBytecodeSha256": "5e23a3e9b30bd13529d574c3640620023c964354913ba70749cbf23ee02a10dc"
+    },
+    {
+      "contractName": "TLDPublicSuffixList",
+      "sourceName": "contracts/dnsregistrar/TLDPublicSuffixList.sol",
+      "artifact": "source/artifacts/contracts/dnsregistrar/TLDPublicSuffixList.sol/TLDPublicSuffixList.json",
+      "abi": "abis/contracts/dnsregistrar/TLDPublicSuffixList.sol/TLDPublicSuffixList_abi.json",
+      "artifactSha256": "a480f103d385612b815bc960e072eeecd8f9c3731e97d6a17f8e20e67a898e81",
+      "abiSha256": "d66e2d3d6077829a60403bb372b661cb9ea4fe796ab03a68c1a6da6942dc9625",
+      "bytecodeSha256": "23b4fc93e35f6097c4cb603116ee0775d2aac50ff6d0ade7fe0222d3777d14e7",
+      "deployedBytecodeSha256": "4d313e222af188ee3432184fc74ba2d0f1462b7dd56dc584960e839c75bb1a12"
+    },
+    {
+      "contractName": "Algorithm",
+      "sourceName": "contracts/dnssec-oracle/algorithms/Algorithm.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/Algorithm.sol/Algorithm.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/Algorithm.sol/Algorithm_abi.json",
+      "artifactSha256": "3c3c98354a15c53b1303a5abfedb90e7f7f24318617e8abe3e6b4f4b865f41e4",
+      "abiSha256": "bfcaebe0d9aa83fe89fd1daaa8864bb9b464c9f0378acfe34af85f09d71c9a27",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DummyAlgorithm",
+      "sourceName": "contracts/dnssec-oracle/algorithms/DummyAlgorithm.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/DummyAlgorithm.sol/DummyAlgorithm.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/DummyAlgorithm.sol/DummyAlgorithm_abi.json",
+      "artifactSha256": "33e01da033817042799a1ff7e293e847ccdaef47ba17abf2d162b007aeb18d83",
+      "abiSha256": "ecec2a5ea93777cb82c8096cb24ac85f58ce116ee9895b52fc52502ef894fc2d",
+      "bytecodeSha256": "b7f43bc7a7812cd9a0cd25b2d9e884744923506fa80fa5c50961384ed7fc34f3",
+      "deployedBytecodeSha256": "cae5c7288a229fedf29c08bbc45624519635d62b26033787664f10467930ba20"
+    },
+    {
+      "contractName": "ModexpPrecompile",
+      "sourceName": "contracts/dnssec-oracle/algorithms/ModexpPrecompile.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/ModexpPrecompile.sol/ModexpPrecompile.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/ModexpPrecompile.sol/ModexpPrecompile_abi.json",
+      "artifactSha256": "6fc10511868904e8114f915bb1db04d8893b0c6168540f4edde00afd5c661913",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "cec6dbeee965eeed35a1a93ff8618d7169951eb4832bb43167294831cc74e44f",
+      "deployedBytecodeSha256": "871b0ac60173a78be3369f90b2aaaa1dd9c8ab1106be8d6c984a3ca66314eab7"
+    },
+    {
+      "contractName": "P256Precompile",
+      "sourceName": "contracts/dnssec-oracle/algorithms/P256Precompile.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/P256Precompile.sol/P256Precompile.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/P256Precompile.sol/P256Precompile_abi.json",
+      "artifactSha256": "012e7a341393a2d4ca1234ddd7a408f8778f58f184a01b39189a6c9688a01e63",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "860c1bb36bae644060460426649d047085b5b8a7abaf5aa88771d483eccbe7e0",
+      "deployedBytecodeSha256": "4926766c42d6ba780f35762a0851374861111699ed78952e7f3cbcb5b5b509fc"
+    },
+    {
+      "contractName": "P256SHA256Algorithm",
+      "sourceName": "contracts/dnssec-oracle/algorithms/P256SHA256Algorithm.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/P256SHA256Algorithm.sol/P256SHA256Algorithm.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/P256SHA256Algorithm.sol/P256SHA256Algorithm_abi.json",
+      "artifactSha256": "0cf96a6ec491360a918c71e60b73c2c32b527211808ff7315484b65b64b9c27e",
+      "abiSha256": "bfcaebe0d9aa83fe89fd1daaa8864bb9b464c9f0378acfe34af85f09d71c9a27",
+      "bytecodeSha256": "ccc0e3fb33aa274c9fabb5d25634067a2a2892ab6d0dd9aace568c15c542521c",
+      "deployedBytecodeSha256": "0f730140042cccedcbf338622210f4551b43da0a32e71fe92b9a20b4f5498e1b"
+    },
+    {
+      "contractName": "RSAPKCS1Verify",
+      "sourceName": "contracts/dnssec-oracle/algorithms/RSAPKCS1Verify.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/RSAPKCS1Verify.sol/RSAPKCS1Verify.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/RSAPKCS1Verify.sol/RSAPKCS1Verify_abi.json",
+      "artifactSha256": "ae40cf0a591ea03155db14d511021f727363243ff7634157a3b587d3a066b144",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "15d3c8d7b9f8f303e21192f47ad6505e961dcef6071ccfb591feaa625b3daba5",
+      "deployedBytecodeSha256": "40762b2ec54aa2af8d306ae8a23c0c288d32ee221fdb9947f60f9ee5e79f3c02"
+    },
+    {
+      "contractName": "RSASHA1Algorithm",
+      "sourceName": "contracts/dnssec-oracle/algorithms/RSASHA1Algorithm.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/RSASHA1Algorithm.sol/RSASHA1Algorithm.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/RSASHA1Algorithm.sol/RSASHA1Algorithm_abi.json",
+      "artifactSha256": "b624e2d5a22606a41801e43fc7dc35c7924f5846ec653d4896eaba1a65fc2de5",
+      "abiSha256": "f822a928f9e64a915389852e653e85c683b984b6e75e9c8b614bc85275b10898",
+      "bytecodeSha256": "2d239d9797e9c523c02b358ffbb98e650bc0f7bb8e1f44abe5bd2559af54453f",
+      "deployedBytecodeSha256": "cf4dff9e0fa8dc442cf258e37002cac05453548248c7379e968f2b4af02d4665"
+    },
+    {
+      "contractName": "RSASHA256Algorithm",
+      "sourceName": "contracts/dnssec-oracle/algorithms/RSASHA256Algorithm.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/RSASHA256Algorithm.sol/RSASHA256Algorithm.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/RSASHA256Algorithm.sol/RSASHA256Algorithm_abi.json",
+      "artifactSha256": "3d07c192d606e12ac1f5157972bd110bc97cee515bc183287283167b75c5725d",
+      "abiSha256": "f822a928f9e64a915389852e653e85c683b984b6e75e9c8b614bc85275b10898",
+      "bytecodeSha256": "851772fd616b502f1df8a397089049e67edc71b2c18683604214a481db68dffa",
+      "deployedBytecodeSha256": "7b62c57872c1d4526bfacf823dc84fba94179cc3332f570d4116148dfc723554"
+    },
+    {
+      "contractName": "RSAVerify",
+      "sourceName": "contracts/dnssec-oracle/algorithms/RSAVerify.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/algorithms/RSAVerify.sol/RSAVerify.json",
+      "abi": "abis/contracts/dnssec-oracle/algorithms/RSAVerify.sol/RSAVerify_abi.json",
+      "artifactSha256": "66f135b99a449968321438ff14645ba287972a3660adc335bc2cb58155d6122b",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "d19f85983abc3f7d29d4532e840e48125ca8628336d133d0727e22c121112af2",
+      "deployedBytecodeSha256": "6b2a03a7d4a59315289f8601173b7ad694f0a66ab7b259e46da0a6086e330493"
+    },
+    {
+      "contractName": "Digest",
+      "sourceName": "contracts/dnssec-oracle/digests/Digest.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/digests/Digest.sol/Digest.json",
+      "abi": "abis/contracts/dnssec-oracle/digests/Digest.sol/Digest_abi.json",
+      "artifactSha256": "0d1c6566dbd6830e62a2ee70d932200807d11043826d0e361968fa03ef6dcc4b",
+      "abiSha256": "4b6c0f43bac7f4d424ca9ba6b863cd04ef948dc2a70fd6269626f3a52fcb45e0",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DummyDigest",
+      "sourceName": "contracts/dnssec-oracle/digests/DummyDigest.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/digests/DummyDigest.sol/DummyDigest.json",
+      "abi": "abis/contracts/dnssec-oracle/digests/DummyDigest.sol/DummyDigest_abi.json",
+      "artifactSha256": "ca5509f8b9c66e612701e15c864c35c857422598c25f3bf1e5c659f546c54586",
+      "abiSha256": "3fd5a7e16ce348d6d1db54a948a026484e6a350737e38578baea7512db8d3832",
+      "bytecodeSha256": "08a8c02e335208bd4934db4fd033cf54d156aefc918a5c53d72899bb6a77800c",
+      "deployedBytecodeSha256": "2b4411adda260f3ade5fb6dc65d51388234502a302bcfaab991a47ce1faae105"
+    },
+    {
+      "contractName": "SHA1Digest",
+      "sourceName": "contracts/dnssec-oracle/digests/SHA1Digest.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/digests/SHA1Digest.sol/SHA1Digest.json",
+      "abi": "abis/contracts/dnssec-oracle/digests/SHA1Digest.sol/SHA1Digest_abi.json",
+      "artifactSha256": "da73bfc4a4cd4188005a372f417aff36bed25427234fbb495b274ceb11e246dc",
+      "abiSha256": "9aec1c3655ac3099d5d072539ab2a6215e82639716ee44eccb455ee470db37ec",
+      "bytecodeSha256": "ef7c1af88cffe0c2ab99a30d5679396539f09747d4f02d1e2553ee8d85513c88",
+      "deployedBytecodeSha256": "966c21cfb4c81cc9035ea6cb5ff172ba5d0c07d66429d7480d6cb5b38efe50d9"
+    },
+    {
+      "contractName": "SHA256Digest",
+      "sourceName": "contracts/dnssec-oracle/digests/SHA256Digest.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/digests/SHA256Digest.sol/SHA256Digest.json",
+      "abi": "abis/contracts/dnssec-oracle/digests/SHA256Digest.sol/SHA256Digest_abi.json",
+      "artifactSha256": "ce73d4595edff220129ac4074ea68126135ac3760e0c04385c3d8dcdd2ec3ba7",
+      "abiSha256": "9aec1c3655ac3099d5d072539ab2a6215e82639716ee44eccb455ee470db37ec",
+      "bytecodeSha256": "71af7601da0e76b15df1fd822eceed06e75cabece3f1bb8cefada38248039a2a",
+      "deployedBytecodeSha256": "621bc2eb27d19d05c9b92c369971cdb8325baeda887536e0f9674a1a44c693cc"
+    },
+    {
+      "contractName": "DNSSEC",
+      "sourceName": "contracts/dnssec-oracle/DNSSEC.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/DNSSEC.sol/DNSSEC.json",
+      "abi": "abis/contracts/dnssec-oracle/DNSSEC.sol/DNSSEC_abi.json",
+      "artifactSha256": "0a83c2b66b838189796e601caf40883e314a0c42c86b632ad9168ec3fafa24cb",
+      "abiSha256": "9c091cf70b9ab5d66bb500faf9c46586280a0dde2dd39a28a8ab438392659113",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DNSSECImpl",
+      "sourceName": "contracts/dnssec-oracle/DNSSECImpl.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/DNSSECImpl.sol/DNSSECImpl.json",
+      "abi": "abis/contracts/dnssec-oracle/DNSSECImpl.sol/DNSSECImpl_abi.json",
+      "artifactSha256": "45e2dff32fe222261c7f288b7e5f2f52a9ccf9ad993639d0758a166b420eaa8d",
+      "abiSha256": "582dae5d5d63049efd813c14d92dfd3c69055c200e265bc982e485b9f87f8a9f",
+      "bytecodeSha256": "bff7638280fe13f71e16ed69c7a25772d2d6c1d620de012a9c20861952b97d59",
+      "deployedBytecodeSha256": "be345e55298941440e4cb8f4bfd7c26fec6612248fc853a16b2563ec208786a9"
+    },
+    {
+      "contractName": "IDNSGateway",
+      "sourceName": "contracts/dnssec-oracle/IDNSGateway.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/IDNSGateway.sol/IDNSGateway.json",
+      "abi": "abis/contracts/dnssec-oracle/IDNSGateway.sol/IDNSGateway_abi.json",
+      "artifactSha256": "92b7434fecc96001c07d4a293005933faa23ecb00e2ab5e20f4bc990bfa3da04",
+      "abiSha256": "f633d97a111fbdc3984ee7e2bebc11b2f82356daf137f6a4c979c086af0d79ed",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "Owned",
+      "sourceName": "contracts/dnssec-oracle/Owned.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/Owned.sol/Owned.json",
+      "abi": "abis/contracts/dnssec-oracle/Owned.sol/Owned_abi.json",
+      "artifactSha256": "33c4feedacfbf45821c3634d800f555ea2419e30d7f1b1bf1ce0c6f3bdfb323d",
+      "abiSha256": "bcfc1cfe898b7adffff6dc80933d8851c8731278182aec03d4ee6ef0bfe348b4",
+      "bytecodeSha256": "635d792e10784d1abdd6923012dfecaebf60dacf5c48e6448e46843cdf0bc590",
+      "deployedBytecodeSha256": "3031e8454578f0e30edcca3c153dfc7b6f70a249148c9267aed9322f045a402a"
+    },
+    {
+      "contractName": "RRUtils",
+      "sourceName": "contracts/dnssec-oracle/RRUtils.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/RRUtils.sol/RRUtils.json",
+      "abi": "abis/contracts/dnssec-oracle/RRUtils.sol/RRUtils_abi.json",
+      "artifactSha256": "a4d803debc7ffd5c1535554701d48621a15527acb670ee9f2e889b355d3c716a",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "813b8a77015c651f49ace46d6dd9e51b3d661db159f915cf56b30d4326851e37",
+      "deployedBytecodeSha256": "9667a0f300967e619c097d3d05bf2ae7fc1fbeadd2714a07aebaede1bc1302a9"
+    },
+    {
+      "contractName": "SHA1",
+      "sourceName": "contracts/dnssec-oracle/SHA1.sol",
+      "artifact": "source/artifacts/contracts/dnssec-oracle/SHA1.sol/SHA1.json",
+      "abi": "abis/contracts/dnssec-oracle/SHA1.sol/SHA1_abi.json",
+      "artifactSha256": "eb613bc7d6fa89cdab08bf8d3b497c68654ea313b02da0e1eb05f78a8e192a20",
+      "abiSha256": "99e2dbd8c123ab8c962def73185babf9abe2640ddb56395b9acaccb874d41210",
+      "bytecodeSha256": "39f3f792804a193348f428d88a7bac51cf8805d09c70e29c400291a3e74396e4",
+      "deployedBytecodeSha256": "13a2d8def03aed696e9a8427b93e8361079fef9ee7078b97a11750d100cabccc"
+    },
+    {
+      "contractName": "BaseRegistrarImplementation",
+      "sourceName": "contracts/ethregistrar/BaseRegistrarImplementation.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/BaseRegistrarImplementation.sol/BaseRegistrarImplementation.json",
+      "abi": "abis/contracts/ethregistrar/BaseRegistrarImplementation.sol/BaseRegistrarImplementation_abi.json",
+      "artifactSha256": "7146802a9ae680c48519ff05715e945e1f42c1e3b0e27344db188b729c8ade56",
+      "abiSha256": "ef9d03b7aeb288a75688e753b95a37dee3523e19c3681a3ce3dd0fc3c1ed318c",
+      "bytecodeSha256": "0dbcfcca8d57d3c384edb357b2f96e0fb1e52b0b835333820e0f4481a396d7c6",
+      "deployedBytecodeSha256": "ad631cb6d0b1f33e17a23d20d095d98263eea756fb0b99b462c74370db8bec35"
+    },
+    {
+      "contractName": "BulkRenewal",
+      "sourceName": "contracts/ethregistrar/BulkRenewal.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/BulkRenewal.sol/BulkRenewal.json",
+      "abi": "abis/contracts/ethregistrar/BulkRenewal.sol/BulkRenewal_abi.json",
+      "artifactSha256": "dde2cd2653b0c48beb874e92d8233aeaa5b36a83e4b11f8dcf1d1f56bd13696f",
+      "abiSha256": "0f8f2dbf2c2e583ce02ed24fdbc38f5ff8c9c69590813840eaed66787b0b036f",
+      "bytecodeSha256": "116eb01957dfd62ed88c98f24c652f1ce4de7760c42e37bcdb71b8aebfb25143",
+      "deployedBytecodeSha256": "802d2d7908cccc5b72320895ba77e1bcd5031a6ebe3417351741a91fab0962dd"
+    },
+    {
+      "contractName": "DummyOracle",
+      "sourceName": "contracts/ethregistrar/DummyOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/DummyOracle.sol/DummyOracle.json",
+      "abi": "abis/contracts/ethregistrar/DummyOracle.sol/DummyOracle_abi.json",
+      "artifactSha256": "b2bad5b19cca6d0911bbdb28433279c23acfba2b1e02e0298c14ca4a1d4161a1",
+      "abiSha256": "bef1a78125a1cb9a56ab0182756a04927b628b993507252372474ba5eeb5d505",
+      "bytecodeSha256": "37127c96fd27a34499bb797162ee3407e58c4cdc5ca851a4d707f05a10d57b30",
+      "deployedBytecodeSha256": "b36ccfb47387b0c0e142f4085cc760430e364831fff2925a49876b401244e9f2"
+    },
+    {
+      "contractName": "ETHRegistrarController",
+      "sourceName": "contracts/ethregistrar/ETHRegistrarController.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/ETHRegistrarController.sol/ETHRegistrarController.json",
+      "abi": "abis/contracts/ethregistrar/ETHRegistrarController.sol/ETHRegistrarController_abi.json",
+      "artifactSha256": "8d9ded9fe98a26953faf6010a2a27fd634d05ee286c25b4315dec3610bf25137",
+      "abiSha256": "ae826fac9508543d6e8479fe067f611f674749707c26c823cdedbb923181339d",
+      "bytecodeSha256": "a6de5e39ff4933517d8f6e9bf08e2d4436c146d9a989f692edb3310d1ad45255",
+      "deployedBytecodeSha256": "051dc2a961efe5ae30940d5eb916b3c12cf2e60b9d9d10243971c8503652eb4f"
+    },
+    {
+      "contractName": "ExponentialPremiumPriceOracle",
+      "sourceName": "contracts/ethregistrar/ExponentialPremiumPriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/ExponentialPremiumPriceOracle.sol/ExponentialPremiumPriceOracle.json",
+      "abi": "abis/contracts/ethregistrar/ExponentialPremiumPriceOracle.sol/ExponentialPremiumPriceOracle_abi.json",
+      "artifactSha256": "b3e0bc7e5af8d0ad1c45b24e602cee1d6b153b0c08b920ac6f6473e48e9f1106",
+      "abiSha256": "8317b2c82d450c2601cfe65830f9ad53a6ba5e28cf16fa11ea77dabb88ff5b74",
+      "bytecodeSha256": "9ec078c979452e5609b2b7b9a31136106f20bbe3963b2972919fa4e8be4e49cd",
+      "deployedBytecodeSha256": "b7601c9c295f26732b004c66dc2b252730a51e6f8bdb5714529666b258c10b26"
+    },
+    {
+      "contractName": "IBaseRegistrar",
+      "sourceName": "contracts/ethregistrar/IBaseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/IBaseRegistrar.sol/IBaseRegistrar.json",
+      "abi": "abis/contracts/ethregistrar/IBaseRegistrar.sol/IBaseRegistrar_abi.json",
+      "artifactSha256": "36c7567e5e1eb7c5e7ce3cf8c94e8f749d94ea477cf5f9ed0ed71e7ab344e003",
+      "abiSha256": "19311db1479b0ee71bd3687ffc64ff084c5a692979d8b06f5748300a7b9beb81",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IBulkRenewal",
+      "sourceName": "contracts/ethregistrar/IBulkRenewal.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/IBulkRenewal.sol/IBulkRenewal.json",
+      "abi": "abis/contracts/ethregistrar/IBulkRenewal.sol/IBulkRenewal_abi.json",
+      "artifactSha256": "a41b5c681c2585d2bbb709d09ffff69de02bd941a407733ffe73bc8510f5ad68",
+      "abiSha256": "aeb391dd35af47f2dc70188096a4f7675ad6790858351fd5cf9b971f4037f070",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IETHRegistrarController",
+      "sourceName": "contracts/ethregistrar/IETHRegistrarController.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/IETHRegistrarController.sol/IETHRegistrarController.json",
+      "abi": "abis/contracts/ethregistrar/IETHRegistrarController.sol/IETHRegistrarController_abi.json",
+      "artifactSha256": "b440759075b22b3f6b872962e874cd854fd4f8df29d4d54b497c455312c958d2",
+      "abiSha256": "f2d354754ef185a0b5380908727c5d2c32e44c3c7c9b6478705bc88bd2d3de10",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ILinearPremiumPriceOracle",
+      "sourceName": "contracts/ethregistrar/ILinearPremiumPriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/ILinearPremiumPriceOracle.sol/ILinearPremiumPriceOracle.json",
+      "abi": "abis/contracts/ethregistrar/ILinearPremiumPriceOracle.sol/ILinearPremiumPriceOracle_abi.json",
+      "artifactSha256": "62a935dc046fcbe99aebb716447204dd6beccd96ac525cc68bf5fa1e57980298",
+      "abiSha256": "b7f0a2a9495963c75b0ab916efb96d443def0f2c544e450c7a3c10eebd5dc68d",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IPriceOracle",
+      "sourceName": "contracts/ethregistrar/IPriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/IPriceOracle.sol/IPriceOracle.json",
+      "abi": "abis/contracts/ethregistrar/IPriceOracle.sol/IPriceOracle_abi.json",
+      "artifactSha256": "9e18d4b304aaae75d1f2b363f0dce445a3594340a8efe47bf8680d3a63ffda86",
+      "abiSha256": "df8305ac8f7ab8e7abfc63ecfd53f6107c35f9c0d70024f1d4108720e818c622",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "LinearPremiumPriceOracle",
+      "sourceName": "contracts/ethregistrar/LinearPremiumPriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/LinearPremiumPriceOracle.sol/LinearPremiumPriceOracle.json",
+      "abi": "abis/contracts/ethregistrar/LinearPremiumPriceOracle.sol/LinearPremiumPriceOracle_abi.json",
+      "artifactSha256": "1336ba4505472b9d6f81bc6b8ccdcb95e6b36585dd959c0368857533cae4690b",
+      "abiSha256": "adee33c22e69cbaf52165b936e6a8b28647ff79a6fb7a83b4014dea405c89c8d",
+      "bytecodeSha256": "76adbace83fba691566ae9da14fc69f8666010f89b592711754a4c55915ec3bb",
+      "deployedBytecodeSha256": "fbeb17454f7171674e7aec45df61a9cb551b5e22b38203a899da667f8447af30"
+    },
+    {
+      "contractName": "RegistrarSecurityController",
+      "sourceName": "contracts/ethregistrar/RegistrarSecurityController.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/RegistrarSecurityController.sol/RegistrarSecurityController.json",
+      "abi": "abis/contracts/ethregistrar/RegistrarSecurityController.sol/RegistrarSecurityController_abi.json",
+      "artifactSha256": "6acfc7fd74fa114c8104fb3b6d908e4cd413faeab6bf30cc0c47ebee08f2d49a",
+      "abiSha256": "65f80e7c3c2042f894c2911f71d77c4fa09c33775db3d3e3ad1313574c57b2a0",
+      "bytecodeSha256": "f872d36b3ae4e7faafa7339b3844bf67d7f96adb3e1c3b9bd82d61fd2d00056a",
+      "deployedBytecodeSha256": "886733da9376beebc59fc38de4fcf5de8b51a46c110055cbfd058ed9c5a44831"
+    },
+    {
+      "contractName": "SafeMath",
+      "sourceName": "contracts/ethregistrar/SafeMath.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/SafeMath.sol/SafeMath.json",
+      "abi": "abis/contracts/ethregistrar/SafeMath.sol/SafeMath_abi.json",
+      "artifactSha256": "894957a05985473f844979990776f042f3565bf1da59d5f9e51f92929753a582",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "cf6cd9182ea94b6febd02ddc02f960f36def22391c367783d03632b56049d0f2",
+      "deployedBytecodeSha256": "685bcec070f667720eaefa3dd6781990596cb81e92aa48335ba32dd14a8f1108"
+    },
+    {
+      "contractName": "AggregatorInterface",
+      "sourceName": "contracts/ethregistrar/StablePriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/StablePriceOracle.sol/AggregatorInterface.json",
+      "abi": "abis/contracts/ethregistrar/StablePriceOracle.sol/AggregatorInterface_abi.json",
+      "artifactSha256": "8ce121165a873f8908817b52064cd3b4e7a6a8f12650e9916d49b6ae58c6d00e",
+      "abiSha256": "515bc1162e0de418fded8dee4a2867db6c986c5cc7b28933c8df34d022c03df3",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "StablePriceOracle",
+      "sourceName": "contracts/ethregistrar/StablePriceOracle.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/StablePriceOracle.sol/StablePriceOracle.json",
+      "abi": "abis/contracts/ethregistrar/StablePriceOracle.sol/StablePriceOracle_abi.json",
+      "artifactSha256": "a5329da4cb937b9480bee61a91594c4d42219c3b2a00d33196ca46827f6e549d",
+      "abiSha256": "7f44c2a57f752f51ad6ff0444a86a50968ced5e016c6349ea6bf6741ee208c81",
+      "bytecodeSha256": "cb8d0f72b01d99ec9cd1346ef79be4a863d372a2eec5b69bc4b5ae8112e03196",
+      "deployedBytecodeSha256": "d007d2efccecdfbbdc843e21eb5316e1b2b5f129f8c4d08175bc442fe44e0422"
+    },
+    {
+      "contractName": "StaticBulkRenewal",
+      "sourceName": "contracts/ethregistrar/StaticBulkRenewal.sol",
+      "artifact": "source/artifacts/contracts/ethregistrar/StaticBulkRenewal.sol/StaticBulkRenewal.json",
+      "abi": "abis/contracts/ethregistrar/StaticBulkRenewal.sol/StaticBulkRenewal_abi.json",
+      "artifactSha256": "cfad5eda0288cf95fd3b954849694282f1b73ce94348641616fc88acf292e3aa",
+      "abiSha256": "a727694d4196d0fd90a74a9394b7535d1a3dac9371c92b355434a77e8683a4b2",
+      "bytecodeSha256": "a11ddf1d0e727b770a7fae7597a1fe4b1ed3ed33abc8ad55a228a804215a0a10",
+      "deployedBytecodeSha256": "4c920f45c1f6145960d91d1ed8fcaafc46d4bee2dbd4be0e9460c91aac4fae16"
+    },
+    {
+      "contractName": "ENS",
+      "sourceName": "contracts/registry/ENS.sol",
+      "artifact": "source/artifacts/contracts/registry/ENS.sol/ENS.json",
+      "abi": "abis/contracts/registry/ENS.sol/ENS_abi.json",
+      "artifactSha256": "4efd49da82b03ee6f168d57e963609414fb13deeee66d2e99a45ffb9d98d71fe",
+      "abiSha256": "14dd6bba2f46d188f92430550b105782165184755afa54ef449de099eb9c6028",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ENSRegistry",
+      "sourceName": "contracts/registry/ENSRegistry.sol",
+      "artifact": "source/artifacts/contracts/registry/ENSRegistry.sol/ENSRegistry.json",
+      "abi": "abis/contracts/registry/ENSRegistry.sol/ENSRegistry_abi.json",
+      "artifactSha256": "3ea04ea8807afcf1aa5dda08de47097fcc0f2f6bfed2220dcf8e2095e50add56",
+      "abiSha256": "58f6eaca0ff311e8b56eae927d498992c37912ff49a31790255e97969e4cfd3f",
+      "bytecodeSha256": "c1bb224eb33255ec75be7a4defa7301c8f72194b5530e1bb0ad5338833da86bf",
+      "deployedBytecodeSha256": "db1efe22805dfbd132f585af9c6038d47aff0cee7d1e4023e55ed96db64e94f2"
+    },
+    {
+      "contractName": "ENSRegistryWithFallback",
+      "sourceName": "contracts/registry/ENSRegistryWithFallback.sol",
+      "artifact": "source/artifacts/contracts/registry/ENSRegistryWithFallback.sol/ENSRegistryWithFallback.json",
+      "abi": "abis/contracts/registry/ENSRegistryWithFallback.sol/ENSRegistryWithFallback_abi.json",
+      "artifactSha256": "8926851085fe40e16a1ac308c56fe84f19d1e255f883f32a741d239abff13bf1",
+      "abiSha256": "d495bf511455820c8bee19e5772dbe38e8a07e4baa2f357d47916c84ab03a031",
+      "bytecodeSha256": "c6b121cc077e2fb51f761fa1779816c6b0a41d88fdb0d218f8888a8f4ebd0340",
+      "deployedBytecodeSha256": "fd07cf3945f640bc8b0773189f7cf0b9e66dcdc726ee391a7c99412102c9a6bf"
+    },
+    {
+      "contractName": "FIFSRegistrar",
+      "sourceName": "contracts/registry/FIFSRegistrar.sol",
+      "artifact": "source/artifacts/contracts/registry/FIFSRegistrar.sol/FIFSRegistrar.json",
+      "abi": "abis/contracts/registry/FIFSRegistrar.sol/FIFSRegistrar_abi.json",
+      "artifactSha256": "b34df33145bfe6a8bb2e8fcb52c1e6b27636887192cad9aab55dc5f0b5d51dab",
+      "abiSha256": "958a555d610105eadeeb0253282784b253bc7bcaad80d77de45f9a0a22903797",
+      "bytecodeSha256": "56c56ecb298311821da7fd0c2081476b71692407b5da1a1eb696e900618aa2d6",
+      "deployedBytecodeSha256": "0e3b4cd76b6f5b7b6da00a600034c6c7c674d7f0c9195fca20e1e3d6c79cfca3"
+    },
+    {
+      "contractName": "TestRegistrar",
+      "sourceName": "contracts/registry/TestRegistrar.sol",
+      "artifact": "source/artifacts/contracts/registry/TestRegistrar.sol/TestRegistrar.json",
+      "abi": "abis/contracts/registry/TestRegistrar.sol/TestRegistrar_abi.json",
+      "artifactSha256": "ab5c8c8a5c83a515d5d68e34eb07aeeffc19205330a4e5de47d38b39c353b4ca",
+      "abiSha256": "0fc86479bf8e527473cbc516e9698854d089b5a8ee7c3f0f3fa6f322b6620d96",
+      "bytecodeSha256": "a8d294cb48cf927bb424a4c9142762342062bc20d86e8f2440f26ab8d1ad6c66",
+      "deployedBytecodeSha256": "d784fdcac74cf933619868e0e4175d271b3096897f9a7fd1070b6499ea229504"
+    },
+    {
+      "contractName": "IMulticallable",
+      "sourceName": "contracts/resolvers/IMulticallable.sol",
+      "artifact": "source/artifacts/contracts/resolvers/IMulticallable.sol/IMulticallable.json",
+      "abi": "abis/contracts/resolvers/IMulticallable.sol/IMulticallable_abi.json",
+      "artifactSha256": "0f77e8009dbdb13376291b1af2ee6750e5b9113332abee49098ca51d9226d9a6",
+      "abiSha256": "24f28619e8396fb6c2b68364e3779c12f64ab81fefa3440d78fce84005ac8e55",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DummyNameWrapper",
+      "sourceName": "contracts/resolvers/mocks/DummyNameWrapper.sol",
+      "artifact": "source/artifacts/contracts/resolvers/mocks/DummyNameWrapper.sol/DummyNameWrapper.json",
+      "abi": "abis/contracts/resolvers/mocks/DummyNameWrapper.sol/DummyNameWrapper_abi.json",
+      "artifactSha256": "5de9eccbe387978ad09320ac523bb36b4306bfe0098ad7e8baedc755a3cc70b0",
+      "abiSha256": "c3f5eaf4ad97e6e1a16e98d99174a243c666f711e6fb242fae4f49eb325ea53a",
+      "bytecodeSha256": "68eb8d7957addb3f90a7443886cfbfb8405df327f86d05ddb2eb0ad9b5a99a18",
+      "deployedBytecodeSha256": "131f78e459b9888bce69a551472bda4f39519178819d503b7dd807973b321d07"
+    },
+    {
+      "contractName": "Multicallable",
+      "sourceName": "contracts/resolvers/Multicallable.sol",
+      "artifact": "source/artifacts/contracts/resolvers/Multicallable.sol/Multicallable.json",
+      "abi": "abis/contracts/resolvers/Multicallable.sol/Multicallable_abi.json",
+      "artifactSha256": "d2cb0344de5de9fb9aad877dd30eaf4c110beca97cfb8625903d0649d314e3a8",
+      "abiSha256": "a574e6fd6dc8c97a3e671be3efe51b803e826b598987c1b71d4120cf6fe57e05",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "OwnedResolver",
+      "sourceName": "contracts/resolvers/OwnedResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/OwnedResolver.sol/OwnedResolver.json",
+      "abi": "abis/contracts/resolvers/OwnedResolver.sol/OwnedResolver_abi.json",
+      "artifactSha256": "3f205e8727f388f4c11a35576cfb9c11028b9f72cc19726bc02fcfe2d6418ae8",
+      "abiSha256": "95522faa250da13d02c7734163e23b8ee8c0180158571a819ef3f5a604aaf3d9",
+      "bytecodeSha256": "c7deb60681329a5ed9fc9becd0ecdc1167bd5398ff0295fcfe622cea7840a996",
+      "deployedBytecodeSha256": "4336c29dafa92468979ab53c3a9c1cd98ace4faf5a7736c2ff8b266fd407aa31"
+    },
+    {
+      "contractName": "ABIResolver",
+      "sourceName": "contracts/resolvers/profiles/ABIResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ABIResolver.sol/ABIResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ABIResolver.sol/ABIResolver_abi.json",
+      "artifactSha256": "9a2d3a1a7e5d949d93e97de5a21582dd61632aa75bec9ffa9c6225bca6abdacd",
+      "abiSha256": "a5d7a389ad4ecd215b16e4ddff29539aedee65a5adf1b1b014c5a9f95a7b2b7d",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "AddrResolver",
+      "sourceName": "contracts/resolvers/profiles/AddrResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/AddrResolver.sol/AddrResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/AddrResolver.sol/AddrResolver_abi.json",
+      "artifactSha256": "f56b53ff3e25cf84e9f8d131bcf5f4f0039d0910b39b1e3326c4556aa1e30c2b",
+      "abiSha256": "585b79956f2072888bf1f7e90d84f22a251d439339cdc27e0632fa12d79923fa",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ContentHashResolver",
+      "sourceName": "contracts/resolvers/profiles/ContentHashResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ContentHashResolver.sol/ContentHashResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ContentHashResolver.sol/ContentHashResolver_abi.json",
+      "artifactSha256": "610ab280b4d0d9cac853bc3cb388d5477d9513337223682733bf9cf576639243",
+      "abiSha256": "badbbf8febf5bbc979fe1fc325371aac04ed9140d64053303575efdcbacd0705",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DataResolver",
+      "sourceName": "contracts/resolvers/profiles/DataResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/DataResolver.sol/DataResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/DataResolver.sol/DataResolver_abi.json",
+      "artifactSha256": "90f0e5d6f168782cd71e6fd836d7074538d99821ce0ddd0562fca391de5eee8c",
+      "abiSha256": "097c50ee94768e482e280c4884ba4664e8379229817910cf3c49a2652d79aa66",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DNSResolver",
+      "sourceName": "contracts/resolvers/profiles/DNSResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/DNSResolver.sol/DNSResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/DNSResolver.sol/DNSResolver_abi.json",
+      "artifactSha256": "acc16a13255c658a6e09fc9779be811578128805a236e092f36d8a5127d96a11",
+      "abiSha256": "7c9769bb5ab59795b5d379e7525451c103f6ab906bfdf8a5fc43418a42469f48",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ExtendedDNSResolver",
+      "sourceName": "contracts/resolvers/profiles/ExtendedDNSResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ExtendedDNSResolver.sol/ExtendedDNSResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ExtendedDNSResolver.sol/ExtendedDNSResolver_abi.json",
+      "artifactSha256": "91ade95145ae48057180db25984cf13a421872e4543a3839e468801177fd5d5a",
+      "abiSha256": "74d361796a36d6377f4f4019aa6860d884cd4242888ca90703c48078ba7816a6",
+      "bytecodeSha256": "40d2e31353e3b91f77572aa4fddcbe181a1675be95e1c0dfe6e527910634c529",
+      "deployedBytecodeSha256": "cc9c4a8c9a537ffb83fff0d7e9532d878c6298abbdd127ed359c0c8194ad5a6f"
+    },
+    {
+      "contractName": "ExtendedResolver",
+      "sourceName": "contracts/resolvers/profiles/ExtendedResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ExtendedResolver.sol/ExtendedResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ExtendedResolver.sol/ExtendedResolver_abi.json",
+      "artifactSha256": "de79631649a189b03d66349524554a292d5fc1f6d5a6009cccec5d62d10d9ab6",
+      "abiSha256": "5a1f32ba23c8fcc140d875a8be259921122b6effb1e8fd4d404ef4b4b665e5e7",
+      "bytecodeSha256": "26efdcd5805258f87b3ad3018340a75ea4d2740fc37de587fdace94bb69082f0",
+      "deployedBytecodeSha256": "a30cf7a86741cde58294e2ea3bd3fe7852074698f5446112e14ed1b9dc9a084e"
+    },
+    {
+      "contractName": "IABIResolver",
+      "sourceName": "contracts/resolvers/profiles/IABIResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IABIResolver.sol/IABIResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IABIResolver.sol/IABIResolver_abi.json",
+      "artifactSha256": "6dad3091329ef117d4291f98b42da6428c30e4ee8b37ed1291340c312359501b",
+      "abiSha256": "28b483ac3fa01a2b4149c958187e0d1cb671ef6152749f9364840d4c096db433",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IAddressResolver",
+      "sourceName": "contracts/resolvers/profiles/IAddressResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IAddressResolver.sol/IAddressResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IAddressResolver.sol/IAddressResolver_abi.json",
+      "artifactSha256": "60c44c872e0f92b1c595cd634449ba5668ab44767d731eb8e92911d9036978ad",
+      "abiSha256": "a94a1809bcf254ce45e6ce4b397fbaf3326f94b7af01f95b8c8c4d1f702a1d4e",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IAddrResolver",
+      "sourceName": "contracts/resolvers/profiles/IAddrResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IAddrResolver.sol/IAddrResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IAddrResolver.sol/IAddrResolver_abi.json",
+      "artifactSha256": "c9f8bdd992704c448994a5d92427ccc9af7f7c670a8dfe3309a3dc12d5749f86",
+      "abiSha256": "70f100ea6b27b4065cce11c39bcfdf643a167e1d685ed2a045d3386d9b110e1e",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ICompositeResolver",
+      "sourceName": "contracts/resolvers/profiles/ICompositeResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ICompositeResolver.sol/ICompositeResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ICompositeResolver.sol/ICompositeResolver_abi.json",
+      "artifactSha256": "f7a8acd0e7731595382188ab06dde8db139a01ac20ea496597207723759eb454",
+      "abiSha256": "55b1dffe8abad5f09f2dc14ff75f597c1d993aac66d80954bef299b1b7b25866",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IContentHashResolver",
+      "sourceName": "contracts/resolvers/profiles/IContentHashResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IContentHashResolver.sol/IContentHashResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IContentHashResolver.sol/IContentHashResolver_abi.json",
+      "artifactSha256": "760e6eeac7f2ce7f8bea17ccd44bde4726101a88a13ad137da29533f4d2bf38e",
+      "abiSha256": "4b559ffe462b9f8a1ebfe811f9676404fc0df616732bf0f30c3479985e07377d",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IDataResolver",
+      "sourceName": "contracts/resolvers/profiles/IDataResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IDataResolver.sol/IDataResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IDataResolver.sol/IDataResolver_abi.json",
+      "artifactSha256": "bb252dacc91642c8384d42aa5ec1d85c85fb0d850b43556a144522fd4fef19a9",
+      "abiSha256": "03fc201d7a272db94c76688ffbbc500dac519e39168d0c5e1dfeb3d81af8169b",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IDNSRecordResolver",
+      "sourceName": "contracts/resolvers/profiles/IDNSRecordResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IDNSRecordResolver.sol/IDNSRecordResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IDNSRecordResolver.sol/IDNSRecordResolver_abi.json",
+      "artifactSha256": "0df5b3054b77035ea605219f4e46e036fa53700bcd863ef53d3a2211b7ca06fe",
+      "abiSha256": "fb4ee89906738f024f920e1314a6b27135947335c34b54501387666b40d66a66",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IDNSZoneResolver",
+      "sourceName": "contracts/resolvers/profiles/IDNSZoneResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IDNSZoneResolver.sol/IDNSZoneResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IDNSZoneResolver.sol/IDNSZoneResolver_abi.json",
+      "artifactSha256": "a32095e987b72b92774477043ffe9eeda83b77cc910e36250e61111fcb80658a",
+      "abiSha256": "8e666fb9e77e79bec274cd420d904367e3e9ceb4ce672e9464c9e44a6aa94b44",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IExtendedDNSResolver",
+      "sourceName": "contracts/resolvers/profiles/IExtendedDNSResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IExtendedDNSResolver.sol/IExtendedDNSResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IExtendedDNSResolver.sol/IExtendedDNSResolver_abi.json",
+      "artifactSha256": "38a9d5a92d1d75c910b8ecd2c93ca66d8aef61e4540a8302f66983b4cede50eb",
+      "abiSha256": "106999de3679294badaf0bb32d4705be0543e43e1637b50509d3dcada9476a97",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IExtendedResolver",
+      "sourceName": "contracts/resolvers/profiles/IExtendedResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IExtendedResolver.sol/IExtendedResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IExtendedResolver.sol/IExtendedResolver_abi.json",
+      "artifactSha256": "28a33899001f2845057ba62678033c267a15132e9405ef88dc7ba35895dd5cb7",
+      "abiSha256": "b203016226fc7a85d63f61257dbe3ec8d7aceebad0b0a70b9ff607f3060d07cd",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IHasAddressResolver",
+      "sourceName": "contracts/resolvers/profiles/IHasAddressResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IHasAddressResolver.sol/IHasAddressResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IHasAddressResolver.sol/IHasAddressResolver_abi.json",
+      "artifactSha256": "c96f89192e109ef1809e544fc535c6c9ae8108d4cc92fd2cea6b7f4d998c9e13",
+      "abiSha256": "1348e7fa8428f4dae78e4678f6ed20820df6a9469e82ded0f6e530a769ddae36",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IInterfaceResolver",
+      "sourceName": "contracts/resolvers/profiles/IInterfaceResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IInterfaceResolver.sol/IInterfaceResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IInterfaceResolver.sol/IInterfaceResolver_abi.json",
+      "artifactSha256": "cbeefb5b16ed720a4c83aa4d9118021fa22c5f410b8a75a259b58f3ed8db0603",
+      "abiSha256": "3bebfa489bb3eccadcd43ffa940d684a32c204932607be7d149ab3e5052714c0",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "INameResolver",
+      "sourceName": "contracts/resolvers/profiles/INameResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/INameResolver.sol/INameResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/INameResolver.sol/INameResolver_abi.json",
+      "artifactSha256": "cdc56cefd8d66af4b32eb90fc4e4b29e92076b10c34272208cdcef28d1fe93c5",
+      "abiSha256": "7e4b5544d85de84c90d92d56ca5f88e6198eeb45d75a7912d27479ec39224e35",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "InterfaceResolver",
+      "sourceName": "contracts/resolvers/profiles/InterfaceResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/InterfaceResolver.sol/InterfaceResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/InterfaceResolver.sol/InterfaceResolver_abi.json",
+      "artifactSha256": "7bb6e9b2aba29cebd44ead72bc88fb9af861f21e1324664886ec7378c64cc1cc",
+      "abiSha256": "edd7a9748b7c44c73ce099e4cda98125eada81ae69b15daa1c0db4d3ab28f527",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IPubkeyResolver",
+      "sourceName": "contracts/resolvers/profiles/IPubkeyResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IPubkeyResolver.sol/IPubkeyResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IPubkeyResolver.sol/IPubkeyResolver_abi.json",
+      "artifactSha256": "e14e4335c6bbb0b15dc174bd1c65bb559b2f0899aade50d05bf4e4efe1afcda1",
+      "abiSha256": "f5f66f6b562153939013dc468e240867595c42fdd811b25ed834cddcb71f6148",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ISupportedDataKeys",
+      "sourceName": "contracts/resolvers/profiles/ISupportedDataKeys.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ISupportedDataKeys.sol/ISupportedDataKeys.json",
+      "abi": "abis/contracts/resolvers/profiles/ISupportedDataKeys.sol/ISupportedDataKeys_abi.json",
+      "artifactSha256": "48663db56b75505c9e9bd94b1032789462f16bcc2ed6cd6a276331f30300d1fd",
+      "abiSha256": "9b8548483b0c0fa51bceb147f65801d29fc12e3669f3d02b4f0725ebaf9e0e8b",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ITextResolver",
+      "sourceName": "contracts/resolvers/profiles/ITextResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/ITextResolver.sol/ITextResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/ITextResolver.sol/ITextResolver_abi.json",
+      "artifactSha256": "7cdd79e5546a90c014f10d9c3e5398bbdfddf12a75bce34a4689a525a6b6d96d",
+      "abiSha256": "889130aa7e3248a1973fd1c6e1d5abe3932550b9ed86ae53474496b0a53bd060",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IVerifiableResolver",
+      "sourceName": "contracts/resolvers/profiles/IVerifiableResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IVerifiableResolver.sol/IVerifiableResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IVerifiableResolver.sol/IVerifiableResolver_abi.json",
+      "artifactSha256": "4dfbe83ed4a0b85583ac759a9d8fa3a41e60cfbdb3e1c40777e1d4fd706e2a23",
+      "abiSha256": "105f580527bcfe49b54645acea006b0a563f19f8ea6e7566de4a5b70c82644ef",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IVersionableResolver",
+      "sourceName": "contracts/resolvers/profiles/IVersionableResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/IVersionableResolver.sol/IVersionableResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/IVersionableResolver.sol/IVersionableResolver_abi.json",
+      "artifactSha256": "a368a17760913e01b969f3596a17b7e72af735acdacf150c0fa1fa033b9864b0",
+      "abiSha256": "ad6a3097da80a02042f018bab8f978698a5b15e5faea3d1f71e060bbc7484925",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "NameResolver",
+      "sourceName": "contracts/resolvers/profiles/NameResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/NameResolver.sol/NameResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/NameResolver.sol/NameResolver_abi.json",
+      "artifactSha256": "2695cb333a7aff13202236a74848ec68416045288b254f45a66cbcf5e888fe1e",
+      "abiSha256": "4e226b6b3dc53443c2f74cb7a952768884a2534de32c8f2affaaf8a02b1ea378",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "PubkeyResolver",
+      "sourceName": "contracts/resolvers/profiles/PubkeyResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/PubkeyResolver.sol/PubkeyResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/PubkeyResolver.sol/PubkeyResolver_abi.json",
+      "artifactSha256": "e5f72a31211c622f9169cc3a9d5ac920dec367220a945d8d7b6a81e134a9f16b",
+      "abiSha256": "0f55a0d1ef26685d32481f59c3c6ae2867d07ef57453afd65b192d4c43f906fb",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "SupportedDataKeys",
+      "sourceName": "contracts/resolvers/profiles/SupportedDataKeys.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/SupportedDataKeys.sol/SupportedDataKeys.json",
+      "abi": "abis/contracts/resolvers/profiles/SupportedDataKeys.sol/SupportedDataKeys_abi.json",
+      "artifactSha256": "420a9937113ac4d216a3e39a638ad3c956712e023a23f253b22987898b22b2a0",
+      "abiSha256": "829351a239cf1eb4f44448e62f6fbd2eab8b2e6a4e5f9eadd8fd576d36be4fa4",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "TextResolver",
+      "sourceName": "contracts/resolvers/profiles/TextResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/profiles/TextResolver.sol/TextResolver.json",
+      "abi": "abis/contracts/resolvers/profiles/TextResolver.sol/TextResolver_abi.json",
+      "artifactSha256": "4fc2dc183e2e31767430ba1534538ecb37b00b599118bfa2548881d819bd3f17",
+      "abiSha256": "3e1f76886ceaf587f50031223515ff49d69f3b040e02dadc6280519f89c4c71f",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "PublicResolver",
+      "sourceName": "contracts/resolvers/PublicResolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/PublicResolver.sol/PublicResolver.json",
+      "abi": "abis/contracts/resolvers/PublicResolver.sol/PublicResolver_abi.json",
+      "artifactSha256": "fba18bade6c6ba28050b79328f23494627e130d081492c37add2f881368d81fe",
+      "abiSha256": "257e8cf8f4cd6ced84ab773fc317d81ebaaea5814b2b05f338bdeea3c424572f",
+      "bytecodeSha256": "536930f6ea8cb93d62a3374afb26c15cd2fa7a8223ef87df2c26c68db6714f0c",
+      "deployedBytecodeSha256": "e6b8e68c1bc8d093966dcc6a50acde6fb517d687d0a123b49965b9027c5dadb1"
+    },
+    {
+      "contractName": "Resolver",
+      "sourceName": "contracts/resolvers/Resolver.sol",
+      "artifact": "source/artifacts/contracts/resolvers/Resolver.sol/Resolver.json",
+      "abi": "abis/contracts/resolvers/Resolver.sol/Resolver_abi.json",
+      "artifactSha256": "fe352219539997b3799cc8448bc63032f761f3b46c8170dd74e1a598f4cae88d",
+      "abiSha256": "426ecd6a1ab3a6e3c8bd46bf767859f5043c830e9b8f666674b153b54db30636",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ResolverBase",
+      "sourceName": "contracts/resolvers/ResolverBase.sol",
+      "artifact": "source/artifacts/contracts/resolvers/ResolverBase.sol/ResolverBase.json",
+      "abi": "abis/contracts/resolvers/ResolverBase.sol/ResolverBase_abi.json",
+      "artifactSha256": "035f053802ce4e14cd466672e763d895ab2654bbc72a0b0159ac1142c8b90d3f",
+      "abiSha256": "3f27c8e0deaa1331f348ac92562a6b82166f47d833cdb494872863cfcaa79ee8",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ResolverFeatures",
+      "sourceName": "contracts/resolvers/ResolverFeatures.sol",
+      "artifact": "source/artifacts/contracts/resolvers/ResolverFeatures.sol/ResolverFeatures.json",
+      "abi": "abis/contracts/resolvers/ResolverFeatures.sol/ResolverFeatures_abi.json",
+      "artifactSha256": "b2f66d43d45313c5543c2234d5796a9b7fba5ea0cab8cfcd18b7b6b3dbaae7be",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "5878236f0b9322b2115d25bc4659210bca8fbbfcd7dd97c494a6d04c1c3293f2",
+      "deployedBytecodeSha256": "b282de6ba3f848dee64ae75bd598705c1554475d889135c72aa4c6d4befd0940"
+    },
+    {
+      "contractName": "DefaultReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/DefaultReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/DefaultReverseRegistrar.sol/DefaultReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/DefaultReverseRegistrar.sol/DefaultReverseRegistrar_abi.json",
+      "artifactSha256": "538094f0d176238904e82c13e392248664cddb8bb3dd641dbdb619a75887b06d",
+      "abiSha256": "6ffe2eeb620f7e3a200570255b8af0c37dad4ebea4c75607bcfbb7ff3c973a62",
+      "bytecodeSha256": "b2ba9f956c5f872c2ca8f8cbc39d7bdb6e67d87ceb79f32a9e531e4685e53ed5",
+      "deployedBytecodeSha256": "dfd527193e9be5d61cb813e95fdc3f7f109611e5a5abf266773ed7967c27d3d2"
+    },
+    {
+      "contractName": "IDefaultReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/IDefaultReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/IDefaultReverseRegistrar.sol/IDefaultReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/IDefaultReverseRegistrar.sol/IDefaultReverseRegistrar_abi.json",
+      "artifactSha256": "bbcf2718910f16631c88ff8f5a0acc24b7b07b0b889bfd0637ca59d6eb7e7adf",
+      "abiSha256": "4e6f00bc054b0f9a435987064f73e008efc4aeca698ebc99537182801f6b971e",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IL2ReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/IL2ReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/IL2ReverseRegistrar.sol/IL2ReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/IL2ReverseRegistrar.sol/IL2ReverseRegistrar_abi.json",
+      "artifactSha256": "33c3db1ae5eb3150a12c9e42892581d5c5251024fd18b770f4d851cd8f900881",
+      "abiSha256": "54f2201f49633d3d755beaad9f8ca2f23d13e09db04eb7bac91a2d33d81dda06",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/IReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/IReverseRegistrar.sol/IReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/IReverseRegistrar.sol/IReverseRegistrar_abi.json",
+      "artifactSha256": "1b142834867bd16d6cec8ce45a3e515aa201f7cc9f174e809b869ada048fa1b5",
+      "abiSha256": "ab38a01e2a6b3c64932c01772edbb8d506a72780b7aebb0ca1dc8bdf16eecd99",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IStandaloneReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/IStandaloneReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/IStandaloneReverseRegistrar.sol/IStandaloneReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/IStandaloneReverseRegistrar.sol/IStandaloneReverseRegistrar_abi.json",
+      "artifactSha256": "145a3c4fa485940e139daf78c9ba98251ddf58d26feb42eb111a65384b90b473",
+      "abiSha256": "b0341ebe02f3d73c92622d3b9f90fc88066489aefca738435c6e81dc7b896f8a",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "L2ReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/L2ReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/L2ReverseRegistrar.sol/L2ReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/L2ReverseRegistrar.sol/L2ReverseRegistrar_abi.json",
+      "artifactSha256": "7b70420ee68ee680b752ec8a26afc4f9cb4861730378e582020d5d5693fe7892",
+      "abiSha256": "feb9b8c1647c36da4539f02bfbcc809076f32c9aeb365488cd7852c8fae6a432",
+      "bytecodeSha256": "4c17062acc40329ecfbd2f527dddc8a23834c7a33ab2ee9efad4bbe5e9fda23a",
+      "deployedBytecodeSha256": "4de6cd90cf9e2ca3d4cd345c8dcfb5502400d2e4f8eabaca195ef0b8d41a568f"
+    },
+    {
+      "contractName": "L2ReverseRegistrarWithMigration",
+      "sourceName": "contracts/reverseRegistrar/L2ReverseRegistrarWithMigration.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/L2ReverseRegistrarWithMigration.sol/L2ReverseRegistrarWithMigration.json",
+      "abi": "abis/contracts/reverseRegistrar/L2ReverseRegistrarWithMigration.sol/L2ReverseRegistrarWithMigration_abi.json",
+      "artifactSha256": "12e19079f42fb537eb8935c8c9476ae695f65728de32c6683e39875980ef9c43",
+      "abiSha256": "9c57db217d0fb18672c924e7d1093bbde3e66b15012bfb3b3147264f5ea1d587",
+      "bytecodeSha256": "f4330cc6efb129976e272d0bf65fc764981bf6d5e99290a3a839ab52debeb5fd",
+      "deployedBytecodeSha256": "4e05fb576d441aa41e33bad40e9610bfaf2833eb6b24de8d5360d03f34440fe8"
+    },
+    {
+      "contractName": "ReverseClaimer",
+      "sourceName": "contracts/reverseRegistrar/ReverseClaimer.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/ReverseClaimer.sol/ReverseClaimer.json",
+      "abi": "abis/contracts/reverseRegistrar/ReverseClaimer.sol/ReverseClaimer_abi.json",
+      "artifactSha256": "7510f9e9adce01e659edf354190b48857fd60655a29fa34fdeee2022576d6892",
+      "abiSha256": "5f040a390c7ceeb4403bc85967b887c6e9f4979267820492b35879237a5b809e",
+      "bytecodeSha256": "58e9e8cfd01cf0f17eb4760265aa0160aca44c82f5bec0828be44aa170e9ac57",
+      "deployedBytecodeSha256": "b560c54b42c0ba57cb6d9dd0a6ad78a979d90b894e7bdc1617c78f839e095d0c"
+    },
+    {
+      "contractName": "NameResolver",
+      "sourceName": "contracts/reverseRegistrar/ReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/ReverseRegistrar.sol/NameResolver.json",
+      "abi": "abis/contracts/reverseRegistrar/ReverseRegistrar.sol/NameResolver_abi.json",
+      "artifactSha256": "e35af411c14fd566d8c9b0aea878b87e0d277184a02d113ffb99e4eb6019bcec",
+      "abiSha256": "6626e90f5967f1a4c9fbea758251e303b756c0fe7c67e72430a4c759fdf99e93",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/ReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/ReverseRegistrar.sol/ReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/ReverseRegistrar.sol/ReverseRegistrar_abi.json",
+      "artifactSha256": "c73f5208c308cd427dba07b6678f586be40e072d31fee5986cbfb4a63f268588",
+      "abiSha256": "dbe7f9cfdb50601cfa4051cdd70286dd64aee15081afbede59053038c4d0ed2e",
+      "bytecodeSha256": "3e66c5a974474f624f52bac1c559bf5ff3e168c0bd3b8a18242846bba1c84ee9",
+      "deployedBytecodeSha256": "b80f961be4ab5280915090033dfa72f5d38ac511c02c2177c164b79f13f10c15"
+    },
+    {
+      "contractName": "IUniversalSignatureValidator",
+      "sourceName": "contracts/reverseRegistrar/SignatureUtils.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/SignatureUtils.sol/IUniversalSignatureValidator.json",
+      "abi": "abis/contracts/reverseRegistrar/SignatureUtils.sol/IUniversalSignatureValidator_abi.json",
+      "artifactSha256": "2cad9b386dd60c615338feef407ae449a3f25249b97400215d8095aa81e72e80",
+      "abiSha256": "66910ae13cc6f65f6cf84e4d57c3c513c858f3514ac833bf77813bd58c17a8a9",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "SignatureUtils",
+      "sourceName": "contracts/reverseRegistrar/SignatureUtils.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/SignatureUtils.sol/SignatureUtils.json",
+      "abi": "abis/contracts/reverseRegistrar/SignatureUtils.sol/SignatureUtils_abi.json",
+      "artifactSha256": "7902f9cfb6b58a83f600541c3295a14998c92e288a17754ee36b3315c194a1e5",
+      "abiSha256": "62a9197e177e1658474b3ba1667076bb54a359b911555e1855a4d63c924b117a",
+      "bytecodeSha256": "da28915fe18d434e94acab772166baeb41d9e275955093b54066d0667dafaa8f",
+      "deployedBytecodeSha256": "36a325f3e85f91965c067e9fd77facc45b647df940242e6e1b77cce2849624d3"
+    },
+    {
+      "contractName": "StandaloneReverseRegistrar",
+      "sourceName": "contracts/reverseRegistrar/StandaloneReverseRegistrar.sol",
+      "artifact": "source/artifacts/contracts/reverseRegistrar/StandaloneReverseRegistrar.sol/StandaloneReverseRegistrar.json",
+      "abi": "abis/contracts/reverseRegistrar/StandaloneReverseRegistrar.sol/StandaloneReverseRegistrar_abi.json",
+      "artifactSha256": "e7d4fccfeb7e320b21b8e889a34460d37613d7923296bcd5168458bc1373746f",
+      "abiSha256": "bb963fee7da1a7b72aa7c71631de3f15b392443a7ed408c9230a2188ef6d366c",
+      "bytecodeSha256": "c17fb034e8e5331cbc35ca43c0459d5424ab1db0a13a1cfe3d2b1b274dc092c6",
+      "deployedBytecodeSha256": "f569f8af656144eec9984a7aad6de44f18f4173d921a401dc99b11870dc41553"
+    },
+    {
+      "contractName": "AbstractReverseResolver",
+      "sourceName": "contracts/reverseResolver/AbstractReverseResolver.sol",
+      "artifact": "source/artifacts/contracts/reverseResolver/AbstractReverseResolver.sol/AbstractReverseResolver.json",
+      "abi": "abis/contracts/reverseResolver/AbstractReverseResolver.sol/AbstractReverseResolver_abi.json",
+      "artifactSha256": "054eb96e2a0d527eaced753109a2ae923e6e5528cb733eb93d2bac9c4d8e559c",
+      "abiSha256": "e4d64b10f233eb86651f7619927c14e32e8abc6bd4f427ffe0638fd5a47127ce",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ChainReverseResolver",
+      "sourceName": "contracts/reverseResolver/ChainReverseResolver.sol",
+      "artifact": "source/artifacts/contracts/reverseResolver/ChainReverseResolver.sol/ChainReverseResolver.json",
+      "abi": "abis/contracts/reverseResolver/ChainReverseResolver.sol/ChainReverseResolver_abi.json",
+      "artifactSha256": "9221109afc4a5e7d2903e8643c101fd15d08679a3241ca4899356977b72bc224",
+      "abiSha256": "d865f67177ce107fa443c357de5659e4012126dc72beaee049d366050e3a8f0f",
+      "bytecodeSha256": "c1b73c8d4e44ace28f1b5b2b506e9309acf8ef379870354f47da04bb18e0b5c6",
+      "deployedBytecodeSha256": "e8cd5521fecd77ff739b273f311e4ed8bad2cf24bc346fd4a1ceb58451151b5a"
+    },
+    {
+      "contractName": "DefaultReverseResolver",
+      "sourceName": "contracts/reverseResolver/DefaultReverseResolver.sol",
+      "artifact": "source/artifacts/contracts/reverseResolver/DefaultReverseResolver.sol/DefaultReverseResolver.json",
+      "abi": "abis/contracts/reverseResolver/DefaultReverseResolver.sol/DefaultReverseResolver_abi.json",
+      "artifactSha256": "989b5d408525503cbd5c282a71d946963dc9a928866d43844fc7739433b22cc8",
+      "abiSha256": "669d79d98df165c716ac27c2d5a8b901a9b38ad61b9138646233004c26501ba1",
+      "bytecodeSha256": "8b114cd9f3bc09c92aa977b6b9521f069c6185c43fdec592941396c3c49cc96f",
+      "deployedBytecodeSha256": "ed76f4249e7cbc6f09780c3226befd514944129ee4dab93c39366000fa6c86c0"
+    },
+    {
+      "contractName": "ETHReverseResolver",
+      "sourceName": "contracts/reverseResolver/ETHReverseResolver.sol",
+      "artifact": "source/artifacts/contracts/reverseResolver/ETHReverseResolver.sol/ETHReverseResolver.json",
+      "abi": "abis/contracts/reverseResolver/ETHReverseResolver.sol/ETHReverseResolver_abi.json",
+      "artifactSha256": "0fb42ff0346a97daf54029c14ebb2abb8e7f8fdfa1840c8635f579dee3ed1ae2",
+      "abiSha256": "8108713e51a520570fdd4ce531a90806c2e1916b2b5ce0e7a0ede9d466b6da95",
+      "bytecodeSha256": "aad8860654f53b8a3c8492000f6d91684c5072db49a58b9c85e3db77b66b8c1b",
+      "deployedBytecodeSha256": "f6c1ee715ba2df252093a99f36a71f7088ee92cde3cc7676a22313d519600444"
+    },
+    {
+      "contractName": "INameReverser",
+      "sourceName": "contracts/reverseResolver/INameReverser.sol",
+      "artifact": "source/artifacts/contracts/reverseResolver/INameReverser.sol/INameReverser.json",
+      "abi": "abis/contracts/reverseResolver/INameReverser.sol/INameReverser_abi.json",
+      "artifactSha256": "e9b0e9fd24779e22dd45a6d93534d8dcfcf14ccabbaa47bdf0568142796830a2",
+      "abiSha256": "fc184c81d3df2101ae5dfba65cd5a5edc8ba5f807bed7e4988d64e5c07027076",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "Controllable",
+      "sourceName": "contracts/root/Controllable.sol",
+      "artifact": "source/artifacts/contracts/root/Controllable.sol/Controllable.json",
+      "abi": "abis/contracts/root/Controllable.sol/Controllable_abi.json",
+      "artifactSha256": "1d4235d496a672d612bab4df2b97af5de3a86662ea0479ef3ea842353317dabf",
+      "abiSha256": "85e27ec25cdc9eb3c5de3f206867d8b8fc94cd8b4fb221b23e7766e94f014cf8",
+      "bytecodeSha256": "ac7b1ba187153a26862681532181db51f0d807458ca07113702cc54564341cbb",
+      "deployedBytecodeSha256": "af6843035b89de977ce38f8392f609ff2b8a2e5fe898fda2cf731af50210b88d"
+    },
+    {
+      "contractName": "Ownable",
+      "sourceName": "contracts/root/Ownable.sol",
+      "artifact": "source/artifacts/contracts/root/Ownable.sol/Ownable.json",
+      "abi": "abis/contracts/root/Ownable.sol/Ownable_abi.json",
+      "artifactSha256": "206e895050d84a23df4d4d208eeaceb7039518e8ea3888c01276a20fa74cd991",
+      "abiSha256": "1174a03cdc3a11e13e21a6842a2d4d28f2b37b4d75168b2a273deb28e99188e5",
+      "bytecodeSha256": "fa445514398ed4cb0d92433592d6f3cc41deb96cab5680c0e6fba677c1306c80",
+      "deployedBytecodeSha256": "1e0a1aa80903e0bc7eba481fa025bb35560d31c3e0756cd1359ff19f9a696850"
+    },
+    {
+      "contractName": "Root",
+      "sourceName": "contracts/root/Root.sol",
+      "artifact": "source/artifacts/contracts/root/Root.sol/Root.json",
+      "abi": "abis/contracts/root/Root.sol/Root_abi.json",
+      "artifactSha256": "bc3aa71244e5795b4e771803a0260345a0ed5dfed5eeb207f6cfe7cbab0b5b87",
+      "abiSha256": "2cfe4452a6f20613157688301a5af7e084019ef3162a2b7c46246b5926bb090c",
+      "bytecodeSha256": "a1535ce4ade50582cd5b1a0af06dbd6f038962f170e5a13ba3f09c41b72ddab4",
+      "deployedBytecodeSha256": "a6c1af723e873dab74901bfadb257c4b4e34e796e6a4520008f108fbb32bafd8"
+    },
+    {
+      "contractName": "RootSecurityController",
+      "sourceName": "contracts/root/RootSecurityController.sol",
+      "artifact": "source/artifacts/contracts/root/RootSecurityController.sol/RootSecurityController.json",
+      "abi": "abis/contracts/root/RootSecurityController.sol/RootSecurityController_abi.json",
+      "artifactSha256": "abe3df71543e80a62cd29c529e83be481a4916d3017780cadb5c52ef4eaa93ef",
+      "abiSha256": "71925eefdc27e2903a59df4969a412ed5dcb7f11c3fbda45a6922f2639586426",
+      "bytecodeSha256": "6d24b61334bf480aa5f8f8ac6da39fd71a4842bb27dc48b0eaffa9d8201e61e9",
+      "deployedBytecodeSha256": "51bf70ea5b69164439ff2a793a1ddd2ffed5c51d6c64af393002dcbbc49ab3cd"
+    },
+    {
+      "contractName": "MockERC20",
+      "sourceName": "contracts/test/mocks/MockERC20.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockERC20.sol/MockERC20.json",
+      "abi": "abis/contracts/test/mocks/MockERC20.sol/MockERC20_abi.json",
+      "artifactSha256": "433ad923db065743662ebb54ebbb441539646eb12dbdaf6446a86f0136770a55",
+      "abiSha256": "e5a29ca4cd1e1d2c37c3d8938a03cd8d696edecfa5e25037e8684303f74822bd",
+      "bytecodeSha256": "84c76d50949b41c8397f3464f202955daf098d734e51d8b72ec4af0daab001d2",
+      "deployedBytecodeSha256": "78b795598a478d43663bfb4892e6546d3c160ce2be4d042efa24fd826e8b1916"
+    },
+    {
+      "contractName": "MockERC6492WalletFactory",
+      "sourceName": "contracts/test/mocks/MockERC6492WalletFactory.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockERC6492WalletFactory.sol/MockERC6492WalletFactory.json",
+      "abi": "abis/contracts/test/mocks/MockERC6492WalletFactory.sol/MockERC6492WalletFactory_abi.json",
+      "artifactSha256": "5d83d5e603e8e40c3d3b8921b9902d95aa80fa4a9d030172070435a88f4eeaa9",
+      "abiSha256": "a6b6054f50cb00e38ffef2a7d20c6bab5ca92e83b43d084996200db9b18a361b",
+      "bytecodeSha256": "ebf3004fc54aec12910a43033b4176e549e2a983c47789847971b50bdf852a12",
+      "deployedBytecodeSha256": "13947379323ad280bd475b07f5896c597e440e350c396ac086f7e2757ccc3ca4"
+    },
+    {
+      "contractName": "MockOffchainResolver",
+      "sourceName": "contracts/test/mocks/MockOffchainResolver.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockOffchainResolver.sol/MockOffchainResolver.json",
+      "abi": "abis/contracts/test/mocks/MockOffchainResolver.sol/MockOffchainResolver_abi.json",
+      "artifactSha256": "1d7e2b815774f654f42ade1f435e70ef81c83dfc89ea877fabc63d07c5825cb9",
+      "abiSha256": "ff6d3e8fa14ac74aeb2e73cf65a37a85120d3b2547174aced8280b5eee92b164",
+      "bytecodeSha256": "ff4c90ee351c62fefc0fbe7993bc810b45ead765c003c33c010722651cd5df1c",
+      "deployedBytecodeSha256": "cbe30ff44b57710b7bc4faae8b682b36efefa4463ad387b36f25bc4590fce160"
+    },
+    {
+      "contractName": "MockOwnable",
+      "sourceName": "contracts/test/mocks/MockOwnable.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockOwnable.sol/MockOwnable.json",
+      "abi": "abis/contracts/test/mocks/MockOwnable.sol/MockOwnable_abi.json",
+      "artifactSha256": "2d18fe6aa2344c733def7b07aeaffaee1da4f458152d3cc811aefa61981d15e2",
+      "abiSha256": "6145e8a9ae271c72c8b54377197eb595650d8d44fc1c6e5a5e1f1646997e0933",
+      "bytecodeSha256": "60d6eb9b451f1dc5089642e87fabe21f335882c2daeab520609651df28eb2bf5",
+      "deployedBytecodeSha256": "30f16c11a906d872d0d37b9392135e9e2a8b56a2bc9fd419dda4e2317294b43d"
+    },
+    {
+      "contractName": "MockReverseClaimerImplementer",
+      "sourceName": "contracts/test/mocks/MockReverseClaimerImplementer.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockReverseClaimerImplementer.sol/MockReverseClaimerImplementer.json",
+      "abi": "abis/contracts/test/mocks/MockReverseClaimerImplementer.sol/MockReverseClaimerImplementer_abi.json",
+      "artifactSha256": "0bad1119cde7dbddcca3073f89d257a6360c33ee6cbebdbc7e83a9128e69f489",
+      "abiSha256": "5f040a390c7ceeb4403bc85967b887c6e9f4979267820492b35879237a5b809e",
+      "bytecodeSha256": "4f4270085cd7f3778308b33cd568d7a13b19e624bc824071e57805fc62954e43",
+      "deployedBytecodeSha256": "e12ffe594e46e03c95609ed1387d3405c297fa173599be8602a81fee5a815ab2"
+    },
+    {
+      "contractName": "MockSmartContractWallet",
+      "sourceName": "contracts/test/mocks/MockSmartContractWallet.sol",
+      "artifact": "source/artifacts/contracts/test/mocks/MockSmartContractWallet.sol/MockSmartContractWallet.json",
+      "abi": "abis/contracts/test/mocks/MockSmartContractWallet.sol/MockSmartContractWallet_abi.json",
+      "artifactSha256": "97994bfa6f22dab44ae44888e6e9772e123b794c6f293825cafd837273e63d04",
+      "abiSha256": "51917e9ff2e5684e4910cc1229eb49e25871e85656fefec42b31a631b895cb72",
+      "bytecodeSha256": "869f26a61c9897ed26af0fdac586ff0975434db6a1d76a75c5fbdf471f516454",
+      "deployedBytecodeSha256": "9862723d05b52a5a8372f9111c884894e2cf84eec5168db8ffa0eaf3f93bad8a"
+    },
+    {
+      "contractName": "AbstractUniversalResolver",
+      "sourceName": "contracts/universalResolver/AbstractUniversalResolver.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/AbstractUniversalResolver.sol/AbstractUniversalResolver.json",
+      "abi": "abis/contracts/universalResolver/AbstractUniversalResolver.sol/AbstractUniversalResolver_abi.json",
+      "artifactSha256": "4b908164336eab5fc5b34fed46e64dde4d0b0418bb46f9c06710d9002c73c471",
+      "abiSha256": "2b70addca6615c78b85a451bbba89fe086d5c18e5a2e0f47a886e1b954f34511",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IUniversalResolver",
+      "sourceName": "contracts/universalResolver/IUniversalResolver.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/IUniversalResolver.sol/IUniversalResolver.json",
+      "abi": "abis/contracts/universalResolver/IUniversalResolver.sol/IUniversalResolver_abi.json",
+      "artifactSha256": "0d1f4f19e137aa2438853882cc22e37bf051b2fad12e134c4e982076f8dd6107",
+      "abiSha256": "96c7f7466f7acff58e5e49e37d29f7fbe87d6a38a2526ce50d6fbdb441063c64",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "DummyShapeshiftResolver",
+      "sourceName": "contracts/universalResolver/mocks/DummyShapeshiftResolver.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/mocks/DummyShapeshiftResolver.sol/DummyShapeshiftResolver.json",
+      "abi": "abis/contracts/universalResolver/mocks/DummyShapeshiftResolver.sol/DummyShapeshiftResolver_abi.json",
+      "artifactSha256": "cab40978296dff605c22e74f261fbec94837c598dbe8a8d8211fca2613abe47b",
+      "abiSha256": "cfbcb29bcabe0c2d34d594187e3c30962cb93c4d3e702280e2e5b1be987812ed",
+      "bytecodeSha256": "77dc31ba13b954767b55a0afa16eb1587bac27011acdf25827f897ad76afca61",
+      "deployedBytecodeSha256": "e4cd17c438b41f1dd00f07bf137ec8f5a36a3de11f9a76b6964da77e2904ee11"
+    },
+    {
+      "contractName": "MockResolverCaller",
+      "sourceName": "contracts/universalResolver/mocks/MockResolverCaller.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/mocks/MockResolverCaller.sol/MockResolverCaller.json",
+      "abi": "abis/contracts/universalResolver/mocks/MockResolverCaller.sol/MockResolverCaller_abi.json",
+      "artifactSha256": "59068f7b34bd225cf01bcb0e081abdb184de698bc95e241298a378f64b3ada84",
+      "abiSha256": "f9c0b186db28ec57fa215c699f2afbc86991e2922cf5ffc24b34b62ee31a9f0b",
+      "bytecodeSha256": "b7498dfcc59c5f73089a5cc96b461886e5aefc93c0c6e0f7719d1100fa05ebb0",
+      "deployedBytecodeSha256": "a8fcc3308960485b434f973f1074709e2157d92eb1ee491cac6aec81a48776aa"
+    },
+    {
+      "contractName": "RegistryUtils",
+      "sourceName": "contracts/universalResolver/RegistryUtils.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/RegistryUtils.sol/RegistryUtils.json",
+      "abi": "abis/contracts/universalResolver/RegistryUtils.sol/RegistryUtils_abi.json",
+      "artifactSha256": "91406c25b189d32381ab4532e98b127cab2b232ae7ccd3248725549bcb802e22",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "60f97a28046d2904244e94559d3825cf1ca2fb600befb15ee718ac4be39fb1e8",
+      "deployedBytecodeSha256": "8b9e3993669f74b53724f6a809cc568d15a26afbd04bc89ad183171111c26cfe"
+    },
+    {
+      "contractName": "ResolverCaller",
+      "sourceName": "contracts/universalResolver/ResolverCaller.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/ResolverCaller.sol/ResolverCaller.json",
+      "abi": "abis/contracts/universalResolver/ResolverCaller.sol/ResolverCaller_abi.json",
+      "artifactSha256": "5394e2cf68af625fd3719de4cc5367a3b25eed286dd62602fd26da417f939496",
+      "abiSha256": "bb74cfd6eb7f12809bb680b492693866885f01de636af470007942a1fad4688b",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "UniversalResolver",
+      "sourceName": "contracts/universalResolver/UniversalResolver.sol",
+      "artifact": "source/artifacts/contracts/universalResolver/UniversalResolver.sol/UniversalResolver.json",
+      "abi": "abis/contracts/universalResolver/UniversalResolver.sol/UniversalResolver_abi.json",
+      "artifactSha256": "620ff87e051576f1db47cdecc337cbffc80109aef7d001950c63d99e55cb03e9",
+      "abiSha256": "c6f30912e6eef93acada0847ee56b6675e8de4c782dc201ab0d63503f163cee4",
+      "bytecodeSha256": "cf28229fb8759ce1192b87d5c1192249f8bbd65f9b94e5ad5fc71adb5cba3a0e",
+      "deployedBytecodeSha256": "3a66f9222634aa15da092097f6268748042d8147641e5a02a38758720f0b15aa"
+    },
+    {
+      "contractName": "AddressUtils",
+      "sourceName": "contracts/utils/AddressUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/AddressUtils.sol/AddressUtils.json",
+      "abi": "abis/contracts/utils/AddressUtils.sol/AddressUtils_abi.json",
+      "artifactSha256": "254f9bdf5969114fb6aacf2bef3ff6732504c0b14ebc54a00aeba7d068266c21",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "d277c2f16e49eca178c5494c31260a6c4d42243900e739b462190134840c1322",
+      "deployedBytecodeSha256": "a23985e1b922e612aebcdde292833e5126d1ff300b7e588d314c30e670df4b64"
+    },
+    {
+      "contractName": "BytesUtils_LEGACY",
+      "sourceName": "contracts/utils/BytesUtils_LEGACY.sol",
+      "artifact": "source/artifacts/contracts/utils/BytesUtils_LEGACY.sol/BytesUtils_LEGACY.json",
+      "abi": "abis/contracts/utils/BytesUtils_LEGACY.sol/BytesUtils_LEGACY_abi.json",
+      "artifactSha256": "5c3cd79b9bbba88e89f367a1df9848b17b6b08bc4f43d7a68b4cba624d0655d9",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "ce383cb8cf960155d5e773eb570298015597a5b5707b8417a99440a7150f09da",
+      "deployedBytecodeSha256": "33d14794babc6d4d986ea953d35c0d7c21d9afb24884efcc95979e07b00a8178"
+    },
+    {
+      "contractName": "BytesUtils",
+      "sourceName": "contracts/utils/BytesUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/BytesUtils.sol/BytesUtils.json",
+      "abi": "abis/contracts/utils/BytesUtils.sol/BytesUtils_abi.json",
+      "artifactSha256": "41c550b35a169222bbb3b3acde2d2b2ab1428d2d03931e100d4c4038559e538d",
+      "abiSha256": "ef73243ae9b119051f1872d79ec93f39d5bd58b8604f0734b9a4c6d42f15dff6",
+      "bytecodeSha256": "97f7905cd6c92e9ea11d2aa810981a91319738e03051c1047d7e2818e0f56c76",
+      "deployedBytecodeSha256": "a8935d67045049aa8d554f0697c210f834cb6dfef97e404746856e7f7c6adca1"
+    },
+    {
+      "contractName": "ENSIP19",
+      "sourceName": "contracts/utils/ENSIP19.sol",
+      "artifact": "source/artifacts/contracts/utils/ENSIP19.sol/ENSIP19.json",
+      "abi": "abis/contracts/utils/ENSIP19.sol/ENSIP19_abi.json",
+      "artifactSha256": "675c15822ca351f5bd9a47d00bcf44ad5f40555b18914fa02ce352e932a84fc6",
+      "abiSha256": "32744f5c504d70a7f954acdbea6b7a43fd1e86cd3189c490f118561ba9a78473",
+      "bytecodeSha256": "2d19812679186056bce6c237816f5c5d1cfb5e743c5c12ba9d06b8854316af66",
+      "deployedBytecodeSha256": "191063125a79d393afa10edda7da8fbb1f7d5bb5ff72f78873b4e13dca3a3888"
+    },
+    {
+      "contractName": "ERC20Recoverable",
+      "sourceName": "contracts/utils/ERC20Recoverable.sol",
+      "artifact": "source/artifacts/contracts/utils/ERC20Recoverable.sol/ERC20Recoverable.json",
+      "abi": "abis/contracts/utils/ERC20Recoverable.sol/ERC20Recoverable_abi.json",
+      "artifactSha256": "1be9137d2cb17b0d0a4ad0a8d27e8404d77ba39d6ce46f456ff34d25eb207721",
+      "abiSha256": "531345738dd0677b9a964021bf572d1cc44f0e0c8ec9485278e25e785a60fadd",
+      "bytecodeSha256": "37c9f61798cd6cfb699985ec9252125a0d2a079d61104be54c4a6e347a8a7591",
+      "deployedBytecodeSha256": "2a976cc20f36415b717834de96c0e88f8ca167db4db54e292afc9ce417df23b6"
+    },
+    {
+      "contractName": "HexUtils",
+      "sourceName": "contracts/utils/HexUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/HexUtils.sol/HexUtils.json",
+      "abi": "abis/contracts/utils/HexUtils.sol/HexUtils_abi.json",
+      "artifactSha256": "73c1b2d56a076aee867d6c71230c6845c64d1b42a4ddff135b3c0c84ac1d83a7",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "45ba5e9776c2fb65cef96b3f1e0e0e05fe2e9271a8e2418d7e61cdc4b316a095",
+      "deployedBytecodeSha256": "7a06dddabeeae8b7ff6d5bc71ad58a55c9b71c7724c1e8b9371d4c0da8001a2f"
+    },
+    {
+      "contractName": "IERC7996",
+      "sourceName": "contracts/utils/IERC7996.sol",
+      "artifact": "source/artifacts/contracts/utils/IERC7996.sol/IERC7996.json",
+      "abi": "abis/contracts/utils/IERC7996.sol/IERC7996_abi.json",
+      "artifactSha256": "83a7a60ae852544bf846d53262baa8a29c13d09829568820ed355e30e2396e3e",
+      "abiSha256": "21bc28b6f0473c11e75cc79c6e2d46e19fdb5a6f98ec5bd579830671abe52d58",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "LibABI",
+      "sourceName": "contracts/utils/LibABI.sol",
+      "artifact": "source/artifacts/contracts/utils/LibABI.sol/LibABI.json",
+      "abi": "abis/contracts/utils/LibABI.sol/LibABI_abi.json",
+      "artifactSha256": "ca34eb16dadbba0885aceb89a8781173638dee6883223d09f77d3ab37cc15ae2",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "eaaf8c99af5bbedacf75a513c96fc29c5927a4ee289339b2f716a6145d376256",
+      "deployedBytecodeSha256": "17761f2a8df76c9704b1ad250b5d7fa8a983c60c953b1207dae808f724622216"
+    },
+    {
+      "contractName": "LibMem",
+      "sourceName": "contracts/utils/LibMem/LibMem.sol",
+      "artifact": "source/artifacts/contracts/utils/LibMem/LibMem.sol/LibMem.json",
+      "abi": "abis/contracts/utils/LibMem/LibMem.sol/LibMem_abi.json",
+      "artifactSha256": "526d60ea4a121e367ae2653e3a71aafc67140ee2d339ddb6ab8536a23a8d2a98",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "8081cab3629bf9f80aa315f390c3810fb1c7f37b3d1ecbcd19c2a515fadda8dd",
+      "deployedBytecodeSha256": "2e8b2af0d9fd50495ad4b2e07354579d3c9ab3a198bdde29a2c16423eb69b7e1"
+    },
+    {
+      "contractName": "LowLevelCallUtils",
+      "sourceName": "contracts/utils/LowLevelCallUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/LowLevelCallUtils.sol/LowLevelCallUtils.json",
+      "abi": "abis/contracts/utils/LowLevelCallUtils.sol/LowLevelCallUtils_abi.json",
+      "artifactSha256": "f0c74e072b87122110b3dd61a95e0257c0d23ac95b1daf76f2d5782be9295510",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "55610d964b28e373024f6ebb68237b5c6dac404650dcfe18a962dfabe6f6ba0e",
+      "deployedBytecodeSha256": "a01612638947cb9a5ea957a2a86bd0e5a96755ca3c17881687a6e46ea46f14c8"
+    },
+    {
+      "contractName": "MigrationHelper",
+      "sourceName": "contracts/utils/MigrationHelper.sol",
+      "artifact": "source/artifacts/contracts/utils/MigrationHelper.sol/MigrationHelper.json",
+      "abi": "abis/contracts/utils/MigrationHelper.sol/MigrationHelper_abi.json",
+      "artifactSha256": "df5a78e79ad1ef0897a9e82564d4c6e1e87d83ec840f8ac629fd5187646bb301",
+      "abiSha256": "68b0772879f2d86b2b5b67eb1ecb0db5305a50bf2a65513fdf80310a859e06e7",
+      "bytecodeSha256": "020e82761e28d3ebf50905ea09449053c4be435805fa85d783e3c60e2d21ddad",
+      "deployedBytecodeSha256": "db08947f9b43c506f949b91eae965f39c11153191210831028b5a24089c8ef99"
+    },
+    {
+      "contractName": "NameCoder",
+      "sourceName": "contracts/utils/NameCoder.sol",
+      "artifact": "source/artifacts/contracts/utils/NameCoder.sol/NameCoder.json",
+      "abi": "abis/contracts/utils/NameCoder.sol/NameCoder_abi.json",
+      "artifactSha256": "4cca1c53534172e3564107887042958838f0a452aaafe20b440f2ae8fc07a8ef",
+      "abiSha256": "56a3eb34162193bec11776b269cdbffb7df0ef75273b0721aa71508f4a228377",
+      "bytecodeSha256": "62e0ceddbb2205b6362a1a83255ae8dcb4eb057b2d3453e49a5d3fda08ea7294",
+      "deployedBytecodeSha256": "d4fe45040ff062d559354bde27b54fb447849d27411a2729f0e6820f4bb1abe3"
+    },
+    {
+      "contractName": "StringUtils",
+      "sourceName": "contracts/utils/StringUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/StringUtils.sol/StringUtils.json",
+      "abi": "abis/contracts/utils/StringUtils.sol/StringUtils_abi.json",
+      "artifactSha256": "fea31dbd81e5b0faaa290e892050b1d4b0bf5a219e147844075213cfd9427399",
+      "abiSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytecodeSha256": "84a7ca925173ebfe800cb4c31514effffc64bede136aab3fb23ab68c24708ebf",
+      "deployedBytecodeSha256": "66f296ee61889924eca429f382c1e9d41347e6c5bf65efb6ea9da3ed1314d20c"
+    },
+    {
+      "contractName": "TestBytesUtils",
+      "sourceName": "contracts/utils/TestBytesUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/TestBytesUtils.sol/TestBytesUtils.json",
+      "abi": "abis/contracts/utils/TestBytesUtils.sol/TestBytesUtils_abi.json",
+      "artifactSha256": "403ff39d28a05a73d3db1e3f3ff104977ad98385441c9717cc3b2d74bb5017c4",
+      "abiSha256": "07bc86330cf556d34df7c2a6a2a73b1b0b69f0713a7c1c32d799d6f139e534ab",
+      "bytecodeSha256": "09862d7ad10eb0e5e31a82265fe967cc8318fac0d70294322846013f952d344b",
+      "deployedBytecodeSha256": "1e7193defe2cbb1f54467a93a787ffdfcd6a61022c04a06360a07cdb97122d8a"
+    },
+    {
+      "contractName": "TestENSIP19",
+      "sourceName": "contracts/utils/TestENSIP19.sol",
+      "artifact": "source/artifacts/contracts/utils/TestENSIP19.sol/TestENSIP19.json",
+      "abi": "abis/contracts/utils/TestENSIP19.sol/TestENSIP19_abi.json",
+      "artifactSha256": "ee88a14b91d46f3ea07a5674358083424a6123556b9072f250db483286276022",
+      "abiSha256": "25f9b91b8e0f1ca8b1a6c747bd01c217ab504d7765564a19924bf20d4601e21c",
+      "bytecodeSha256": "53f7ba208aaf497dc8f6a958496654b6a8818a38a1866999a308bcfb2f58ff21",
+      "deployedBytecodeSha256": "b070ef72e2b5dfd1937d79707077471352484428dcecb9f447a730c5b320e528"
+    },
+    {
+      "contractName": "TestHexUtils",
+      "sourceName": "contracts/utils/TestHexUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/TestHexUtils.sol/TestHexUtils.json",
+      "abi": "abis/contracts/utils/TestHexUtils.sol/TestHexUtils_abi.json",
+      "artifactSha256": "335db3c0fa2f557db994c58e4cbcff23184bd8c4e9d8f2ec5549f4eaaef873bf",
+      "abiSha256": "2bcc2f4bb47de8badf578ff490c7fd33dc56453e49594d75785f9ea524689980",
+      "bytecodeSha256": "15a8b262172a3f8914ace0d8a681e4f5ba697298eaa718850423356964a1a5e9",
+      "deployedBytecodeSha256": "b2f26b049cf20b37aea8a62531acef9d93d24ebe56d37e44f80298379ca564c9"
+    },
+    {
+      "contractName": "TestLibABI",
+      "sourceName": "contracts/utils/TestLibABI.sol",
+      "artifact": "source/artifacts/contracts/utils/TestLibABI.sol/TestLibABI.json",
+      "abi": "abis/contracts/utils/TestLibABI.sol/TestLibABI_abi.json",
+      "artifactSha256": "32d8f5ccde810fd8a6d0b9ab94008ceb22525591a52867c7bb4505d47211b0f1",
+      "abiSha256": "835fa1c7cc5b08c81c64e469baa878d741c04f0d206b98692f72b676030a7fed",
+      "bytecodeSha256": "9ba55e954f2b553439785c21fee838d91b7c0cbb7e2b2d3276daf0f83af59129",
+      "deployedBytecodeSha256": "7c995c4f99f8ddd677f29589348cdc75240ddc4b7cfb72e903e4278d96f19a50"
+    },
+    {
+      "contractName": "TestNameCoder",
+      "sourceName": "contracts/utils/TestNameCoder.sol",
+      "artifact": "source/artifacts/contracts/utils/TestNameCoder.sol/TestNameCoder.json",
+      "abi": "abis/contracts/utils/TestNameCoder.sol/TestNameCoder_abi.json",
+      "artifactSha256": "492d10f0b66faca5b9c86b8bff612eba3ca4411c82093fa4d1ca24201ca4826d",
+      "abiSha256": "a3aeaa5864ec8cf8257eec451085bcf7eed102342714629748e08b23756b7978",
+      "bytecodeSha256": "3a1496f14bb3e25e37d9e7d5c2a609491ef4b780edf4efa25b6c9947a956b0e0",
+      "deployedBytecodeSha256": "ceb93771419f51d56f6aadf81b466551347e765be790f2cdcb718ff257f5e5bd"
+    },
+    {
+      "contractName": "TestRRUtils",
+      "sourceName": "contracts/utils/TestRRUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/TestRRUtils.sol/TestRRUtils.json",
+      "abi": "abis/contracts/utils/TestRRUtils.sol/TestRRUtils_abi.json",
+      "artifactSha256": "5a8fd7e53a96985f0296bb419af4174a974a4a2918e3634c009b45a48d75fa54",
+      "abiSha256": "0db028a71b4da151883d36e8e6d33c66ac0c850b54f88b7d580cdd084b87e855",
+      "bytecodeSha256": "be1ca12c499ef1cc9fda3ea18eab98e57f4f024bd75ba410d27a14cf662e5675",
+      "deployedBytecodeSha256": "127e0b98d29f4609396f020b437e7c9e0cb05b208c7046de76c3de960c37d171"
+    },
+    {
+      "contractName": "TestStringUtils",
+      "sourceName": "contracts/utils/TestStringUtils.sol",
+      "artifact": "source/artifacts/contracts/utils/TestStringUtils.sol/TestStringUtils.json",
+      "abi": "abis/contracts/utils/TestStringUtils.sol/TestStringUtils_abi.json",
+      "artifactSha256": "29e91a0c59b615a64445eb862ae9de23910be8d6b5a85022706d31772a2bc273",
+      "abiSha256": "d0cfa028af798d33c069ebcedf1aa9cebf7b7dea349d5fae7aecab317b75469b",
+      "bytecodeSha256": "b693b82e66f13ea09fbbd1e105fc77b879d11736b39f5015be8090a6fbcabca2",
+      "deployedBytecodeSha256": "41381032867dbf31ca04001356793ed472aeaaae8fdccdc7bd10fde2c0b2df45"
+    },
+    {
+      "contractName": "IERC1271Wallet",
+      "sourceName": "contracts/utils/UniversalSigValidator.sol",
+      "artifact": "source/artifacts/contracts/utils/UniversalSigValidator.sol/IERC1271Wallet.json",
+      "abi": "abis/contracts/utils/UniversalSigValidator.sol/IERC1271Wallet_abi.json",
+      "artifactSha256": "887a0fd839bd6fb290b03fb10d644ba751f2b1796ca7ec400836867b7f8c8b15",
+      "abiSha256": "73d43ef9af4166a6a350c09bf9f4dfbe5e2bc2ebf5f86b7c1d318203d4db110f",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "UniversalSigValidator",
+      "sourceName": "contracts/utils/UniversalSigValidator.sol",
+      "artifact": "source/artifacts/contracts/utils/UniversalSigValidator.sol/UniversalSigValidator.json",
+      "abi": "abis/contracts/utils/UniversalSigValidator.sol/UniversalSigValidator_abi.json",
+      "artifactSha256": "dad9b9b63ab5da8ea97b2adcc6999d26355d4f35895ad0fe05cc145c3418897f",
+      "abiSha256": "421fda8d09b0eca5a9ffe17ffdbbc37daa4ff930748b3c9573d1fe9984e83c85",
+      "bytecodeSha256": "8a9490b60a71cb0ed7d39f30f7a1f3bb48178509b554c075ad3dcb270a602879",
+      "deployedBytecodeSha256": "7530d0f98a3c9eb6a48bc687c8e7ba4291e9916f1585969d9093030f84ca607b"
+    },
+    {
+      "contractName": "Controllable",
+      "sourceName": "contracts/wrapper/Controllable.sol",
+      "artifact": "source/artifacts/contracts/wrapper/Controllable.sol/Controllable.json",
+      "abi": "abis/contracts/wrapper/Controllable.sol/Controllable_abi.json",
+      "artifactSha256": "a528b820c0f29a32305b11d41822d3053c1d206c2019e8894f672665ea27274e",
+      "abiSha256": "e48bae40ab86fd5cf88048a62750f71c8663ee107de165ecef13507fcfae2c4c",
+      "bytecodeSha256": "7ce92ded4901b61ef38c0267249a68ebe1be42b582ecc5fb0c9fdf5a5c5382ac",
+      "deployedBytecodeSha256": "7faba85788c3b8b5aec131a6233544d890d6bb04908f0e112d9e3fb2667752de"
+    },
+    {
+      "contractName": "ERC1155Fuse",
+      "sourceName": "contracts/wrapper/ERC1155Fuse.sol",
+      "artifact": "source/artifacts/contracts/wrapper/ERC1155Fuse.sol/ERC1155Fuse.json",
+      "abi": "abis/contracts/wrapper/ERC1155Fuse.sol/ERC1155Fuse_abi.json",
+      "artifactSha256": "a375b53369cb0c7f7cccd50601469a388fec46d49fe7adc84c116cca5b27974e",
+      "abiSha256": "7d39714c38da158962cc1ce4042dacb2543b6bcb4b98bfeb579b593ab92ddde7",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "IMetadataService",
+      "sourceName": "contracts/wrapper/IMetadataService.sol",
+      "artifact": "source/artifacts/contracts/wrapper/IMetadataService.sol/IMetadataService.json",
+      "abi": "abis/contracts/wrapper/IMetadataService.sol/IMetadataService_abi.json",
+      "artifactSha256": "bfded8704b46a8241266b81640854b89071faaaa499111036c4d56f4e1297747",
+      "abiSha256": "80c0f4157b896160ac1ed9356f216c2156177bf7f84854a519d432e0ffd4c37d",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "INameWrapper",
+      "sourceName": "contracts/wrapper/INameWrapper.sol",
+      "artifact": "source/artifacts/contracts/wrapper/INameWrapper.sol/INameWrapper.json",
+      "abi": "abis/contracts/wrapper/INameWrapper.sol/INameWrapper_abi.json",
+      "artifactSha256": "5fc68ff093610117bded3922e2d8ec28fc391039bb34527eba73f238961ff3f0",
+      "abiSha256": "2a139ead2d8b3f8981a168fe38b42552143d3665d439e8585eecf3fd09196005",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "INameWrapperUpgrade",
+      "sourceName": "contracts/wrapper/INameWrapperUpgrade.sol",
+      "artifact": "source/artifacts/contracts/wrapper/INameWrapperUpgrade.sol/INameWrapperUpgrade.json",
+      "abi": "abis/contracts/wrapper/INameWrapperUpgrade.sol/INameWrapperUpgrade_abi.json",
+      "artifactSha256": "542506b170c978ee1451095405f8959040be809d00b62b95cb94cfec64c443fa",
+      "abiSha256": "2a06c07c2465a9dcb2cd234ae1b4e8f0ce8fd7806d089bb6df20d9ad7dcfa1a0",
+      "bytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3",
+      "deployedBytecodeSha256": "a54942c8e365f3784f38b8d437f9d708290db60738b00cdcfb934c32d1be97f3"
+    },
+    {
+      "contractName": "ERC1155ReceiverMock",
+      "sourceName": "contracts/wrapper/mocks/ERC1155ReceiverMock.sol",
+      "artifact": "source/artifacts/contracts/wrapper/mocks/ERC1155ReceiverMock.sol/ERC1155ReceiverMock.json",
+      "abi": "abis/contracts/wrapper/mocks/ERC1155ReceiverMock.sol/ERC1155ReceiverMock_abi.json",
+      "artifactSha256": "8213a82576d630263e13aab97ea587fddeec9d03fbcca71380848da67ad47a3f",
+      "abiSha256": "a6e3767b0e914e653aad12ae557f0699ec99f4dd400831b9a077b41987825e9f",
+      "bytecodeSha256": "b6d42348453eafe31f1d870d7471b356e684255c0d0680be3068ad6ddbafac2e",
+      "deployedBytecodeSha256": "2083c429b57105b52b119920dfbbfe4ef9c0020a76d4ca8617ff8c6dc5d0afce"
+    },
+    {
+      "contractName": "TestUnwrap",
+      "sourceName": "contracts/wrapper/mocks/TestUnwrap.sol",
+      "artifact": "source/artifacts/contracts/wrapper/mocks/TestUnwrap.sol/TestUnwrap.json",
+      "abi": "abis/contracts/wrapper/mocks/TestUnwrap.sol/TestUnwrap_abi.json",
+      "artifactSha256": "9f0981018b05d18aa976cd0fbf809bf51eee5935e808b3563198e3b836bec46d",
+      "abiSha256": "c454d77b14edd6e33705da02a58a3248ce9d553b88bce2aa7930c1fc94126bc2",
+      "bytecodeSha256": "e4bc0bcc613412e698e2ce2420383ea6e3e84ab1cd037201983ed2b102bfaefe",
+      "deployedBytecodeSha256": "eeb340328ae5ecfa495e9c9258090faceeb19081a847802f1fc1fa049b9102d2"
+    },
+    {
+      "contractName": "UpgradedNameWrapperMock",
+      "sourceName": "contracts/wrapper/mocks/UpgradedNameWrapperMock.sol",
+      "artifact": "source/artifacts/contracts/wrapper/mocks/UpgradedNameWrapperMock.sol/UpgradedNameWrapperMock.json",
+      "abi": "abis/contracts/wrapper/mocks/UpgradedNameWrapperMock.sol/UpgradedNameWrapperMock_abi.json",
+      "artifactSha256": "8ee97386c3f1d20c6a6db1b198f1fedc8ec35f3d66013e391e1c007ebe8cb6ed",
+      "abiSha256": "e3ed96705e211e54c865ed38c5ca6ff8236956f136c2d5104e79d866a4e80060",
+      "bytecodeSha256": "c2d2bfef90e502821287c488dd2d5846ff0bdd7e038da73e5c96b4d92221e5fe",
+      "deployedBytecodeSha256": "09cc1d4446d8f0074a823eb671ede1e41ecb0781b35d7389850a661afca92743"
+    },
+    {
+      "contractName": "NameWrapper",
+      "sourceName": "contracts/wrapper/NameWrapper.sol",
+      "artifact": "source/artifacts/contracts/wrapper/NameWrapper.sol/NameWrapper.json",
+      "abi": "abis/contracts/wrapper/NameWrapper.sol/NameWrapper_abi.json",
+      "artifactSha256": "432bdd94cd0f886dacf7ac8ecde09fac691d8e06637f1fe62e26c1dba7e7a9f2",
+      "abiSha256": "7471430e450bebd6369fddcb1ed43ab3470d409a26ffde8756c74b5c901d2a3d",
+      "bytecodeSha256": "6fd5f14183147ef50f0e64ef32a184e70892eee0af363ecd16015ceb8c186a73",
+      "deployedBytecodeSha256": "4747b885b739f20b17622216e4356b7b3428f5b4b4dc689d2a5f41ca70cfd296"
+    },
+    {
+      "contractName": "StaticMetadataService",
+      "sourceName": "contracts/wrapper/StaticMetadataService.sol",
+      "artifact": "source/artifacts/contracts/wrapper/StaticMetadataService.sol/StaticMetadataService.json",
+      "abi": "abis/contracts/wrapper/StaticMetadataService.sol/StaticMetadataService_abi.json",
+      "artifactSha256": "9f3925ecedfdcef9dce4dce5a00e7a9cce44c711edf963359b666fc575047d58",
+      "abiSha256": "a64bd4143036bbfc55c690cac47962bae9dcee365073e4fbe32668fafdf3503c",
+      "bytecodeSha256": "0fdbe97a9d13accf353d612f3877e964664126f629975334be0de4a65046cd83",
+      "deployedBytecodeSha256": "2715b2d71386e181d4d104191931b2285692691e3e104a927e2c3b253f8d80af"
+    },
+    {
+      "contractName": "NameGriefer",
+      "sourceName": "contracts/wrapper/test/NameGriefer.sol",
+      "artifact": "source/artifacts/contracts/wrapper/test/NameGriefer.sol/NameGriefer.json",
+      "abi": "abis/contracts/wrapper/test/NameGriefer.sol/NameGriefer_abi.json",
+      "artifactSha256": "ff7a367e458e322862c44d5db67c6f33123934c2b513588836a2d38a2ba7d127",
+      "abiSha256": "b3877f37abc9c80e2162c11843bd04f283533b412d08a008251c341de6ad0721",
+      "bytecodeSha256": "09da001112670f7337e706545a0c4379b47b4ddc225a90e6b29c6da95f5c07f1",
+      "deployedBytecodeSha256": "2a01a9a9949e394832753f7d5e79599216d2b75df46168a5dcefed3bd8a14507"
+    },
+    {
+      "contractName": "TestNameWrapperReentrancy",
+      "sourceName": "contracts/wrapper/test/TestNameWrapperReentrancy.sol",
+      "artifact": "source/artifacts/contracts/wrapper/test/TestNameWrapperReentrancy.sol/TestNameWrapperReentrancy.json",
+      "abi": "abis/contracts/wrapper/test/TestNameWrapperReentrancy.sol/TestNameWrapperReentrancy_abi.json",
+      "artifactSha256": "b893a2054f5ec4c67bb33cca9cddd82b17f5d40ec24e38bb89e6a44d8f52f031",
+      "abiSha256": "2ac2634eaf83861f7d2b7608772842e121349c4f03293eac8ba65689e0ced8a4",
+      "bytecodeSha256": "692b4702940feeebad41ea0e40538612f5e848577343712ec0334eb4ab3dbbb8",
+      "deployedBytecodeSha256": "86f04ec5730262010d0ae7442feea948d370ce7c84bb1e9bd03c91d24304bc06"
+    }
+  ]
+}

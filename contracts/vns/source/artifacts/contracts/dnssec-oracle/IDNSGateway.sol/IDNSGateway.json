@@ -1,0 +1,50 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IDNSGateway",
+  "sourceName": "contracts/dnssec-oracle/IDNSGateway.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "name",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint16",
+          "name": "qtype",
+          "type": "uint16"
+        }
+      ],
+      "name": "resolve",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "rrset",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "sig",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct DNSSEC.RRSetWithSignature[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/dnssec-oracle/IDNSGateway.sol",
+  "buildInfoId": "solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272"
+}

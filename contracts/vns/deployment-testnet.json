@@ -1,0 +1,197 @@
+{
+  "name": "VinuChain Name Service",
+  "tld": "vinu",
+  "chainId": 206,
+  "rpcUrl": "https://vinufoundation-rpc.com",
+  "deployer": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
+  "upstream": {
+    "package": "@ensdomains/ens-contracts",
+    "version": "1.7.0",
+    "tag": "v1.7.0",
+    "commit": "9b034936a42f462fc04bc0a929a419ede5e18d59",
+    "tarball": "https://registry.npmjs.org/@ensdomains/ens-contracts/-/ens-contracts-1.7.0.tgz",
+    "integrity": "sha512-B5S7CzWGx0RYyseBkIBQRclZLTWjXaRAtNbP7+Pwvt/Xh9P7jCXlRbyu/6gydwdxFqQfRVM8EVD3R6bj0zRAqw==",
+    "shasum": "f616dca202e20b7d4c94dcae4b903d2d4278af69"
+  },
+  "provenance": {
+    "build": "build-provenance.json",
+    "patch": "vns-port.patch",
+    "sourceSnapshot": "source/contracts"
+  },
+  "constants": {
+    "namehashVinu": "0x8b2c096e21786c9afa7a1fedd1b69a27848cce61a49ec6363cd582b31efa6694",
+    "labelhashVinu": "0xf51f7b42cfc94df97ddae258deab475433ad9c881402cfc605a5e6b28b861605"
+  },
+  "contracts": {
+    "ENSRegistry": {
+      "address": "0x75a267fe2910BF96bA42924a67411E1091Be97C3",
+      "transactionHash": "0xcb27b9a21ff124b856f7adb915030cc818013f8b173a03c16a81da7a38e8ce60",
+      "blockNumber": 1461389
+    },
+    "Root": {
+      "address": "0xeC612586627a4315954fA80ba3982D28c15735bE",
+      "transactionHash": "0x338d9d2733bd0f365515067536e2c5dd56aa3369fbe5fab586cfc588e7c4b137",
+      "blockNumber": 1461390
+    },
+    "ReverseRegistrar": {
+      "address": "0xB7d2D6C6c897cEfe6D4a92164DCBdAA9a6294FD7",
+      "transactionHash": "0xa6b09fed94f706c2cdce8f5cb49e75271abf69252034c0e3b57c877ba994ef47",
+      "blockNumber": 1461393
+    },
+    "DefaultReverseRegistrar": {
+      "address": "0x787e8D94D39a2c296E8Aeca482a522BCDA5d2F2E",
+      "transactionHash": "0x3d97d058bbf9752e81cb1fc7e00ad5bf6bcc0eeeb8360bacf424f044173a8c99",
+      "blockNumber": 1461394
+    },
+    "DefaultReverseResolver": {
+      "address": "0x22Df7D962e56619145ec448a0F7cEB6A7C844cD2",
+      "transactionHash": "0xc7b5695111e3d3932d21c22c1673b9ef2cd0fcd74886cc12a0bbc7488201d906",
+      "blockNumber": 1461395
+    },
+    "BaseRegistrarImplementation": {
+      "address": "0x9e450D84E12090c7A927ec369D514c969F76f11C",
+      "transactionHash": "0x9c5fae32da091089778d3674250dcef3275fb9cebc27237fb20a2bd4f43c94b2",
+      "blockNumber": 1461398
+    },
+    "OwnedResolver": {
+      "address": "0xF45Ee4Be3C1f93B6daD46d3d4A5264151C084794",
+      "transactionHash": "0x6a428972424711a73c67f16d9d9d6c1b69dcccb5a17b8898a3603fa04450c596",
+      "blockNumber": 1461400
+    },
+    "DummyOracle": {
+      "address": "0xa99e68A0E3e78d16252f6C6460b8c8F8D613a0B9",
+      "transactionHash": "0xc4624c403a3874a4b54661fed6c320dc303381c5247bec9781413b7939caf75b",
+      "blockNumber": 1461402
+    },
+    "ExponentialPremiumPriceOracle": {
+      "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
+      "transactionHash": "0x8a4639e49132fc6d7d9af474bc26c0f8648479f2828e5f03afcce3188cf89987",
+      "blockNumber": 1461403
+    },
+    "StaticMetadataService": {
+      "address": "0xAE8B12256B7AFEdc250914501867cbaC0a5A9eeB",
+      "transactionHash": "0x7026cd14702809e6359a3f3387fa7e2d7a395c802c08981ee1cb2f02acf61f6c",
+      "blockNumber": 1461404
+    },
+    "NameWrapper": {
+      "address": "0x7e82c20DB1E128F73D0370Ea05CA98d0CCDB5E26",
+      "transactionHash": "0x72997ebdd46427e2c5a05359f79a64d2a9e2a78edd57185a361d2e481ee7f435",
+      "blockNumber": 1461405
+    },
+    "ETHRegistrarController": {
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
+      "blockNumber": 1461407
+    },
+    "StaticBulkRenewal": {
+      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "transactionHash": "0x1bcda91c35235f37b533564b42e2b57be1ca14e0fae7985c22eca900fc697a2d",
+      "blockNumber": 1461412
+    },
+    "PublicResolver": {
+      "address": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
+      "transactionHash": "0x9fff317c19641d06c972840cf2b9ffd5912a6c6b91be7abd55cb8a7ccf8738c3",
+      "blockNumber": 1461413
+    },
+    "GatewayProvider": {
+      "address": "0xbd3D532604cDC469aF0C69e7D8fbC11420eB7BaC",
+      "transactionHash": "0xa054d15e2d9a25d1c3c55db00a1d3575f7caad417ae592bd0c8f33e4e2b47f5f",
+      "blockNumber": 1461415
+    },
+    "UniversalResolver": {
+      "address": "0x79165046bac745Aad2649b2278EEb1389AA577AA",
+      "transactionHash": "0x4fd3b9fc23e90d740619c0d0a3f021bba8e6ba1bc9465c84f63bd675884ffa60",
+      "blockNumber": 1461416
+    },
+    "VNSRegistrarController": {
+      "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
+      "transactionHash": "0x56c9357b911b6eea645c5b561c2fa7cf162654e1eea8ad7933542e61552591be",
+      "blockNumber": 1461407
+    },
+    "VNSRegistry": {
+      "address": "0x75a267fe2910BF96bA42924a67411E1091Be97C3",
+      "transactionHash": "0xcb27b9a21ff124b856f7adb915030cc818013f8b173a03c16a81da7a38e8ce60",
+      "blockNumber": 1461389
+    },
+    "VNSBaseRegistrar": {
+      "address": "0x9e450D84E12090c7A927ec369D514c969F76f11C",
+      "transactionHash": "0x9c5fae32da091089778d3674250dcef3275fb9cebc27237fb20a2bd4f43c94b2",
+      "blockNumber": 1461398
+    },
+    "VNSPublicResolver": {
+      "address": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
+      "transactionHash": "0x9fff317c19641d06c972840cf2b9ffd5912a6c6b91be7abd55cb8a7ccf8738c3",
+      "blockNumber": 1461413
+    },
+    "VNSBulkRenewal": {
+      "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
+      "transactionHash": "0x1bcda91c35235f37b533564b42e2b57be1ca14e0fae7985c22eca900fc697a2d",
+      "blockNumber": 1461412
+    }
+  },
+  "transactions": {
+    "registry.setRootOwner": {
+      "hash": "0x4b773973ef2f14734b6a8afcfe7b793c23f48844a244f22d9d57c34677e9a72a",
+      "blockNumber": 1461391
+    },
+    "root.setController(deployer)": {
+      "hash": "0x49b80eb6111a209564f7efe9587a42096b9a968fe77eeb052516859525df34ff",
+      "blockNumber": 1461392
+    },
+    "root.setSubnodeOwner(reverse)": {
+      "hash": "0xd85e02f35032a2c7fc4571784be38a467459b5796f315ffdb8c5de2b61c1160d",
+      "blockNumber": 1461396
+    },
+    "registry.setSubnodeOwner(addr.reverse)": {
+      "hash": "0x42683e6afa6763ff7f6f1cedf0335b659835b99cd7b9b58041a30c225e26db46",
+      "blockNumber": 1461397
+    },
+    "root.setSubnodeOwner(vinu)": {
+      "hash": "0x5a6f3e077e5be2f2bf6ea8bcd6872af96308d3446e158b6e092d31c1fd72802f",
+      "blockNumber": 1461399
+    },
+    "baseRegistrar.setResolver": {
+      "hash": "0x1f8f8de05e4f4eba8ecbca767f94f74fcff4873814c67b8fe99777522ebf62ed",
+      "blockNumber": 1461401
+    },
+    "baseRegistrar.addController(NameWrapper)": {
+      "hash": "0x1e5f8a0032da1b7d388cd18aeb183a5d532c6023dcdebd7b42d1f721434dfbcd",
+      "blockNumber": 1461406
+    },
+    "baseRegistrar.addController(Controller)": {
+      "hash": "0xd94051260caf5a324c61c1f1210f3f78160780875cb076716308c014e8a996ae",
+      "blockNumber": 1461408
+    },
+    "nameWrapper.setController(Controller)": {
+      "hash": "0x2508d3192eca75999a2c006b4cc63a9a8c6d477c355b1277260efaecefd10c7e",
+      "blockNumber": 1461409
+    },
+    "reverseRegistrar.setController(Controller)": {
+      "hash": "0x863726982cfa3c0d2b299a4f3074efe8619943c796f7a8818b16c5be1bd50548",
+      "blockNumber": 1461410
+    },
+    "defaultReverseRegistrar.setController(Controller)": {
+      "hash": "0x35bfe41cb98e903fe5f9b6613281561b9c46157466f24f0bff45744b43ebf1da",
+      "blockNumber": 1461411
+    },
+    "reverseRegistrar.setDefaultResolver": {
+      "hash": "0x158bbc8ffde5200d7a11147fe41275a83ba5a9b42a25f650124d1d1b651bb3c3",
+      "blockNumber": 1461414
+    },
+    "controller.commit(codexvns.vinu)": {
+      "hash": "0x2c0cfad2da3073ce7873f5dd8fed15f7567e5a29039ff7627549fd555007e5c8",
+      "blockNumber": 1461421
+    },
+    "controller.register(codexvns.vinu)": {
+      "hash": "0x82503ba54552d43b30c0f2c3b957ba1bf72085a74eaf8809a1c62a558cc9c03b",
+      "blockNumber": 1461429
+    }
+  },
+  "smoke": {
+    "name": "codexvns.vinu",
+    "node": "0x083e64b73b42885c8b58586f144e1bb568800fdf31f0a07ff26eff93de2ec0df",
+    "owner": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
+    "resolver": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
+    "priceWei": "3125000000003490"
+  }
+}
