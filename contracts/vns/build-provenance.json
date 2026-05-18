@@ -15,6 +15,13 @@
   ],
   "patchFile": "vns-port.patch",
   "sourceSnapshot": "source/contracts",
+  "compiledArtifacts": {
+    "manifest": "artifacts-manifest.json",
+    "artifactRoot": "source/artifacts/contracts",
+    "abiRoot": "abis/contracts",
+    "artifactCount": 165,
+    "abiCount": 165
+  },
   "buildInfo": {
     "hardhatConfig": {
       "path": "source/hardhat.config.ts",

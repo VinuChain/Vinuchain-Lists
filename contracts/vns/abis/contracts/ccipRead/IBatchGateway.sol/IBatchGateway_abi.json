@@ -1,0 +1,59 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "status",
+        "type": "uint16"
+      },
+      {
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      }
+    ],
+    "name": "HttpError",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          },
+          {
+            "internalType": "string[]",
+            "name": "urls",
+            "type": "string[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct IBatchGateway.Request[]",
+        "name": "requests",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "query",
+    "outputs": [
+      {
+        "internalType": "bool[]",
+        "name": "failures",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "responses",
+        "type": "bytes[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

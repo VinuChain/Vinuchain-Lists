@@ -1,0 +1,142 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "DNSSEC",
+  "sourceName": "contracts/dnssec-oracle/DNSSEC.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "id",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "AlgorithmUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "id",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "DigestUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "anchors",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "rrset",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "sig",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct DNSSEC.RRSetWithSignature[]",
+          "name": "input",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "now",
+          "type": "uint256"
+        }
+      ],
+      "name": "verifyRRSet",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "rrs",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint32",
+          "name": "inception",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "rrset",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "sig",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct DNSSEC.RRSetWithSignature[]",
+          "name": "input",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "verifyRRSet",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "rrs",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint32",
+          "name": "inception",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/dnssec-oracle/DNSSEC.sol",
+  "buildInfoId": "solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272"
+}

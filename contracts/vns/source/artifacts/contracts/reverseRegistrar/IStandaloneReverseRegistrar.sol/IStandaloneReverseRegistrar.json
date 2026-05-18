@@ -1,0 +1,52 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IStandaloneReverseRegistrar",
+  "sourceName": "contracts/reverseRegistrar/IStandaloneReverseRegistrar.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "name": "NameForAddrChanged",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "nameForAddr",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/reverseRegistrar/IStandaloneReverseRegistrar.sol",
+  "buildInfoId": "solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272"
+}

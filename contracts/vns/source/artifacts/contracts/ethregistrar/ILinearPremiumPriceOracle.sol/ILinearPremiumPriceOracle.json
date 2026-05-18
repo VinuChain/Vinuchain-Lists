@@ -1,0 +1,38 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "ILinearPremiumPriceOracle",
+  "sourceName": "contracts/ethregistrar/ILinearPremiumPriceOracle.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "expires",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "timeUntilPremium",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/ethregistrar/ILinearPremiumPriceOracle.sol",
+  "buildInfoId": "solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272"
+}

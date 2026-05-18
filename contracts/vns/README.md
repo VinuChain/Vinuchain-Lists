@@ -8,9 +8,15 @@ registry, `.vinu` base registrar, commit/reveal registrar controller, public
 resolver, reverse registrar, default reverse registrar, name wrapper, bulk
 renewal, gateway provider, and universal resolver contracts.
 
-The full patched source snapshot is under `source/contracts/`. The flat
-`*.sol` and `*_abi.json` files in this directory are compatibility copies used
-by the existing `vinuchain-lists` validator and contract registry schema.
+The full patched source snapshot is under `source/contracts/`. Compiled
+Hardhat artifacts for every contract in that snapshot are under
+`source/artifacts/contracts/`, with ABI-only copies mirrored under
+`abis/contracts/`. `artifacts-manifest.json` records the artifact path, ABI
+path, and SHA-256 hashes for each compiled output.
+
+The flat `*.sol` and `*_abi.json` files in this directory are compatibility
+copies used by the existing `vinuchain-lists` validator and contract registry
+schema for the deployed VNS contracts.
 
 The VNS port patch is recorded in `vns-port.patch`. It changes the ENS `.eth`
 constants and DNS wire-name helpers in:
@@ -23,4 +29,3 @@ The current testnet deployment intentionally excludes ENS DNSSEC, DNS registrar,
 offchain DNS, P-256 verification, L2 reverse registrar, and migration flows.
 Those pieces were not needed for native `.vinu` registration and address
 resolution on VinuChain testnet.
-

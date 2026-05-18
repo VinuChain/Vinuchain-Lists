@@ -1,0 +1,27 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IGatewayProvider",
+  "sourceName": "contracts/ccipRead/IGatewayProvider.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "gateways",
+      "outputs": [
+        {
+          "internalType": "string[]",
+          "name": "",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/ccipRead/IGatewayProvider.sol",
+  "buildInfoId": "solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272"
+}

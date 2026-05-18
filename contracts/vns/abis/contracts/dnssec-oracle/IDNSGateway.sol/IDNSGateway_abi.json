@@ -1,0 +1,38 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "name",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint16",
+        "name": "qtype",
+        "type": "uint16"
+      }
+    ],
+    "name": "resolve",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "rrset",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "sig",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DNSSEC.RRSetWithSignature[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
