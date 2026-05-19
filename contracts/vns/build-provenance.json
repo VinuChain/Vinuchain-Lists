@@ -10,8 +10,9 @@
   },
   "patchedFiles": [
     "contracts/ethregistrar/ETHRegistrarController.sol",
-    "contracts/wrapper/NameWrapper.sol",
-    "contracts/utils/NameCoder.sol"
+    "contracts/ethregistrar/StablePriceOracle.sol",
+    "contracts/utils/NameCoder.sol",
+    "contracts/wrapper/NameWrapper.sol"
   ],
   "patchFile": "vns-port.patch",
   "sourceSnapshot": "source/contracts",
@@ -147,6 +148,11 @@
       "artifact": "source/artifacts/contracts/universalResolver/UniversalResolver.sol/UniversalResolver.json",
       "bytecodeHash": "0xcf28229fb8759ce1192b87d5c1192249f8bbd65f9b94e5ad5fc71adb5cba3a0e",
       "deployedBytecodeHash": "0x3a66f9222634aa15da092097f6268748042d8147641e5a02a38758720f0b15aa"
+    },
+    "VinuUsdOracle": {
+      "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
+      "bytecodeHash": "0x8da810db83fa86ceea45be58fed63340497b6c5febaf5681b4dc93b91428e6b0",
+      "deployedBytecodeHash": "0xb1cb630b3c1689e7c4e69c9438e2c0ae0e8aa200e6076c699254335596322d86"
     }
   },
   "intentionalExclusions": [
@@ -162,7 +168,7 @@
       "source": "source/contracts/ethregistrar/VinuUsdOracle.sol",
       "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
       "abi": "abis/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle_abi.json",
-      "purpose": "Bounded owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data and requires guarded VinuSwap V3 TWAP agreement before normal sends."
+      "purpose": "Bounded owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data and requires guarded VinuSwap V3 TWAP agreement before normal sends. Deployed bytecode hashes also pinned in deployedArtifactHashes."
     }
   ]
 }

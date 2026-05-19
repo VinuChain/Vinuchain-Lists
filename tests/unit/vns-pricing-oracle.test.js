@@ -43,6 +43,30 @@ describe('VNS pricing oracle registry', () => {
     expect(updater).to.not.include('balanceOf(poolAddress)');
   });
 
+  it('caps VinuUsdOracle setter rails so owner cannot widen tolerances in a single tx', () => {
+    const oracle = read('contracts/vns/VinuUsdOracle.sol');
+    const mirror = read('contracts/vns/source/contracts/ethregistrar/VinuUsdOracle.sol');
+
+    // Mirror invariant — top-level .sol must match source/contracts/.sol.
+    expect(oracle).to.equal(mirror);
+
+    // Three ceiling constants must be public so they're observable on-chain.
+    expect(oracle).to.include('uint256 public constant MAX_CHANGE_BPS_CEILING = 2_000;');
+    expect(oracle).to.include('uint256 public constant MAX_AGE_CEILING = 12 hours;');
+    expect(oracle).to.include('uint256 public constant BOUNDS_WIDEN_FACTOR_CEILING = 2;');
+
+    // Each ceiling enforced in the matching internal setter.
+    expect(oracle).to.include('if (newMaxChangeBps > MAX_CHANGE_BPS_CEILING)');
+    expect(oracle).to.include('revert MaxChangeBpsAboveCeiling(');
+    expect(oracle).to.include('if (newMaxAge > MAX_AGE_CEILING)');
+    expect(oracle).to.include('revert MaxAgeAboveCeiling(');
+    expect(oracle).to.include('uint256 ceiling = priorWidth * BOUNDS_WIDEN_FACTOR_CEILING;');
+    expect(oracle).to.include('revert BoundsWidenedTooMuch(');
+
+    // First-set exemption: uninitialized state (minAnswer == 0) skips the widening cap.
+    expect(oracle).to.include('if (minAnswer != 0)');
+  });
+
   it('publishes ABI entries for owner-controlled rent price updates', () => {
     const stableAbi = abi('contracts/vns/abis/contracts/ethregistrar/StablePriceOracle.sol/StablePriceOracle_abi.json');
     const exponentialAbi = abi(
