@@ -6,6 +6,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract VinuUsdOracle is Ownable {
     uint256 public constant BPS_DENOMINATOR = 10_000;
 
+    /// @notice Hard upper bound on `maxChangeBps`. Owner cannot widen the per-update
+    ///         change tolerance beyond 20% in a single tx. Walking it higher requires
+    ///         multiple monitorable txs over time.
+    uint256 public constant MAX_CHANGE_BPS_CEILING = 2_000;
+
+    /// @notice Hard upper bound on `maxAge`. Owner cannot extend the staleness window
+    ///         beyond 12 hours in a single tx. Forces a slow-walk to disable freshness.
+    uint256 public constant MAX_AGE_CEILING = 12 hours;
+
+    /// @notice Hard multiplier on bounds widening per tx. New width may not exceed
+    ///         2x prior width. First-time bounds-set (uninitialized state) is exempt.
+    uint256 public constant BOUNDS_WIDEN_FACTOR_CEILING = 2;
+
     int256 private answer;
 
     uint8 public constant decimals = 8;
@@ -30,6 +43,9 @@ contract VinuUsdOracle is Ownable {
     error InvalidBounds();
     error InvalidMaxChangeBps();
     error InvalidMaxAge();
+    error MaxChangeBpsAboveCeiling(uint256 newMaxChangeBps, uint256 ceiling);
+    error MaxAgeAboveCeiling(uint256 newMaxAge, uint256 ceiling);
+    error BoundsWidenedTooMuch(uint256 newWidth, uint256 priorWidth, uint256 ceiling);
     error SourceTooLong();
     error StaleAnswer(uint256 updatedAt, uint256 maxAge);
 
@@ -115,6 +131,18 @@ contract VinuUsdOracle is Ownable {
             revert InvalidBounds();
         }
 
+        // Walk-the-rails guard: cap widening to BOUNDS_WIDEN_FACTOR_CEILING x prior
+        // width per tx. Exempt the first-set case (uninitialized state has
+        // minAnswer == 0). Owner can still ratchet bounds open across multiple txs.
+        if (minAnswer != 0) {
+            uint256 priorWidth = maxAnswer - minAnswer;
+            uint256 newWidth = newMaxAnswer - newMinAnswer;
+            uint256 ceiling = priorWidth * BOUNDS_WIDEN_FACTOR_CEILING;
+            if (newWidth > ceiling) {
+                revert BoundsWidenedTooMuch(newWidth, priorWidth, ceiling);
+            }
+        }
+
         minAnswer = newMinAnswer;
         maxAnswer = newMaxAnswer;
         emit BoundsUpdated(newMinAnswer, newMaxAnswer);
@@ -124,6 +152,9 @@ contract VinuUsdOracle is Ownable {
         if (newMaxChangeBps == 0 || newMaxChangeBps > BPS_DENOMINATOR) {
             revert InvalidMaxChangeBps();
         }
+        if (newMaxChangeBps > MAX_CHANGE_BPS_CEILING) {
+            revert MaxChangeBpsAboveCeiling(newMaxChangeBps, MAX_CHANGE_BPS_CEILING);
+        }
 
         maxChangeBps = newMaxChangeBps;
         emit MaxChangeBpsUpdated(newMaxChangeBps);
@@ -132,6 +163,9 @@ contract VinuUsdOracle is Ownable {
     function _setMaxAge(uint256 newMaxAge) internal {
         if (newMaxAge < 1 hours || newMaxAge > 7 days) {
             revert InvalidMaxAge();
+        }
+        if (newMaxAge > MAX_AGE_CEILING) {
+            revert MaxAgeAboveCeiling(newMaxAge, MAX_AGE_CEILING);
         }
 
         maxAge = newMaxAge;
