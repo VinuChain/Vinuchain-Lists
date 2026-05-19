@@ -29,18 +29,30 @@ const COINGECKO_MAX_AGE_SECONDS = Number(
 const TWAP_WINDOW_SECONDS = Number(
   process.env.VNS_ORACLE_TWAP_WINDOW_SECONDS || 10 * 60,
 );
+// A TWAP shorter than five minutes is effectively a spot quote that can be
+// moved with a single sandwiched swap. The walk-down list below MUST NOT
+// include a candidate below this floor — that is enforced at the filter
+// site, not by convention.
+const MIN_TWAP_WINDOW_SECONDS = Number(
+  process.env.VNS_ORACLE_MIN_TWAP_WINDOW_SECONDS || 5 * 60,
+);
 const TWAP_WINDOWS_SECONDS = Array.from(
   new Set(
     [
       TWAP_WINDOW_SECONDS,
+      10 * 60,
+      8 * 60,
+      6 * 60,
       5 * 60,
-      2 * 60,
-      60,
-      30,
-    ].filter((seconds) => Number.isFinite(seconds) && seconds > 0),
+    ].filter(
+      (seconds) =>
+        Number.isFinite(seconds) && seconds >= MIN_TWAP_WINDOW_SECONDS,
+    ),
   ),
 ).sort((a, b) => b - a);
-const MAX_DEVIATION_BPS = Number(process.env.VNS_ORACLE_MAX_DEVIATION_BPS || 1000);
+// Cross-source jitter under normal markets is well below 5%; the legacy 10%
+// tolerance was a deploy-safety setting, not an operating one.
+const MAX_DEVIATION_BPS = Number(process.env.VNS_ORACLE_MAX_DEVIATION_BPS || 500);
 const MAX_UPDATE_BPS = Number(process.env.VNS_ORACLE_MAX_UPDATE_BPS || 2000);
 const EXPECTED_ORACLE_MAX_AGE = BigInt(
   process.env.VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS || 24 * 60 * 60,
