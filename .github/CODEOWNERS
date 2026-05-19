@@ -1,0 +1,21 @@
+# Code owners for the vinuchain-lists repository.
+#
+# Lines below assign required reviewers to security-sensitive paths.
+# GitHub requires the listed owners' approval before any PR touching
+# these paths can be merged. The owner team `@VinuChain/security` is a
+# placeholder — the repo admin must create that GitHub team (or rename
+# the entries below to point at an existing team/user) for these rules
+# to take effect.
+
+# CI workflow definitions — anything that runs with secrets attached.
+.github/workflows/**       @VinuChain/security
+.github/CODEOWNERS         @VinuChain/security
+
+# Deployment and oracle-update scripts. A malicious change here that
+# slipped past review would run on the next scheduled VNS oracle update
+# with the production private key in env.
+scripts/**                 @VinuChain/security
+
+# On-chain VNS contracts. Bytecode changes require a Solidity reviewer
+# in addition to whoever ships the off-chain code.
+contracts/vns/**           @VinuChain/security

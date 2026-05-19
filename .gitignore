@@ -59,3 +59,9 @@ coverage/
 README_AUDIT.md
 AUDIT*.md
 *_AUDIT.md
+
+# Hardhat-v2 root config writes a cache directory on every run; the config
+# points it at a noop sources path that does not exist, so the cache content
+# is meaningless but the directory is created anyway.
+hardhat-noop-cache/
+hardhat-noop-artifacts/
