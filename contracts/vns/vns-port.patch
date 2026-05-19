@@ -1,8 +1,7 @@
 diff --git a/contracts/ethregistrar/ETHRegistrarController.sol b/contracts/ethregistrar/ETHRegistrarController.sol
-index 81fcc9c..471effa 100644
 --- a/contracts/ethregistrar/ETHRegistrarController.sol
 +++ b/contracts/ethregistrar/ETHRegistrarController.sol
-@@ -32,9 +32,9 @@ contract ETHRegistrarController is
+@@ -32,9 +32,9 @@
      /// @notice The minimum duration for a registration.
      uint256 public constant MIN_REGISTRATION_DURATION = 28 days;
  
@@ -14,7 +13,7 @@ index 81fcc9c..471effa 100644
  
      /// @notice The maximum expiry time for a registration.
      uint64 private constant MAX_EXPIRY = type(uint64).max;
-@@ -42,7 +42,7 @@ contract ETHRegistrarController is
+@@ -42,7 +42,7 @@
      /// @notice The ENS registry.
      ENS public immutable ens;
  
@@ -23,7 +22,7 @@ index 81fcc9c..471effa 100644
      BaseRegistrarImplementation immutable base;
  
      /// @notice The minimum time a commitment must exist to be valid.
-@@ -57,7 +57,7 @@ contract ETHRegistrarController is
+@@ -57,7 +57,7 @@
      /// @notice The registrar for default.reverse. (i.e. fallback reverse for all EVM chains)
      IDefaultReverseRegistrar public immutable defaultReverseRegistrar;
  
@@ -32,7 +31,7 @@ index 81fcc9c..471effa 100644
      IPriceOracle public immutable prices;
  
      /// @notice A mapping of commitments to their timestamp.
-@@ -321,12 +321,12 @@ contract ETHRegistrarController is
+@@ -321,12 +321,12 @@
                      msg.sender,
                      msg.sender,
                      registration.resolver,
@@ -48,10 +47,9 @@ index 81fcc9c..471effa 100644
          }
  
 diff --git a/contracts/utils/NameCoder.sol b/contracts/utils/NameCoder.sol
-index e5d9a4c..b77c664 100755
 --- a/contracts/utils/NameCoder.sol
 +++ b/contracts/utils/NameCoder.sol
-@@ -16,9 +16,9 @@ import {BytesUtils} from "./BytesUtils.sol";
+@@ -16,9 +16,9 @@
  /// * `dns.length == 2 + ens.length` and the mapping is injective.
  ///
  library NameCoder {
@@ -63,7 +61,7 @@ index e5d9a4c..b77c664 100755
  
      /// @dev The label was empty.
      ///      Error selector: `0xbf9a2740`
-@@ -359,14 +359,14 @@ library NameCoder {
+@@ -359,14 +359,14 @@
          return abi.encodePacked(assertLabelSize(label), label, name);
      }
  
@@ -82,10 +80,9 @@ index e5d9a4c..b77c664 100755
      }
  }
 diff --git a/contracts/wrapper/NameWrapper.sol b/contracts/wrapper/NameWrapper.sol
-index 667580a..13a8590 100644
 --- a/contracts/wrapper/NameWrapper.sol
 +++ b/contracts/wrapper/NameWrapper.sol
-@@ -47,9 +47,9 @@ contract NameWrapper is
+@@ -47,9 +47,9 @@
  
      uint64 private constant GRACE_PERIOD = 90 days;
      bytes32 private constant ETH_NODE =
@@ -97,7 +94,7 @@ index 667580a..13a8590 100644
      bytes32 private constant ROOT_NODE =
          0x0000000000000000000000000000000000000000000000000000000000000000;
  
-@@ -80,7 +80,7 @@ contract NameWrapper is
+@@ -80,7 +80,7 @@
              MAX_EXPIRY
          );
          names[ROOT_NODE] = "\x00";
@@ -106,7 +103,7 @@ index 667580a..13a8590 100644
      }
  
      function supportsInterface(
-@@ -1002,8 +1002,8 @@ contract NameWrapper is
+@@ -1002,8 +1002,8 @@
      ) private {
          bytes32 labelhash = keccak256(bytes(label));
          bytes32 node = _makeNode(ETH_NODE, labelhash);
@@ -117,3 +114,74 @@ index 667580a..13a8590 100644
          names[node] = name;
  
          _wrap(
+diff --git a/contracts/ethregistrar/StablePriceOracle.sol b/contracts/ethregistrar/StablePriceOracle.sol
+--- a/contracts/ethregistrar/StablePriceOracle.sol
++++ b/contracts/ethregistrar/StablePriceOracle.sol
+@@ -10,29 +10,46 @@
+     function latestAnswer() external view returns (int256);
+ }
+ 
+-// StablePriceOracle sets a price in USD, based on an oracle.
+-contract StablePriceOracle is IPriceOracle {
++// StablePriceOracle stores the owner-governed USD rent curve and converts it
++// into the enforced native VC payment amount with the current VC/USD oracle.
++contract StablePriceOracle is IPriceOracle, Ownable {
+     using StringUtils for *;
+ 
+-    // Rent in base price units by length
+-    uint256 public immutable price1Letter;
+-    uint256 public immutable price2Letter;
+-    uint256 public immutable price3Letter;
+-    uint256 public immutable price4Letter;
+-    uint256 public immutable price5Letter;
++    // USD rent in attoUSD per second by label length.
++    uint256 public price1Letter;
++    uint256 public price2Letter;
++    uint256 public price3Letter;
++    uint256 public price4Letter;
++    uint256 public price5Letter;
+ 
+     // Oracle address
+     AggregatorInterface public immutable usdOracle;
+ 
+     event RentPriceChanged(uint256[] prices);
+ 
++    error InvalidRentPrices();
++
+     constructor(AggregatorInterface _usdOracle, uint256[] memory _rentPrices) {
+         usdOracle = _usdOracle;
++        _setRentPrices(_rentPrices);
++    }
++
++    function setRentPrices(
++        uint256[] calldata _rentPrices
++    ) external onlyOwner {
++        _setRentPrices(_rentPrices);
++    }
++
++    function _setRentPrices(uint256[] memory _rentPrices) internal {
++        if (_rentPrices.length != 5) revert InvalidRentPrices();
++
+         price1Letter = _rentPrices[0];
+         price2Letter = _rentPrices[1];
+         price3Letter = _rentPrices[2];
+         price4Letter = _rentPrices[3];
+         price5Letter = _rentPrices[4];
++
++        emit RentPriceChanged(_rentPrices);
+     }
+ 
+     function price(
+@@ -73,9 +90,9 @@
+ 
+     /// @dev Returns the pricing premium in internal base units.
+     function _premium(
+-        string memory name,
+-        uint256 expires,
+-        uint256 duration
++        string memory,
++        uint256,
++        uint256
+     ) internal view virtual returns (uint256) {
+         return 0;
+     }
