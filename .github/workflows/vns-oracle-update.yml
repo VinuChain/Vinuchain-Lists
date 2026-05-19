@@ -2,7 +2,10 @@ name: Update VNS VC/USD Oracle
 
 on:
   schedule:
-    - cron: '17 0 * * *'
+    # Every 4 hours at :17 past the hour. The on-chain maxAge window is 24h,
+    # so cadence < maxAge/3 keeps two unsuccessful runs from approaching
+    # staleness. The 17-minute offset avoids the top-of-hour cron herd.
+    - cron: '17 */4 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -27,7 +30,13 @@ jobs:
   update:
     name: Update oracle
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # Required reviewers + secret scoping live on the `vns-oracle-prod`
+    # GitHub Environment. The repo admin must create this environment
+    # manually under Settings -> Environments and attach the
+    # VNS_ORACLE_PRIVATE_KEY secret there (not at repo level) plus a
+    # required-reviewers protection rule.
+    environment: vns-oracle-prod
     permissions:
       contents: read
 
@@ -43,10 +52,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        # actions/checkout@v4.2.2 — pinned by commit SHA to prevent a
+        # compromised maintainer from re-pointing the v4 floating tag.
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        # actions/setup-node@v4.4.0 — pinned by commit SHA (see above).
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
           cache: 'npm'
