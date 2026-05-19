@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 const {
   Contract,
   ContractFactory,
@@ -10,7 +11,9 @@ const {
   formatEther,
 } = require('ethers');
 const {
+  KNOWN_VINUCHAIN_CHAIN_IDS,
   assertChain,
+  logger,
   resolveVnsOraclePrice,
   toOracleAnswer,
 } = require('./update-vns-oracle');
@@ -28,6 +31,52 @@ const PRIVATE_KEY =
   process.env.PRIVATE_TEST;
 const SHOULD_SEND = process.argv.includes('--send');
 const SHOULD_KEEP_OLD_CONTROLLER = process.argv.includes('--keep-old-controller');
+const OVERWRITE_FLAG = process.argv.includes('--overwrite');
+const NON_INTERACTIVE = process.argv.includes('--yes');
+
+// Parse --confirm-chain-id=<n>. When --send is used the operator MUST pass
+// this explicitly and it must match EXPECTED_CHAIN_ID; this is a tripwire
+// against a switched-shell mistake (e.g. VNS_ORACLE_CHAIN_ID=207 + RPC pointed
+// at mainnet) writing to the wrong network.
+function parseConfirmChainId(argv) {
+  for (const arg of argv) {
+    if (arg === '--confirm-chain-id' || arg === '--confirm-chain-id=') {
+      throw new Error('--confirm-chain-id requires a value, e.g. --confirm-chain-id=206');
+    }
+    if (arg.startsWith('--confirm-chain-id=')) {
+      return Number(arg.slice('--confirm-chain-id='.length));
+    }
+  }
+  return null;
+}
+const CONFIRM_CHAIN_ID = parseConfirmChainId(process.argv);
+
+// Read a single line from stdin. Returns null on non-TTY environments (CI) so
+// the caller can refuse to proceed instead of hanging on a closed pipe.
+async function promptUser(question) {
+  if (NON_INTERACTIVE) return null;
+  if (!process.stdin.isTTY) return null;
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  try {
+    return await new Promise((resolve) => rl.question(question, resolve));
+  } finally {
+    rl.close();
+  }
+}
+
+function backupDeploymentFile(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, '-')
+    .replace('Z', 'Z');
+  const backupPath = `${filePath}.bak.${timestamp}`;
+  fs.copyFileSync(filePath, backupPath);
+  return backupPath;
+}
 
 const ARTIFACTS = {
   VinuUsdOracle:
@@ -204,6 +253,29 @@ async function assertOwned(contract, expectedOwner, label) {
 }
 
 async function main() {
+  // ---------- Pre-flight: chain-ID and confirmation gating ----------
+  // We do not write secrets or kick off any provider call until the
+  // operator-supplied confirmation matches the env-supplied expectation.
+  if (!KNOWN_VINUCHAIN_CHAIN_IDS.has(EXPECTED_CHAIN_ID)) {
+    throw new Error(
+      `VNS_ORACLE_CHAIN_ID=${EXPECTED_CHAIN_ID} is not a known VinuChain network (allowed: ${[
+        ...KNOWN_VINUCHAIN_CHAIN_IDS,
+      ].join(', ')})`,
+    );
+  }
+  if (SHOULD_SEND) {
+    if (CONFIRM_CHAIN_ID === null) {
+      throw new Error(
+        `--send requires --confirm-chain-id=<n> to match VNS_ORACLE_CHAIN_ID (${EXPECTED_CHAIN_ID})`,
+      );
+    }
+    if (CONFIRM_CHAIN_ID !== EXPECTED_CHAIN_ID) {
+      throw new Error(
+        `--confirm-chain-id=${CONFIRM_CHAIN_ID} does not match VNS_ORACLE_CHAIN_ID=${EXPECTED_CHAIN_ID}`,
+      );
+    }
+  }
+
   const deployment = readJson(DEPLOYMENT_PATH);
   const info = readJson(INFO_PATH);
   const provider = new JsonRpcProvider(RPC_URL);
@@ -226,6 +298,44 @@ async function main() {
   ) {
     throw new Error(
       'deployment-testnet.json already records a switched VNS oracle stack; pass --force to redeploy',
+    );
+  }
+
+  // Destructive-write guard: if a prior non-zero deployment is already on
+  // disk, refuse to overwrite without --overwrite OR an interactive Y/N. CI
+  // (no TTY) MUST pass --overwrite explicitly. The companion backup happens
+  // just before writeJson so the prior file is preserved even after a
+  // confirmed overwrite.
+  if (
+    SHOULD_SEND &&
+    isOracleStackRedeploy &&
+    !OVERWRITE_FLAG &&
+    !NON_INTERACTIVE
+  ) {
+    const prior = previousActive;
+    const summary = {
+      VinuUsdOracle: prior.VinuUsdOracle?.address || null,
+      ExponentialPremiumPriceOracle:
+        prior.ExponentialPremiumPriceOracle?.address || null,
+      VNSRegistrarController: prior.VNSRegistrarController?.address || null,
+      VNSBulkRenewal: prior.VNSBulkRenewal?.address || null,
+    };
+    logger.warn('about to overwrite deployment-testnet.json', {
+      priorAddresses: summary,
+      chainId: EXPECTED_CHAIN_ID,
+    });
+    const answer = await promptUser(
+      'Overwrite deployment-testnet.json with new deploy records? Type "yes" to proceed: ',
+    );
+    if (!answer || answer.trim().toLowerCase() !== 'yes') {
+      throw new Error(
+        'overwrite not confirmed; pass --overwrite to skip prompt, or run without --send for a dry-run',
+      );
+    }
+  }
+  if (SHOULD_SEND && isOracleStackRedeploy && NON_INTERACTIVE && !OVERWRITE_FLAG) {
+    throw new Error(
+      'non-interactive mode requires --overwrite to overwrite an existing deployment record',
     );
   }
 
@@ -662,6 +772,18 @@ async function main() {
     description:
       'Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller.',
   });
+
+  // Snapshot the prior files to timestamped siblings before overwriting so a
+  // misordered redeploy can be reverted from on-disk evidence. Mirrors the
+  // ops box's opera binary-swap backup pattern (see CLAUDE.md ops rules).
+  const deploymentBackup = backupDeploymentFile(DEPLOYMENT_PATH);
+  const infoBackup = backupDeploymentFile(INFO_PATH);
+  if (deploymentBackup) {
+    logger.info('deployment snapshot saved', { backup: deploymentBackup });
+  }
+  if (infoBackup) {
+    logger.info('info snapshot saved', { backup: infoBackup });
+  }
 
   writeJson(DEPLOYMENT_PATH, deployment);
   writeJson(INFO_PATH, info);
