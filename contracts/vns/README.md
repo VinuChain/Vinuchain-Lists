@@ -20,22 +20,41 @@ The flat `*.sol` and `*_abi.json` files in this directory are compatibility
 copies used by the existing `vinuchain-lists` validator and contract registry
 schema for the deployed VNS contracts.
 
-`VinuUsdOracle.sol` is the VinuChain-specific price-feed contract for the
-active testnet VNS controller deployment. It exposes the `latestAnswer()` interface
-expected by `StablePriceOracle`, stores VC/USD with 8 decimals, restricts price
-updates to the owner, enforces configured answer bounds and max-change limits,
-and reverts when the answer is stale. The companion operator script
-`scripts/update-vns-oracle.js` prices VC from CoinGecko and guarded VinuSwap V3
-TWAP reads. Normal sends require both sources to be fresh and within the
-configured deviation threshold; single-source updates require an explicit
-emergency flag. The script preflights the target oracle chain ID, VinuSwap
-pricing chain ID, oracle identity, signer ownership, answer bounds, and expected
-max age before any send.
+`VinuUsdOracle.sol` is the VinuChain-specific VC/USD conversion oracle for the
+active testnet VNS pricing stack. It exposes the `latestAnswer()` interface
+expected by `StablePriceOracle`, stores VC/USD with 8 decimals, enforces
+configured answer bounds and max-change limits, and reverts when the answer is
+stale. The registrar controller does not update this feed; it reads the active
+price oracle at quote, registration, and renewal time. That quote is the
+enforced VC amount: `ETHRegistrarController.register(...)` rejects underpayment
+against the current `rentPrice(...)`, so VNS costs automatically move with the
+latest accepted VC/USD answer.
+
+`StablePriceOracle.sol` keeps the USD-denominated rent curve separately from the
+live VC conversion. The price-oracle owner can call `setRentPrices(...)` to
+change the USD policy for 1-, 2-, 3-, 4-, and 5+ character names. After that
+policy change, `ETHRegistrarController.rentPrice(...)` automatically converts
+the new USD curve into the enforced VC amount using the current
+`VinuUsdOracle` price.
+
+The companion operator script `scripts/update-vns-oracle.js` prices VC from
+CoinGecko and guarded VinuSwap V3 TWAP reads. Normal sends require both sources
+to be fresh and within the configured deviation threshold; single-source updates
+require an explicit emergency flag. The script preflights the target oracle
+chain ID, VinuSwap pricing chain ID, oracle identity, signer ownership, answer
+bounds, and expected max age before any send.
 
 The active testnet registrar controller now points at `VinuUsdOracle` through a
 fresh `ExponentialPremiumPriceOracle`; the legacy `DummyOracle` stack is kept
 only as provenance. Public registration should remain disabled on
 vinuchain.org until the full stack is reviewed and approved for public launch.
+
+`.github/workflows/vns-oracle-update.yml` runs the VC/USD updater automatically
+once per day at 00:17 UTC. The scheduled run performs the same guarded price
+resolution and then submits `VinuUsdOracle.setLatestAnswer(...)` using the
+`VNS_ORACLE_PRIVATE_KEY` repository secret. Manual workflow dispatch defaults to
+dry-run mode, with an explicit send mode and a separate emergency-only
+single-source flag if CoinGecko or the guarded pool fallback is unavailable.
 
 The VNS port patch is recorded in `vns-port.patch`. It changes the ENS `.eth`
 constants and DNS wire-name helpers in:

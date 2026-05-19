@@ -58,9 +58,9 @@
     },
     {
       "name": "ExponentialPremiumPriceOracle",
-      "address": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
+      "address": "0xf165a2a7858C6E215e56B27a3Bf4565Bcf16e226",
       "type": "oracle",
-      "description": "Active ENS exponential premium price oracle for VNS testnet registrations, wired to VinuUsdOracle."
+      "description": "Active ENS exponential premium price oracle for VNS testnet registrations. It converts the owner-governed USD rent curve into the enforced VC payment amount using VinuUsdOracle at quote time."
     },
     {
       "name": "StaticMetadataService",
@@ -77,14 +77,14 @@
     {
       "name": "VNSRegistrarController",
       "artifact": "ETHRegistrarController",
-      "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
+      "address": "0x313b4C7CDe49a74983205c938f904b4a488bDb14",
       "type": "controller",
       "description": "Active patched ENS registrar controller that registers .vinu names, reads the real VinuUsdOracle-backed price oracle, and writes VNS reverse records."
     },
     {
       "name": "VNSBulkRenewal",
       "artifact": "StaticBulkRenewal",
-      "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
+      "address": "0xC3E55936B1014c41370A678ea22F986C1Ef57288",
       "type": "helper",
       "description": "Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller."
     },
@@ -109,9 +109,9 @@
     },
     {
       "name": "VinuUsdOracle",
-      "address": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+      "address": "0xde7931dCA452Be9647e4AF13C92edCFac1f26d52",
       "type": "oracle",
-      "description": "Owner-updated VC/USD oracle used by the active VNS price oracle. Updates are sourced from CoinGecko first and guarded VinuSwap V3 TWAP fallback pricing."
+      "description": "Automated VC/USD conversion oracle used by the active VNS price oracle to enforce current VC name costs. Scheduled updates are sourced from CoinGecko and guarded by VinuSwap V3 TWAP fallback pricing."
     },
     {
       "name": "LegacyExponentialPremiumPriceOracle",
@@ -133,6 +133,34 @@
       "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
       "type": "helper",
       "description": "Legacy bulk renewal helper that targets the pre-switch VNS registrar controller."
+    },
+    {
+      "name": "PreviousVinuUsdOracle",
+      "artifact": "VinuUsdOracle",
+      "address": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
+      "type": "oracle",
+      "description": "Previous active VC/USD conversion oracle retained after the mutable USD-curve stack redeploy."
+    },
+    {
+      "name": "PreviousExponentialPremiumPriceOracle",
+      "artifact": "ExponentialPremiumPriceOracle",
+      "address": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
+      "type": "oracle",
+      "description": "Previous active VNS price oracle retained after the mutable USD-curve stack redeploy."
+    },
+    {
+      "name": "PreviousVNSRegistrarController",
+      "artifact": "ETHRegistrarController",
+      "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
+      "type": "controller",
+      "description": "Previous active VNS registrar controller retained after the mutable USD-curve stack redeploy."
+    },
+    {
+      "name": "PreviousVNSBulkRenewal",
+      "artifact": "StaticBulkRenewal",
+      "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
+      "type": "helper",
+      "description": "Previous active VNS bulk renewal helper retained after the mutable USD-curve stack redeploy."
     }
   ],
   "social": {

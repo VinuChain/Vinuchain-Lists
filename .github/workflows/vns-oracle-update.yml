@@ -1,0 +1,64 @@
+name: Update VNS VC/USD Oracle
+
+on:
+  schedule:
+    - cron: '17 0 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - send
+      allow_single_source:
+        description: 'Emergency only: allow CoinGecko or guarded pool fallback alone'
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: vns-oracle-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    env:
+      VNS_USD_ORACLE_ADDRESS: '0xde7931dCA452Be9647e4AF13C92edCFac1f26d52'
+      VNS_ORACLE_CHAIN_ID: '206'
+      VNS_PRICE_CHAIN_ID: '207'
+      VNS_ORACLE_REQUIRE_POOL_GUARD: '1'
+      VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS: '86400'
+      VNS_ORACLE_RPC_URL: ${{ vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
+      VNS_PRICE_RPC_URL: ${{ vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
+      VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dry-run price resolution
+        run: npm run vns:oracle:dry-run
+
+      - name: Submit oracle update
+        if: github.event_name == 'schedule' || inputs.mode == 'send'
+        env:
+          VNS_ORACLE_PRIVATE_KEY: ${{ secrets.VNS_ORACLE_PRIVATE_KEY }}
+        run: npm run vns:oracle:update

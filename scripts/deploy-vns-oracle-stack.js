@@ -62,11 +62,13 @@ const ABIS = {
   ],
   PriceOracle: [
     'function usdOracle() view returns (address)',
+    'function owner() view returns (address)',
     'function price1Letter() view returns (uint256)',
     'function price2Letter() view returns (uint256)',
     'function price3Letter() view returns (uint256)',
     'function price4Letter() view returns (uint256)',
     'function price5Letter() view returns (uint256)',
+    'function setRentPrices(uint256[] prices) external',
   ],
   VinuUsdOracle: [
     'function latestAnswer() view returns (int256)',
@@ -129,6 +131,12 @@ function contractRecord(address, transactionHash, blockNumber) {
 function archiveContract(contracts, currentKey, legacyKey) {
   if (contracts[currentKey] && !contracts[legacyKey]) {
     contracts[legacyKey] = contracts[currentKey];
+  }
+}
+
+function archivePreviousActiveContract(contracts, previousKey, record) {
+  if (record) {
+    contracts[previousKey] = record;
   }
 }
 
@@ -203,6 +211,13 @@ async function main() {
   const price = await resolveVnsOraclePrice();
   const answer = toOracleAnswer(price.usd);
   const mode = SHOULD_SEND ? 'send' : 'dry-run';
+  const isOracleStackRedeploy = Boolean(deployment.contracts.VinuUsdOracle);
+  const previousActive = {
+    VinuUsdOracle: deployment.contracts.VinuUsdOracle,
+    ExponentialPremiumPriceOracle: deployment.contracts.ExponentialPremiumPriceOracle,
+    VNSRegistrarController: deployment.contracts.VNSRegistrarController,
+    VNSBulkRenewal: deployment.contracts.VNSBulkRenewal,
+  };
 
   if (
     deployment.contracts.VinuUsdOracle &&
@@ -401,6 +416,7 @@ async function main() {
       const oracle = new Contract(priceOracleDeployment.address, ABIS.PriceOracle, provider);
       return {
         usdOracle: await oracle.usdOracle(),
+        owner: await oracle.owner(),
         price1Letter: (await oracle.price1Letter()).toString(),
         price2Letter: (await oracle.price2Letter()).toString(),
         price3Letter: (await oracle.price3Letter()).toString(),
@@ -435,6 +451,9 @@ async function main() {
   if (priceOracleRead.usdOracle.toLowerCase() !== oracleDeployment.address.toLowerCase()) {
     throw new Error('Price oracle is not wired to VinuUsdOracle');
   }
+  if (priceOracleRead.owner.toLowerCase() !== deployer.toLowerCase()) {
+    throw new Error('Price oracle owner verification failed');
+  }
   if (controllerRead.prices.toLowerCase() !== priceOracleDeployment.address.toLowerCase()) {
     throw new Error('Registrar controller is not wired to new price oracle');
   }
@@ -446,6 +465,28 @@ async function main() {
   archiveContract(contracts, 'VNSRegistrarController', 'LegacyVNSRegistrarController');
   archiveContract(contracts, 'StaticBulkRenewal', 'LegacyStaticBulkRenewal');
   archiveContract(contracts, 'VNSBulkRenewal', 'LegacyVNSBulkRenewal');
+  if (isOracleStackRedeploy) {
+    archivePreviousActiveContract(
+      contracts,
+      'PreviousVinuUsdOracle',
+      previousActive.VinuUsdOracle,
+    );
+    archivePreviousActiveContract(
+      contracts,
+      'PreviousExponentialPremiumPriceOracle',
+      previousActive.ExponentialPremiumPriceOracle,
+    );
+    archivePreviousActiveContract(
+      contracts,
+      'PreviousVNSRegistrarController',
+      previousActive.VNSRegistrarController,
+    );
+    archivePreviousActiveContract(
+      contracts,
+      'PreviousVNSBulkRenewal',
+      previousActive.VNSBulkRenewal,
+    );
+  }
 
   contracts.VinuUsdOracle = contractRecord(
     oracleDeployment.address,
@@ -513,9 +554,13 @@ async function main() {
     premiumDays: PREMIUM_DAYS.toString(),
     minCommitmentAge: MIN_COMMITMENT_AGE.toString(),
     maxCommitmentAge: MAX_COMMITMENT_AGE.toString(),
-    oldUsdOracle: contracts.LegacyDummyOracle.address,
+    oldUsdOracle: isOracleStackRedeploy
+      ? previousActive.VinuUsdOracle.address
+      : contracts.LegacyDummyOracle.address,
     newUsdOracle: oracleDeployment.address,
-    oldPriceOracle: contracts.LegacyExponentialPremiumPriceOracle.address,
+    oldPriceOracle: isOracleStackRedeploy
+      ? previousActive.ExponentialPremiumPriceOracle.address
+      : contracts.LegacyExponentialPremiumPriceOracle.address,
     newPriceOracle: priceOracleDeployment.address,
     oldController,
     newController,
@@ -540,11 +585,41 @@ async function main() {
     description:
       'Legacy static USD price oracle retained for provenance; no longer used by the active VNS registrar controller.',
   });
+  if (isOracleStackRedeploy) {
+    upsertInfoContract(info, 'PreviousVinuUsdOracle', {
+      artifact: 'VinuUsdOracle',
+      address: previousActive.VinuUsdOracle.address,
+      type: 'oracle',
+      description:
+        'Previous active VC/USD conversion oracle retained after the mutable USD-curve stack redeploy.',
+    });
+    upsertInfoContract(info, 'PreviousExponentialPremiumPriceOracle', {
+      artifact: 'ExponentialPremiumPriceOracle',
+      address: previousActive.ExponentialPremiumPriceOracle.address,
+      type: 'oracle',
+      description:
+        'Previous active VNS price oracle retained after the mutable USD-curve stack redeploy.',
+    });
+    upsertInfoContract(info, 'PreviousVNSRegistrarController', {
+      artifact: 'ETHRegistrarController',
+      address: previousActive.VNSRegistrarController.address,
+      type: 'controller',
+      description:
+        'Previous active VNS registrar controller retained after the mutable USD-curve stack redeploy.',
+    });
+    upsertInfoContract(info, 'PreviousVNSBulkRenewal', {
+      artifact: 'StaticBulkRenewal',
+      address: previousActive.VNSBulkRenewal.address,
+      type: 'helper',
+      description:
+        'Previous active VNS bulk renewal helper retained after the mutable USD-curve stack redeploy.',
+    });
+  }
   upsertInfoContract(info, 'VinuUsdOracle', {
     address: oracleDeployment.address,
     type: 'oracle',
     description:
-      'Owner-updated VC/USD oracle used by the active VNS price oracle. Updates are sourced from CoinGecko first and guarded VinuSwap V3 TWAP fallback pricing.',
+      'Automated VC/USD conversion oracle used by the active VNS price oracle to enforce current VC name costs. Scheduled updates are sourced from CoinGecko and guarded by VinuSwap V3 TWAP fallback pricing.',
   });
   upsertInfoContract(info, 'LegacyExponentialPremiumPriceOracle', {
     artifact: 'ExponentialPremiumPriceOracle',
@@ -557,7 +632,7 @@ async function main() {
     address: priceOracleDeployment.address,
     type: 'oracle',
     description:
-      'Active ENS exponential premium price oracle for VNS testnet registrations, wired to VinuUsdOracle.',
+      'Active ENS exponential premium price oracle for VNS testnet registrations. It converts the owner-governed USD rent curve into the enforced VC payment amount using VinuUsdOracle at quote time.',
   });
   upsertInfoContract(info, 'LegacyVNSRegistrarController', {
     artifact: 'ETHRegistrarController',

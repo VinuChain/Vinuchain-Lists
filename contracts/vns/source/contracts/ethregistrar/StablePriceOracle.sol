@@ -10,29 +10,46 @@ interface AggregatorInterface {
     function latestAnswer() external view returns (int256);
 }
 
-// StablePriceOracle sets a price in USD, based on an oracle.
-contract StablePriceOracle is IPriceOracle {
+// StablePriceOracle stores the owner-governed USD rent curve and converts it
+// into the enforced native VC payment amount with the current VC/USD oracle.
+contract StablePriceOracle is IPriceOracle, Ownable {
     using StringUtils for *;
 
-    // Rent in base price units by length
-    uint256 public immutable price1Letter;
-    uint256 public immutable price2Letter;
-    uint256 public immutable price3Letter;
-    uint256 public immutable price4Letter;
-    uint256 public immutable price5Letter;
+    // USD rent in attoUSD per second by label length.
+    uint256 public price1Letter;
+    uint256 public price2Letter;
+    uint256 public price3Letter;
+    uint256 public price4Letter;
+    uint256 public price5Letter;
 
     // Oracle address
     AggregatorInterface public immutable usdOracle;
 
     event RentPriceChanged(uint256[] prices);
 
+    error InvalidRentPrices();
+
     constructor(AggregatorInterface _usdOracle, uint256[] memory _rentPrices) {
         usdOracle = _usdOracle;
+        _setRentPrices(_rentPrices);
+    }
+
+    function setRentPrices(
+        uint256[] calldata _rentPrices
+    ) external onlyOwner {
+        _setRentPrices(_rentPrices);
+    }
+
+    function _setRentPrices(uint256[] memory _rentPrices) internal {
+        if (_rentPrices.length != 5) revert InvalidRentPrices();
+
         price1Letter = _rentPrices[0];
         price2Letter = _rentPrices[1];
         price3Letter = _rentPrices[2];
         price4Letter = _rentPrices[3];
         price5Letter = _rentPrices[4];
+
+        emit RentPriceChanged(_rentPrices);
     }
 
     function price(
@@ -73,9 +90,9 @@ contract StablePriceOracle is IPriceOracle {
 
     /// @dev Returns the pricing premium in internal base units.
     function _premium(
-        string memory name,
-        uint256 expires,
-        uint256 duration
+        string memory,
+        uint256,
+        uint256
     ) internal view virtual returns (uint256) {
         return 0;
     }
