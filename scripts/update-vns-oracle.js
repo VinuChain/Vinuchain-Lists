@@ -2,6 +2,13 @@
 
 const { Contract, JsonRpcProvider, Wallet } = require('ethers');
 
+// Recognised VinuChain network IDs (testnet=206, mainnet=207, staging=205).
+// The chain-ID guard refuses to talk to any RPC whose chainId is outside this
+// set, so an accidentally-set env var pointing at an unrelated chain (e.g.
+// Ethereum mainnet or an L2 fork that happens to be in shell history) fails
+// fast before broadcasting against the wrong network.
+const KNOWN_VINUCHAIN_CHAIN_IDS = new Set([205, 206, 207]);
+
 const TARGET_RPC_URL =
   process.env.VNS_ORACLE_RPC_URL ||
   process.env.VINUCHAIN_RPC_URL ||
@@ -12,6 +19,29 @@ const EXPECTED_PRICE_CHAIN_ID = Number(process.env.VNS_PRICE_CHAIN_ID || 207);
 const ORACLE_ADDRESS = process.env.VNS_USD_ORACLE_ADDRESS;
 const PRIVATE_KEY = process.env.VNS_ORACLE_PRIVATE_KEY;
 const SHOULD_SEND = process.argv.includes('--send');
+
+// Retry strategy for transient broadcast / confirmation failures. Three
+// attempts with exponential back-off (30s -> 90s -> 270s) covers a transient
+// RPC outage at the target endpoint and a brief peer-side reject without
+// pushing past the GitHub Actions 15-minute job timeout. A final failure
+// surfaces as a non-zero exit so the cron alarms instead of silently going
+// stale.
+const BROADCAST_MAX_ATTEMPTS = Math.max(
+  1,
+  Number(process.env.VNS_ORACLE_BROADCAST_MAX_ATTEMPTS || 3),
+);
+const BROADCAST_BASE_BACKOFF_MS = Number(
+  process.env.VNS_ORACLE_BROADCAST_BASE_BACKOFF_MS || 30_000,
+);
+const BROADCAST_BACKOFF_FACTOR = Number(
+  process.env.VNS_ORACLE_BROADCAST_BACKOFF_FACTOR || 3,
+);
+// Multiplier applied to the network's suggested fee when retrying after a
+// dropped/underpriced broadcast. ethers v6 honours an explicit
+// {maxFeePerGas, maxPriorityFeePerGas} when set on the tx.
+const TX_FEE_BUMP_FACTOR = Number(
+  process.env.VNS_ORACLE_FEE_BUMP_FACTOR || 1.5,
+);
 const DISABLE_COINGECKO =
   process.env.VNS_ORACLE_DISABLE_COINGECKO === '1' ||
   process.argv.includes('--no-coingecko');
@@ -48,6 +78,39 @@ const EXPECTED_ORACLE_MAX_AGE = BigInt(
 const MIN_POOL_LIQUIDITY = BigInt(
   process.env.VNS_ORACLE_MIN_POOL_LIQUIDITY || '1000000000000',
 );
+
+// ---------- Structured logger ----------
+// Tiny env-driven logger. Replaces bare console.log so log entries are
+// uniformly machine-parseable and so a future sensitive field cannot leak
+// through an ad-hoc console.log. Honours LOG_LEVEL with the standard rank:
+// debug < info < warn < error. Defaults to 'info'.
+const LOG_LEVELS = Object.freeze({ debug: 10, info: 20, warn: 30, error: 40 });
+const ACTIVE_LOG_LEVEL =
+  LOG_LEVELS[(process.env.LOG_LEVEL || 'info').toLowerCase()] || LOG_LEVELS.info;
+function shouldEmit(level) {
+  return LOG_LEVELS[level] >= ACTIVE_LOG_LEVEL;
+}
+function emitLog(level, message, fields) {
+  if (!shouldEmit(level)) return;
+  const entry = {
+    ts: new Date().toISOString(),
+    level,
+    msg: message,
+    ...(fields || {}),
+  };
+  const sink = level === 'error' || level === 'warn' ? console.error : console.log;
+  sink(JSON.stringify(entry));
+}
+const logger = {
+  debug: (m, f) => emitLog('debug', m, f),
+  info: (m, f) => emitLog('info', m, f),
+  warn: (m, f) => emitLog('warn', m, f),
+  error: (m, f) => emitLog('error', m, f),
+};
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/simple/price?ids=vinuchain&vs_currencies=usd&include_last_updated_at=true';
@@ -107,6 +170,17 @@ const POOLS = {
 };
 
 async function assertChain(provider, expectedChainId, label) {
+  // First-level guard: the operator-supplied expectation must itself be a
+  // recognised VinuChain network. If someone exports
+  // VNS_ORACLE_CHAIN_ID=1 (Ethereum mainnet) in shell history and reruns the
+  // script, this catches the mistake before we even hit the network.
+  if (!KNOWN_VINUCHAIN_CHAIN_IDS.has(expectedChainId)) {
+    throw new Error(
+      `${label} expected chainId ${expectedChainId} is not a known VinuChain network (allowed: ${[
+        ...KNOWN_VINUCHAIN_CHAIN_IDS,
+      ].join(', ')})`,
+    );
+  }
   const network = await provider.getNetwork();
   const chainId = Number(network.chainId);
   if (chainId !== expectedChainId) {
@@ -396,6 +470,107 @@ async function verifyOracleForUpdate(provider, signer, oracle, answer) {
   }
 }
 
+// Refuse to broadcast a fresh tx if a previously-broadcast tx from the same
+// signer is still pending under an earlier nonce. The next auto-nonce would
+// otherwise collide with "replacement underpriced" or "nonce too low". The
+// caller catches the thrown error and decides whether to bump-and-replace or
+// fail the run.
+async function assertNoStuckPendingTx(provider, signerAddress) {
+  const [pendingNonce, latestNonce] = await Promise.all([
+    provider.getTransactionCount(signerAddress, 'pending'),
+    provider.getTransactionCount(signerAddress, 'latest'),
+  ]);
+  if (pendingNonce > latestNonce) {
+    throw new Error(
+      `signer ${signerAddress} has ${
+        pendingNonce - latestNonce
+      } pending tx(s) (pendingNonce=${pendingNonce}, latestNonce=${latestNonce}); ` +
+        'wait for inclusion or replace manually before re-running',
+    );
+  }
+  return { pendingNonce, latestNonce };
+}
+
+// Compute the explicit fee envelope to attach to the broadcast tx. We pass
+// an explicit, bumped fee on every send so a stuck tx from a prior run can be
+// decisively replaced (same nonce + bumped maxFeePerGas) on retry rather than
+// hanging forever.
+async function feeOverrides(provider, attempt) {
+  const feeData = await provider.getFeeData();
+  // Bump factor compounds across retries so attempt 2 is 1.5x, attempt 3 is
+  // 2.25x, etc. Each attempt is a separate broadcast with the same nonce so
+  // the replacement tx beats the previous one on miner-perceived fee.
+  const bump = Math.max(1, TX_FEE_BUMP_FACTOR ** Math.max(0, attempt - 1));
+  const bumpBig = (value) => {
+    if (value === undefined || value === null) return null;
+    const asBig = BigInt(value);
+    return (asBig * BigInt(Math.round(bump * 1000))) / 1000n;
+  };
+  const overrides = {};
+  if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
+    overrides.maxFeePerGas = bumpBig(feeData.maxFeePerGas);
+    overrides.maxPriorityFeePerGas = bumpBig(feeData.maxPriorityFeePerGas);
+  } else if (feeData.gasPrice) {
+    overrides.gasPrice = bumpBig(feeData.gasPrice);
+  }
+  return overrides;
+}
+
+// Broadcast and confirm the oracle update with bounded retries. The retry
+// loop is gated on the pending-nonce snapshot taken before the first attempt
+// so we always reuse the same nonce on replacement and never leave a hole.
+async function broadcastWithRetries(provider, signer, oracle, answer, sourceTag) {
+  const signerAddress = await signer.getAddress();
+  const { latestNonce } = await assertNoStuckPendingTx(provider, signerAddress);
+  // Lock the nonce. Every retry uses the same value so successive broadcasts
+  // are recognised as replacements rather than parallel txs.
+  const nonce = latestNonce;
+  let lastError = null;
+  for (let attempt = 1; attempt <= BROADCAST_MAX_ATTEMPTS; attempt++) {
+    try {
+      const overrides = await feeOverrides(provider, attempt);
+      logger.info('broadcasting oracle update', {
+        attempt,
+        maxAttempts: BROADCAST_MAX_ATTEMPTS,
+        nonce,
+        feeOverrides: {
+          maxFeePerGas: overrides.maxFeePerGas?.toString() || null,
+          maxPriorityFeePerGas:
+            overrides.maxPriorityFeePerGas?.toString() || null,
+          gasPrice: overrides.gasPrice?.toString() || null,
+        },
+      });
+      const tx = await oracle.setLatestAnswer(answer, sourceTag, {
+        ...overrides,
+        nonce,
+      });
+      logger.info('oracle update submitted', { txHash: tx.hash, attempt, nonce });
+      const receipt = await tx.wait();
+      logger.info('oracle update confirmed', {
+        txHash: tx.hash,
+        attempt,
+        blockNumber: receipt?.blockNumber || null,
+      });
+      return { txHash: tx.hash, attempt, blockNumber: receipt?.blockNumber || null };
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn('oracle update attempt failed', {
+        attempt,
+        maxAttempts: BROADCAST_MAX_ATTEMPTS,
+        error: message,
+      });
+      if (attempt >= BROADCAST_MAX_ATTEMPTS) break;
+      const delayMs = Math.round(
+        BROADCAST_BASE_BACKOFF_MS * BROADCAST_BACKOFF_FACTOR ** (attempt - 1),
+      );
+      logger.info('backing off before retry', { delayMs, nextAttempt: attempt + 1 });
+      await sleep(delayMs);
+    }
+  }
+  throw lastError || new Error('Oracle update failed after retries');
+}
+
 async function main() {
   const targetProvider = new JsonRpcProvider(TARGET_RPC_URL);
   const targetChainId = await assertChain(
@@ -406,24 +581,20 @@ async function main() {
   const price = await resolveVnsOraclePrice();
 
   const answer = toOracleAnswer(price.usd);
-  console.log(
-    JSON.stringify(
-      {
-        vcUsd: price.usd,
-        oracleAnswer: answer.toString(),
-        source: price.source,
-        targetChainId,
-        priceChainId: price.priceChainId || null,
-        deviationBps: price.deviationBps ?? null,
-        coingeckoUsd: price.coingeckoUsd ?? null,
-        poolUsd: price.poolUsd ?? null,
-        requirePoolGuard: REQUIRE_POOL_GUARD,
-        mode: SHOULD_SEND ? 'send' : 'dry-run',
-      },
-      null,
-      2,
-    ),
-  );
+  logger.info('price resolution complete', {
+    vcUsd: price.usd,
+    oracleAnswer: answer.toString(),
+    source: price.source,
+    targetChainId,
+    priceChainId: price.priceChainId || null,
+    deviationBps: price.deviationBps ?? null,
+    coingeckoUsd: price.coingeckoUsd ?? null,
+    poolUsd: price.poolUsd ?? null,
+    coingeckoError: price.coingeckoError ?? null,
+    poolError: price.poolError ?? null,
+    requirePoolGuard: REQUIRE_POOL_GUARD,
+    mode: SHOULD_SEND ? 'send' : 'dry-run',
+  });
 
   if (!SHOULD_SEND) return;
   if (!ORACLE_ADDRESS) throw new Error('Set VNS_USD_ORACLE_ADDRESS');
@@ -432,23 +603,26 @@ async function main() {
   const signer = new Wallet(PRIVATE_KEY, targetProvider);
   const oracle = new Contract(ORACLE_ADDRESS, ORACLE_ABI, signer);
   await verifyOracleForUpdate(targetProvider, signer, oracle, answer);
-  const tx = await oracle.setLatestAnswer(answer, price.source);
-  console.log(`submitted ${tx.hash}`);
-  await tx.wait();
-  console.log('confirmed');
+  await broadcastWithRetries(targetProvider, signer, oracle, answer, price.source);
 }
 
 if (require.main === module) {
   main().catch((error) => {
-    console.error(error instanceof Error ? error.message : error);
+    logger.error('oracle update failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exitCode = 1;
   });
 }
 
 module.exports = {
+  KNOWN_VINUCHAIN_CHAIN_IDS,
   assertChain,
+  assertNoStuckPendingTx,
+  broadcastWithRetries,
   fetchCoinGeckoPrice,
   fetchPoolPrice,
+  logger,
   resolveVnsOraclePrice,
   toOracleAnswer,
 };
