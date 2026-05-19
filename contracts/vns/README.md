@@ -14,7 +14,13 @@ Hardhat artifacts for every contract in that snapshot are under
 `abis/contracts/`. `artifacts-manifest.json` records the artifact path, ABI
 path, and SHA-256 hashes for each compiled output. `build-provenance.json`
 also pins the bytecode and deployed-bytecode hashes for the compiled artifact
-set used by the contracts recorded in `deployment-testnet.json`.
+set used by the contracts recorded in `deployment-testnet.json`. All 17
+deployed contracts (16 ENS-derived plus the VinuChain-specific
+`VinuUsdOracle`) are pinned together under `deployedArtifactHashes` in
+`build-provenance.json`. The `localExtensions` block retains the
+`VinuUsdOracle` purpose string so the VinuChain-specific contract is still
+discoverable as a local extension and not mistaken for an upstream ENS
+contract.
 
 The flat `*.sol` and `*_abi.json` files in this directory are compatibility
 copies used by the existing `vinuchain-lists` validator and contract registry
@@ -57,13 +63,21 @@ dry-run mode, with an explicit send mode and a separate emergency-only
 single-source flag if CoinGecko or the guarded pool fallback is unavailable.
 
 The VNS port patch is recorded in `vns-port.patch`. It changes the ENS `.eth`
-constants and DNS wire-name helpers in:
+constants, DNS wire-name helpers, and price-oracle USD-curve labels in:
 
 * `contracts/ethregistrar/ETHRegistrarController.sol`
-* `contracts/wrapper/NameWrapper.sol`
+* `contracts/ethregistrar/StablePriceOracle.sol`
 * `contracts/utils/NameCoder.sol`
+* `contracts/wrapper/NameWrapper.sol`
 
 The current testnet deployment intentionally excludes ENS DNSSEC, DNS registrar,
-offchain DNS, P-256 verification, L2 reverse registrar, and migration flows.
-Those pieces were not needed for native `.vinu` registration and address
-resolution on VinuChain testnet.
+offchain DNS, P-256 verification, L2 reverse registrar, migration flows, and
+the upstream `contracts/ethregistrar/BulkRenewal.sol` (which uses the ENS
+`ETH_NODE` constant directly). The deployed bulk-renewal helper is the
+namehash-agnostic `StaticBulkRenewal.sol`, whose namehash flows through
+`ETHRegistrarController.prices` instead of being hardcoded. Those pieces were
+not needed for native `.vinu` registration and address resolution on VinuChain
+testnet, and the upstream `.eth` references that remain in
+`source/contracts/` exist only in non-deployed files (the unported
+`BulkRenewal.sol` and the `UpgradedNameWrapperMock.sol` and `TestUnwrap.sol`
+test mocks).
