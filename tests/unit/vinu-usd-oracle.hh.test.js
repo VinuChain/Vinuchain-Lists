@@ -30,6 +30,7 @@ function loadArtifact() {
 
 const ONE_HOUR = 60n * 60n;
 const ONE_DAY = 24n * ONE_HOUR;
+const TWELVE_HOURS = 12n * ONE_HOUR;
 const SEVEN_DAYS = 7n * ONE_DAY;
 
 // Helper: deploy a fresh VinuUsdOracle with sensible defaults. Individual
@@ -44,7 +45,7 @@ async function deployOracle(overrides = {}) {
   );
   const initialAnswer = overrides.initialAnswer ?? 50_000_000n; // $0.50 at 8 decimals
   const initialSource = overrides.initialSource ?? 'coingecko';
-  const initialMaxAge = overrides.initialMaxAge ?? ONE_DAY;
+  const initialMaxAge = overrides.initialMaxAge ?? TWELVE_HOURS;
   const initialMinAnswer = overrides.initialMinAnswer ?? 1_000n;
   const initialMaxAnswer = overrides.initialMaxAnswer ?? 1_000_000_000n;
   const initialMaxChangeBps = overrides.initialMaxChangeBps ?? 2000n; // 20%
@@ -67,7 +68,7 @@ describe('VinuUsdOracle (behavioural)', () => {
       expect(await oracle.decimals()).to.equal(8);
       expect(await oracle.description()).to.equal('VC / USD');
       expect(await oracle.version()).to.equal(1n);
-      expect(await oracle.maxAge()).to.equal(ONE_DAY);
+      expect(await oracle.maxAge()).to.equal(TWELVE_HOURS);
       expect(await oracle.minAnswer()).to.equal(1_000n);
       expect(await oracle.maxAnswer()).to.equal(1_000_000_000n);
       expect(await oracle.maxChangeBps()).to.equal(2000n);
@@ -76,7 +77,7 @@ describe('VinuUsdOracle (behavioural)', () => {
       expect(await oracle.latestAnswer()).to.equal(50_000_000n);
     });
 
-    it('rejects construction with maxAge below 1 hour or above 7 days', async () => {
+    it('rejects construction with maxAge below 1 hour, above 7 days, or above the 12h ceiling', async () => {
       await expect(deployOracle({ initialMaxAge: ONE_HOUR - 1n }))
         .to.be.revertedWithCustomError(
           loadOracleInterface(),
@@ -86,6 +87,11 @@ describe('VinuUsdOracle (behavioural)', () => {
         .to.be.revertedWithCustomError(
           loadOracleInterface(),
           'InvalidMaxAge',
+        );
+      await expect(deployOracle({ initialMaxAge: ONE_DAY }))
+        .to.be.revertedWithCustomError(
+          loadOracleInterface(),
+          'MaxAgeAboveCeiling',
         );
     });
 
@@ -108,6 +114,11 @@ describe('VinuUsdOracle (behavioural)', () => {
         .to.be.revertedWithCustomError(
           loadOracleInterface(),
           'InvalidMaxChangeBps',
+        );
+      await expect(deployOracle({ initialMaxChangeBps: 2001n }))
+        .to.be.revertedWithCustomError(
+          loadOracleInterface(),
+          'MaxChangeBpsAboveCeiling',
         );
     });
 
@@ -227,13 +238,12 @@ describe('VinuUsdOracle (behavioural)', () => {
     it('rejects out-of-bounds answers with AnswerOutOfBounds', async () => {
       const { oracle } = await deployOracle({
         initialAnswer: 50_000_000n,
-        initialMinAnswer: 10_000_000n,
-        initialMaxAnswer: 100_000_000n,
-        initialMaxChangeBps: 10_000n, // disable change-cap so bounds revert fires first
+        initialMinAnswer: 45_000_000n,
+        initialMaxAnswer: 55_000_000n,
       });
-      await expect(oracle.setLatestAnswer(9_999_999n, 'coingecko'))
+      await expect(oracle.setLatestAnswer(44_000_000n, 'coingecko'))
         .to.be.revertedWithCustomError(oracle, 'AnswerOutOfBounds');
-      await expect(oracle.setLatestAnswer(100_000_001n, 'coingecko'))
+      await expect(oracle.setLatestAnswer(56_000_000n, 'coingecko'))
         .to.be.revertedWithCustomError(oracle, 'AnswerOutOfBounds');
     });
 
@@ -301,11 +311,17 @@ describe('VinuUsdOracle (behavioural)', () => {
         .to.be.revertedWithCustomError(oracle, 'AnswerOutOfBounds');
     });
 
-    it('accepts widened bounds that still contain the current answer', async () => {
+    it('accepts bounded widened bounds that still contain the current answer', async () => {
       const { oracle } = await deployOracle({ initialAnswer: 50_000_000n });
-      await expect(oracle.setBounds(1n, 10n ** 18n)).to.not.be.reverted;
-      expect(await oracle.minAnswer()).to.equal(1n);
-      expect(await oracle.maxAnswer()).to.equal(10n ** 18n);
+      await expect(oracle.setBounds(1_000n, 1_999_999_000n)).to.not.be.reverted;
+      expect(await oracle.minAnswer()).to.equal(1_000n);
+      expect(await oracle.maxAnswer()).to.equal(1_999_999_000n);
+    });
+
+    it('rejects bounds widened by more than the 2x ceiling', async () => {
+      const { oracle } = await deployOracle({ initialAnswer: 50_000_000n });
+      await expect(oracle.setBounds(1n, 10n ** 18n))
+        .to.be.revertedWithCustomError(oracle, 'BoundsWidenedTooMuch');
     });
 
     it('rejects new bounds where min==0 or max<min', async () => {
@@ -332,16 +348,24 @@ describe('VinuUsdOracle (behavioural)', () => {
         .to.be.revertedWithCustomError(oracle, 'InvalidMaxAge');
     });
 
-    it('accepts boundary values 1 hour and 7 days', async () => {
+    it('rejects values above the 12h ceiling', async () => {
+      const { oracle } = await deployOracle();
+      await expect(oracle.setMaxAge(ONE_DAY))
+        .to.be.revertedWithCustomError(oracle, 'MaxAgeAboveCeiling');
+      await expect(oracle.setMaxAge(SEVEN_DAYS))
+        .to.be.revertedWithCustomError(oracle, 'MaxAgeAboveCeiling');
+    });
+
+    it('accepts boundary values 1 hour and 12 hours', async () => {
       const { oracle } = await deployOracle();
       await expect(oracle.setMaxAge(ONE_HOUR)).to.not.be.reverted;
-      await expect(oracle.setMaxAge(SEVEN_DAYS)).to.not.be.reverted;
+      await expect(oracle.setMaxAge(TWELVE_HOURS)).to.not.be.reverted;
     });
 
     it('emits MaxAgeUpdated', async () => {
       const { oracle } = await deployOracle();
-      await expect(oracle.setMaxAge(2n * ONE_DAY))
-        .to.emit(oracle, 'MaxAgeUpdated').withArgs(2n * ONE_DAY);
+      await expect(oracle.setMaxAge(6n * ONE_HOUR))
+        .to.emit(oracle, 'MaxAgeUpdated').withArgs(6n * ONE_HOUR);
     });
   });
 
@@ -354,10 +378,18 @@ describe('VinuUsdOracle (behavioural)', () => {
         .to.be.revertedWithCustomError(oracle, 'InvalidMaxChangeBps');
     });
 
-    it('accepts 1 (0.01% per update) and BPS_DENOMINATOR (100%)', async () => {
+    it('rejects values above the 20% ceiling', async () => {
+      const { oracle } = await deployOracle();
+      await expect(oracle.setMaxChangeBps(2001n))
+        .to.be.revertedWithCustomError(oracle, 'MaxChangeBpsAboveCeiling');
+      await expect(oracle.setMaxChangeBps(10_000n))
+        .to.be.revertedWithCustomError(oracle, 'MaxChangeBpsAboveCeiling');
+    });
+
+    it('accepts 1 (0.01% per update) and the 20% ceiling', async () => {
       const { oracle } = await deployOracle();
       await expect(oracle.setMaxChangeBps(1n)).to.not.be.reverted;
-      await expect(oracle.setMaxChangeBps(10_000n)).to.not.be.reverted;
+      await expect(oracle.setMaxChangeBps(2000n)).to.not.be.reverted;
     });
 
     it('emits MaxChangeBpsUpdated', async () => {

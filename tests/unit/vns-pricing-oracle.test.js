@@ -43,6 +43,21 @@ describe('VNS pricing oracle registry', () => {
     expect(updater).to.not.include('balanceOf(poolAddress)');
   });
 
+  it('keeps oracle maxAge defaults consistent across deploy, update, and workflow paths', () => {
+    const deployer = read('scripts/deploy-vns-oracle-stack.js');
+    const updater = read('scripts/update-vns-oracle.js');
+    const workflow = read('.github/workflows/vns-oracle-update.yml');
+
+    expect(deployer).to.include(
+      'const ORACLE_MAX_AGE = BigInt(process.env.VNS_ORACLE_MAX_AGE_SECONDS || 12 * 60 * 60);',
+    );
+    expect(updater).to.include('function readRecordedOracleMaxAgeSeconds()');
+    expect(updater).to.include('deployment.oracleStack?.oracleMaxAgeSeconds');
+    expect(updater).to.include('return readRecordedOracleMaxAgeSeconds() || 12n * 60n * 60n;');
+    expect(workflow).to.not.include('VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS');
+    expect(workflow).to.include("cron: '17 */4 * * *'");
+  });
+
   it('caps VinuUsdOracle setter rails so owner cannot widen tolerances in a single tx', () => {
     const oracle = read('contracts/vns/VinuUsdOracle.sol');
     const mirror = read('contracts/vns/source/contracts/ethregistrar/VinuUsdOracle.sol');
@@ -65,6 +80,26 @@ describe('VNS pricing oracle registry', () => {
 
     // First-set exemption: uninitialized state (minAnswer == 0) skips the widening cap.
     expect(oracle).to.include('if (minAnswer != 0)');
+  });
+
+  it('keeps the VinuUsdOracle artifact and build-info source aligned with the checked-in source', () => {
+    const oracle = read('contracts/vns/source/contracts/ethregistrar/VinuUsdOracle.sol');
+    const artifact = JSON.parse(
+      read('contracts/vns/source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json'),
+    );
+    const buildInfo = JSON.parse(
+      read(`contracts/vns/source/artifacts/build-info/${artifact.buildInfoId}.json`),
+    );
+    const compiledSource =
+      buildInfo.input.sources[artifact.inputSourceName]?.content;
+    const abiNames = names(artifact.abi);
+
+    expect(compiledSource).to.equal(oracle);
+    expect(abiNames).to.include('MAX_AGE_CEILING');
+    expect(abiNames).to.include('MAX_CHANGE_BPS_CEILING');
+    expect(abiNames).to.include('BOUNDS_WIDEN_FACTOR_CEILING');
+    expect(abiNames).to.include('MaxAgeAboveCeiling');
+    expect(abiNames).to.include('BoundsWidenedTooMuch');
   });
 
   it('publishes ABI entries for owner-controlled rent price updates', () => {

@@ -14,13 +14,14 @@ Hardhat artifacts for every contract in that snapshot are under
 `abis/contracts/`. `artifacts-manifest.json` records the artifact path, ABI
 path, and SHA-256 hashes for each compiled output. `build-provenance.json`
 also pins the bytecode and deployed-bytecode hashes for the compiled artifact
-set used by the contracts recorded in `deployment-testnet.json`. All 17
-deployed contracts (16 ENS-derived plus the VinuChain-specific
-`VinuUsdOracle`) are pinned together under `deployedArtifactHashes` in
-`build-provenance.json`. The `localExtensions` block retains the
-`VinuUsdOracle` purpose string so the VinuChain-specific contract is still
-discoverable as a local extension and not mistaken for an upstream ENS
-contract.
+set used by the deploy scripts. `deployment-testnet.json` remains the source
+of truth for active live addresses and parameters, and is updated only after
+an authorized on-chain deployment. All 17 deployable contracts (16
+ENS-derived plus the VinuChain-specific `VinuUsdOracle`) are pinned together
+under `deployedArtifactHashes` in `build-provenance.json`. The
+`localExtensions` block retains the `VinuUsdOracle` purpose string so the
+VinuChain-specific contract is still discoverable as a local extension and
+not mistaken for an upstream ENS contract.
 
 The flat `*.sol` and `*_abi.json` files in this directory are compatibility
 copies used by the existing `vinuchain-lists` validator and contract registry
@@ -56,11 +57,12 @@ only as provenance. Public registration should remain disabled on
 vinuchain.org until the full stack is reviewed and approved for public launch.
 
 `.github/workflows/vns-oracle-update.yml` runs the VC/USD updater automatically
-once per day at 00:17 UTC. The scheduled run performs the same guarded price
-resolution and then submits `VinuUsdOracle.setLatestAnswer(...)` using the
-`VNS_ORACLE_PRIVATE_KEY` repository secret. Manual workflow dispatch defaults to
-dry-run mode, with an explicit send mode and a separate emergency-only
-single-source flag if CoinGecko or the guarded pool fallback is unavailable.
+every four hours at 17 minutes past the hour. The scheduled run performs the
+same guarded price resolution and then submits
+`VinuUsdOracle.setLatestAnswer(...)` using the `VNS_ORACLE_PRIVATE_KEY`
+repository secret. Manual workflow dispatch defaults to dry-run mode, with an
+explicit send mode and a separate emergency-only single-source flag if
+CoinGecko or the guarded pool fallback is unavailable.
 
 The VNS port patch is recorded in `vns-port.patch`. It changes the ENS `.eth`
 constants, DNS wire-name helpers, and price-oracle USD-curve labels in:

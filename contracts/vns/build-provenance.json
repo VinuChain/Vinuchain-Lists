@@ -35,7 +35,7 @@
     "files": {
       "source/artifacts/build-info/solc-0_8_17-94e308d830e4d48df386cbcaa4f262015b17c3eb.json": "eb321bf63b865d05ace19642ff3cda920d78c5abfae8cdacba9ca6d3b4a1df8b",
       "source/artifacts/build-info/solc-0_8_26-d76c5d415410453443c0549edb183aec0dc76272.json": "e46851b3229da5d67b7552d5af00a0b56dda324f5a9251e1e968b78ca3941fce",
-      "source/artifacts/build-info/solc-0_8_26-f3be6b93158cf2b96a8c61188bba319a88f864f0.json": "ba7e5f7e0c2c7be2c00430d8bde4a18f70086192defe0371e0c980188142d194"
+      "source/artifacts/build-info/solc-0_8_26-a90a5cec9429934aadf6283b0bb53ac771bd5b36.json": "c665eee9c0e187f75ab302d5d75a4a75ce0d9ef46901196b367d5dab896bc8ca"
     }
   },
   "compilerSettings": {
@@ -151,8 +151,8 @@
     },
     "VinuUsdOracle": {
       "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
-      "bytecodeHash": "0x8da810db83fa86ceea45be58fed63340497b6c5febaf5681b4dc93b91428e6b0",
-      "deployedBytecodeHash": "0xb1cb630b3c1689e7c4e69c9438e2c0ae0e8aa200e6076c699254335596322d86"
+      "bytecodeHash": "0xaa8e937ac50cfd3706fc7613766f00cc929abe8be0f5853b86fb9db1f0f604e0",
+      "deployedBytecodeHash": "0x4da45287a01f57021c8e5d36641f8feba2602a0eb1b8ae287addbaa4720592fe"
     }
   },
   "intentionalExclusions": [
@@ -168,7 +168,7 @@
       "source": "source/contracts/ethregistrar/VinuUsdOracle.sol",
       "artifact": "source/artifacts/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle.json",
       "abi": "abis/contracts/ethregistrar/VinuUsdOracle.sol/VinuUsdOracle_abi.json",
-      "purpose": "Bounded owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data and requires guarded VinuSwap V3 TWAP agreement before normal sends. Deployed bytecode hashes also pinned in deployedArtifactHashes."
+      "purpose": "Bounded owner-updated VC/USD oracle for VNS pricing; updater fetches fresh CoinGecko data and requires guarded VinuSwap V3 TWAP agreement before normal sends. Hardened 12h maxAge artifacts are the next deploy target; active testnet deployment metadata remains the source of truth until an authorized redeploy."
     }
   ]
 }

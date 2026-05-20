@@ -73,6 +73,27 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newWidth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "priorWidth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ceiling",
+        "type": "uint256"
+      }
+    ],
+    "name": "BoundsWidenedTooMuch",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidAnswer",
     "type": "error"
@@ -90,6 +111,38 @@
   {
     "inputs": [],
     "name": "InvalidMaxChangeBps",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newMaxAge",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ceiling",
+        "type": "uint256"
+      }
+    ],
+    "name": "MaxAgeAboveCeiling",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newMaxChangeBps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ceiling",
+        "type": "uint256"
+      }
+    ],
+    "name": "MaxChangeBpsAboveCeiling",
     "type": "error"
   },
   {
@@ -204,7 +257,46 @@
   },
   {
     "inputs": [],
+    "name": "BOUNDS_WIDEN_FACTOR_CEILING",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "BPS_DENOMINATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_AGE_CEILING",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_CHANGE_BPS_CEILING",
     "outputs": [
       {
         "internalType": "uint256",

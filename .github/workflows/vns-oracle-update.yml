@@ -2,9 +2,9 @@ name: Update VNS VC/USD Oracle
 
 on:
   schedule:
-    # Every 4 hours at :17 past the hour. The on-chain maxAge window is 24h,
-    # so cadence < maxAge/3 keeps two unsuccessful runs from approaching
-    # staleness. The 17-minute offset avoids the top-of-hour cron herd.
+    # Every 4 hours at :17 past the hour. The updater reads the live maxAge
+    # from deployment metadata by default, and this cadence also leaves a
+    # three-run buffer under the hardened 12h deployment default.
     - cron: '17 */4 * * *'
   workflow_dispatch:
     inputs:
@@ -45,7 +45,6 @@ jobs:
       VNS_ORACLE_CHAIN_ID: '206'
       VNS_PRICE_CHAIN_ID: '207'
       VNS_ORACLE_REQUIRE_POOL_GUARD: '1'
-      VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS: '86400'
       VNS_ORACLE_RPC_URL: ${{ vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
       VNS_PRICE_RPC_URL: ${{ vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
       VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}

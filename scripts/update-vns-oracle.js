@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
+const path = require('path');
 const { Contract, JsonRpcProvider, Wallet } = require('ethers');
+
+const DEPLOYMENT_PATH = path.join(__dirname, '../contracts/vns/deployment-testnet.json');
 
 // Recognised VinuChain network IDs (testnet=206, mainnet=207, staging=205).
 // The chain-ID guard refuses to talk to any RPC whose chainId is outside this
@@ -84,9 +88,24 @@ const TWAP_WINDOWS_SECONDS = Array.from(
 // tolerance was a deploy-safety setting, not an operating one.
 const MAX_DEVIATION_BPS = Number(process.env.VNS_ORACLE_MAX_DEVIATION_BPS || 500);
 const MAX_UPDATE_BPS = Number(process.env.VNS_ORACLE_MAX_UPDATE_BPS || 2000);
-const EXPECTED_ORACLE_MAX_AGE = BigInt(
-  process.env.VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS || 24 * 60 * 60,
-);
+function readRecordedOracleMaxAgeSeconds() {
+  if (!fs.existsSync(DEPLOYMENT_PATH)) return null;
+  const deployment = JSON.parse(fs.readFileSync(DEPLOYMENT_PATH, 'utf8'));
+  const recorded =
+    deployment.oracleStack?.oracleMaxAgeSeconds ||
+    deployment.oracleStack?.verification?.oracle?.maxAge;
+  if (recorded === undefined || recorded === null || recorded === '') return null;
+  return BigInt(recorded);
+}
+
+function resolveExpectedOracleMaxAge() {
+  if (process.env.VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS) {
+    return BigInt(process.env.VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS);
+  }
+  return readRecordedOracleMaxAgeSeconds() || 12n * 60n * 60n;
+}
+
+const EXPECTED_ORACLE_MAX_AGE = resolveExpectedOracleMaxAge();
 const MIN_POOL_LIQUIDITY = BigInt(
   process.env.VNS_ORACLE_MIN_POOL_LIQUIDITY || '1000000000000',
 );
@@ -635,6 +654,8 @@ module.exports = {
   fetchCoinGeckoPrice,
   fetchPoolPrice,
   logger,
+  readRecordedOracleMaxAgeSeconds,
   resolveVnsOraclePrice,
+  resolveExpectedOracleMaxAge,
   toOracleAnswer,
 };
