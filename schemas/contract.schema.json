@@ -145,6 +145,46 @@
         }
       },
       "additionalProperties": false
+    },
+    "related_registries": {
+      "type": "array",
+      "description": "Cross-references to sibling contract registries in this repository (e.g. VNS, VinuSwap)",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "path"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name of the related registry",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "path": {
+            "type": "string",
+            "description": "Repository-relative path from this info.json to the related registry directory",
+            "pattern": "^\\.{1,2}/[A-Za-z0-9._/-]+$",
+            "maxLength": 200
+          },
+          "network": {
+            "type": "string",
+            "description": "Network qualifier such as 'mainnet-207' or 'testnet-206'",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short prose describing the related registry and its current rollout state",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false
