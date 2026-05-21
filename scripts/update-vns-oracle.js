@@ -628,8 +628,25 @@ async function main() {
   });
 
   if (!SHOULD_SEND) return;
-  if (!ORACLE_ADDRESS) throw new Error('Set VNS_USD_ORACLE_ADDRESS');
-  if (!PRIVATE_KEY) throw new Error('Set VNS_ORACLE_PRIVATE_KEY');
+  if (!ORACLE_ADDRESS) {
+    throw new Error(
+      'VNS_USD_ORACLE_ADDRESS is not set. Set it to the deployed VinuUsdOracle ' +
+        'address (testnet: 0xde7931dCA452Be9647e4AF13C92edCFac1f26d52). In the ' +
+        'GitHub Actions workflow this comes from the `env:` block in ' +
+        '.github/workflows/vns-oracle-update.yml — verify the value is non-empty.',
+    );
+  }
+  if (!PRIVATE_KEY) {
+    throw new Error(
+      'VNS_ORACLE_PRIVATE_KEY is not set. The send path needs the oracle-owner ' +
+        'private key. In CI, set it via: ' +
+        '`gh secret set VNS_ORACLE_PRIVATE_KEY --env vns-oracle-prod ' +
+        '--repo VinuChain/vinuchain-lists`. Locally, source it from a ' +
+        'gitignored .env file. See ' +
+        'VinuChain-Docs/technical-docs/smart-contracts/vinuchain-name-service.md ' +
+        '→ "Oracle refresh runbook" for the complete procedure.',
+    );
+  }
 
   const signer = new Wallet(PRIVATE_KEY, targetProvider);
   const oracle = new Contract(ORACLE_ADDRESS, ORACLE_ABI, signer);

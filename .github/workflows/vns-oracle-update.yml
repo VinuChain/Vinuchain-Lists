@@ -48,6 +48,12 @@ jobs:
       VNS_ORACLE_RPC_URL: ${{ vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
       VNS_PRICE_RPC_URL: ${{ vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
       VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}
+      # Source-disagreement cap. Default 500 bps (5%) is the steady-state
+      # operating ceiling; expose as a `vars.VNS_ORACLE_MAX_DEVIATION_BPS`
+      # repo variable so operators can widen it during thin-pool TWAP
+      # periods without a code change. Walking past 1000 bps (10%) requires
+      # script-level review — manipulate-or-misprice risk grows past that.
+      VNS_ORACLE_MAX_DEVIATION_BPS: ${{ vars.VNS_ORACLE_MAX_DEVIATION_BPS || '500' }}
 
     steps:
       - name: Checkout code
