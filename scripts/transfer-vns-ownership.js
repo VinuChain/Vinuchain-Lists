@@ -51,6 +51,18 @@ const NEW_OWNER = (() => {
   return process.env.NEW_OWNER;
 })();
 
+// Optional comma-separated subset of TARGETS to transfer. Operators use
+// this when splitting ownership across role-scoped EOAs in multiple runs
+// (e.g. `--targets=VinuUsdOracle,ExponentialPremiumPriceOracle` for the
+// oracle-updater role, then another run for the namespace-admin role).
+// When unset the script transfers EVERY contract in TARGETS to NEW_OWNER.
+const TARGETS_FILTER = (() => {
+  const flag = process.argv.find((a) => a.startsWith('--targets='));
+  if (flag) return flag.slice('--targets='.length).split(',').map((s) => s.trim()).filter(Boolean);
+  if (process.env.TARGETS) return process.env.TARGETS.split(',').map((s) => s.trim()).filter(Boolean);
+  return null;
+})();
+
 const DEPLOYMENT_PATH = path.join(
   __dirname,
   '..',
@@ -160,8 +172,22 @@ async function main() {
     signer: signer?.address,
   });
 
+  const effectiveTargets = TARGETS_FILTER
+    ? TARGETS_FILTER.filter((t) => {
+        if (!TARGETS.includes(t)) {
+          log('warn', `--targets filter mentions unknown contract; skipping`, { name: t });
+          return false;
+        }
+        return true;
+      })
+    : TARGETS;
+  if (effectiveTargets.length === 0) {
+    throw new Error('no targets selected after applying --targets filter');
+  }
+  log('info', 'effective targets', { count: effectiveTargets.length, names: effectiveTargets });
+
   const results = [];
-  for (const name of TARGETS) {
+  for (const name of effectiveTargets) {
     const entry = deployment.contracts?.[name];
     if (!entry?.address) {
       results.push({ name, status: 'skip:not-deployed' });

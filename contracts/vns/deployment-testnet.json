@@ -360,5 +360,44 @@
         "premium": "0"
       }
     }
+  },
+  "roleOwners": {
+    "splitAt": "2026-05-21T03:43:55Z",
+    "previousSingleOwner": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
+    "namespaceAdmin": {
+      "address": "0x9214C638e240eda8D47AAc4A01C57b08C10fcdCd",
+      "owns": [
+        "Root",
+        "BaseRegistrarImplementation",
+        "NameWrapper",
+        "OwnedResolver",
+        "GatewayProvider",
+        "ETHRegistrarController",
+        "ReverseRegistrar",
+        "DefaultReverseRegistrar"
+      ]
+    },
+    "oracleUpdater": {
+      "address": "0xD77b037c1F6F8Eb0D21629C97F6E330a7816557e",
+      "owns": ["VinuUsdOracle", "ExponentialPremiumPriceOracle"],
+      "githubSecret": "VNS_ORACLE_PRIVATE_KEY (env: vns-oracle-prod) — rotated 2026-05-21T03:45:42Z"
+    },
+    "transferTxs": {
+      "VinuUsdOracle":                  { "hash": "0x0eeb4068c88c57a20e1cef5b2e6265a1918b47fb39ab8cca8a8f07bd01c5928c", "block": 1465240 },
+      "ExponentialPremiumPriceOracle":  { "hash": "0xf947018826e307035513ebdf359cc4b486879549414708a9e74af6affc994b06", "block": 1465241 },
+      "Root":                           { "hash": "0x988e6feb97cf511cb88a55cd6d18edb70ea2123899c406f2701e979d7c8a09cd", "block": 1465242 },
+      "BaseRegistrarImplementation":    { "hash": "0xfb4eb3a3b7bcf6959b092125f859131fb2dae3a48ebf82180b9f0df75852c6f8", "block": 1465244 },
+      "NameWrapper":                    { "hash": "0x57c218c5957188a917eeceea06c9f2dacd310ff495b1df51ff1058ef3d134926", "block": 1465245 },
+      "OwnedResolver":                  { "hash": "0x2c367108e6e85f9d3d866158cfc754ef43aac94d57ac9e31921ba54feb837340", "block": 1465246 },
+      "GatewayProvider":                { "hash": "0xcbe9a7f326ff4db3e3056916b005da8121b276dd9bc789e7bb3138c03069a1cb", "block": 1465247 },
+      "ETHRegistrarController":         { "hash": "0x21ce1456ca6746ea4dc8142a9d116d04148dbb7f92dd5dec2c8c315115268566", "block": 1465248 },
+      "ReverseRegistrar":               { "hash": "0x4594a9ad13380928797b23d30ee3e41ed6143ba051bc1e13e121f32e3cd2b14c", "block": 1465249 },
+      "DefaultReverseRegistrar":        { "hash": "0x68d840a0e7d2812a606d98ae1cf49f097d0ea3b0ae8e72b20bf08a4eda4fc2d3", "block": 1465250 }
+    },
+    "notes": [
+      "StaticBulkRenewal and its VNSBulkRenewal alias are not Ownable, so they skip the transfer cleanly.",
+      "Alias entries (VNSBaseRegistrar, VNSRegistrarController, VNSBulkRenewal) point at the same addresses; the script auto-skips them with status 'skip:already-owned'.",
+      "The previous chain-governance EOA 0xf9c82B…f347 still owns NodeDriverAuth and the QuotaContractV2; only the VNS administrative surface is moved."
+    ]
   }
 }
