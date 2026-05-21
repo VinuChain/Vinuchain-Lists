@@ -63,6 +63,30 @@ contract ETHRegistrarController is
     /// @notice A mapping of commitments to their timestamp.
     mapping(bytes32 => uint256) public commitments;
 
+    /// @notice Whether registration / renewal is paused on-chain. Owner-gated.
+    bool private _paused;
+
+    /// @notice Emitted when the owner pauses registration / renewal.
+    event Paused(address account);
+
+    /// @notice Emitted when the owner unpauses registration / renewal.
+    event Unpaused(address account);
+
+    /// @notice Thrown when commit/register/renew is called while paused.
+    error EnforcedPause();
+
+    /// @notice Thrown when unpause() is called while not paused.
+    error ExpectedPause();
+
+    /// @notice Thrown when pause() is called while already paused.
+    error AlreadyPaused();
+
+    /// @notice Reverts EnforcedPause when paused.
+    modifier whenNotPaused() {
+        if (_paused) revert EnforcedPause();
+        _;
+    }
+
     /// @notice Thrown when a commitment is not found.
     error CommitmentNotFound(bytes32 commitment);
 
@@ -227,11 +251,31 @@ contract ETHRegistrarController is
     /// @notice Commits a registration.
     ///
     /// @param commitment The commitment to commit.
-    function commit(bytes32 commitment) public override {
+    function commit(bytes32 commitment) public override whenNotPaused {
         if (commitments[commitment] + maxCommitmentAge >= block.timestamp) {
             revert UnexpiredCommitmentExists(commitment);
         }
         commitments[commitment] = block.timestamp;
+    }
+
+    /// @notice Returns true when the registrar is paused.
+    function paused() public view returns (bool) {
+        return _paused;
+    }
+
+    /// @notice Pauses commit/register/renew. Existing names remain resolvable,
+    ///         only new registrations and renewals are blocked.
+    function pause() external onlyOwner {
+        if (_paused) revert AlreadyPaused();
+        _paused = true;
+        emit Paused(msg.sender);
+    }
+
+    /// @notice Unpauses commit/register/renew.
+    function unpause() external onlyOwner {
+        if (!_paused) revert ExpectedPause();
+        _paused = false;
+        emit Unpaused(msg.sender);
     }
 
     /// @notice Registers a name.
@@ -246,7 +290,7 @@ contract ETHRegistrarController is
     /// @param registration.referrer The referrer of the registration.
     function register(
         Registration calldata registration
-    ) public payable override {
+    ) public payable override whenNotPaused {
         bytes32 labelhash = keccak256(bytes(registration.label));
         IPriceOracle.Price memory price = _rentPrice(
             registration.label,
@@ -353,7 +397,7 @@ contract ETHRegistrarController is
         string calldata label,
         uint256 duration,
         bytes32 referrer
-    ) external payable override {
+    ) external payable override whenNotPaused {
         bytes32 labelhash = keccak256(bytes(label));
 
         IPriceOracle.Price memory price = _rentPrice(

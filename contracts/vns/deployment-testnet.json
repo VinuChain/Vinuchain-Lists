@@ -79,9 +79,16 @@
       "blockNumber": 1461405
     },
     "ETHRegistrarController": {
+      "address": "0x67f98dD44B88bE9fAB06e3b94C77EB2444E81695",
+      "transactionHash": "0x4431bea3ae0d1245f311ec03de32674eb01a9d814277a1bb37515172d8db546e",
+      "blockNumber": 1465346,
+      "note": "Pause-enabled controller. Swapped in 2026-05-21 via F3; see roleOwners.f3PauseControllerSwap."
+    },
+    "PreviousETHRegistrarController_2026_05_18": {
       "address": "0x313b4C7CDe49a74983205c938f904b4a488bDb14",
       "transactionHash": "0x9e2acfc4cd6facc86b661b406c739dfd19fa55c94a5b7cc4ebc5621f34758b35",
-      "blockNumber": 1462426
+      "blockNumber": 1462426,
+      "note": "Pre-F3 controller, retired 2026-05-21. Lacks paused() / pause() / unpause()."
     },
     "StaticBulkRenewal": {
       "address": "0xC3E55936B1014c41370A678ea22F986C1Ef57288",
@@ -398,6 +405,37 @@
       "StaticBulkRenewal and its VNSBulkRenewal alias are not Ownable, so they skip the transfer cleanly.",
       "Alias entries (VNSBaseRegistrar, VNSRegistrarController, VNSBulkRenewal) point at the same addresses; the script auto-skips them with status 'skip:already-owned'.",
       "The previous chain-governance EOA 0xf9c82B…f347 still owns NodeDriverAuth and the QuotaContractV2; only the VNS administrative surface is moved."
-    ]
+    ],
+    "f3PauseControllerSwap": {
+      "swappedAt": "2026-05-21T05:37:14Z",
+      "newController": "0x67f98dD44B88bE9fAB06e3b94C77EB2444E81695",
+      "oldController": "0x313b4C7CDe49a74983205c938f904b4a488bDb14",
+      "deployedBy": "0x9214C638e240eda8D47AAc4A01C57b08C10fcdCd",
+      "newControllerOwner": "0x9214C638e240eda8D47AAc4A01C57b08C10fcdCd",
+      "txs": {
+        "deployNewController":              { "hash": "0x4431bea3ae0d1245f311ec03de32674eb01a9d814277a1bb37515172d8db546e", "block": 1465346 },
+        "addController_BaseRegistrar":      { "hash": "0x5aa4344cf4520b5eca2185f6503155152dd4d028e442cef637d2fca883a3e647", "block": 1465348 },
+        "removeController_BaseRegistrar":   { "hash": "0x9d00e359cb59364a98cbf91190471116265a6fa96bfb6fc3cd5c7f57a2dcc8d0" },
+        "setController_NameWrapper_NEW":    { "hash": "0x3dbb2aa1232715a83ebbd84dcc3074c9ec0b8a51ece3522d38f71dba40bed258" },
+        "setController_NameWrapper_OLD":    { "hash": "0x03c1cc60b646556933975482ac5f3918d77a6e27243ea7570ce18f4677ceccf4" },
+        "setController_ReverseRegistrar_NEW":         { "hash": "0xd4692ecc764a568c0507efd5877ea7635378fffc5f4a0d771071ce3872ff3c47" },
+        "setController_ReverseRegistrar_OLD":         { "hash": "0x0790018d29ea90ca15be354cc017601d319edd5d0547b4d69b8c92ec45b8fc5e" },
+        "setController_DefaultReverseRegistrar_NEW":  { "hash": "0x544d2eb3f5cef886520e68544f502edb6bc4e8ee769dfb9e4ff1d3f59f7ef533" },
+        "setController_DefaultReverseRegistrar_OLD":  { "hash": "0xd19182648026fb5b881b70fd246efbb68ac5c4db9e6baffe8cc997190948b383" }
+      },
+      "verification": {
+        "BaseRegistrar.controllers(OLD)":             "0x0",
+        "BaseRegistrar.controllers(NEW)":             "0x1",
+        "NameWrapper.controllers(NEW)":               "0x1",
+        "newController.paused()":                     "false",
+        "newController.owner()":                      "0x9214C638e240eda8D47AAc4A01C57b08C10fcdCd"
+      },
+      "newSurfaceMethods": ["paused()", "pause()", "unpause()", "EnforcedPause()", "ExpectedPause()", "AlreadyPaused()", "Paused(address)", "Unpaused(address)"],
+      "notes": [
+        "Anyone with a pending commit on the OLD controller must re-commit on NEW; old commitments do not carry over.",
+        "BaseRegistrar uses addController/removeController; NameWrapper/ReverseRegistrar/DefaultReverseRegistrar use setController(address, bool) -- the swap script handles both APIs.",
+        "Frontend ABI at VinuChain-Landing/lib/vns/contracts.ts must be updated to the new address before re-deploy."
+      ]
+    }
   }
 }
