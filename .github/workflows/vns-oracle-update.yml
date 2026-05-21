@@ -39,6 +39,7 @@ jobs:
     environment: vns-oracle-prod
     permissions:
       contents: read
+      issues: write
 
     env:
       VNS_USD_ORACLE_ADDRESS: '0xde7931dCA452Be9647e4AF13C92edCFac1f26d52'
@@ -79,3 +80,24 @@ jobs:
         env:
           VNS_ORACLE_PRIVATE_KEY: ${{ secrets.VNS_ORACLE_PRIVATE_KEY }}
         run: npm run vns:oracle:update
+
+      - name: Report failure (deduped GH issue)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Dedup: if there's already an open issue with the same label, just
+          # comment on it instead of creating a new one. Three consecutive
+          # failures will accumulate three comments on the same issue, which
+          # gives operators a single page to track the incident.
+          LABEL='oracle-cron-failure'
+          gh label create "$LABEL" --color B60205 --description 'VNS oracle update workflow failed' --force >/dev/null 2>&1 || true
+          OPEN_ISSUE=$(gh issue list --state open --label "$LABEL" --limit 1 --json number --jq '.[0].number' || echo '')
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          BODY=$(printf 'Workflow run failed at %s.\n\n- Run: %s\n- Trigger: %s\n- Attempt: %s\n\nThe runbook is in VinuChain-Docs/technical-docs/smart-contracts/vinuchain-name-service.md "Oracle refresh runbook".' \
+                       "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$RUN_URL" "${{ github.event_name }}" "${{ github.run_attempt }}")
+          if [ -n "$OPEN_ISSUE" ]; then
+            gh issue comment "$OPEN_ISSUE" --body "$BODY"
+          else
+            gh issue create --title 'VNS oracle update workflow failed' --label "$LABEL" --body "$BODY"
+          fi
