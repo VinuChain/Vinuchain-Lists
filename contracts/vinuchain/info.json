@@ -48,5 +48,13 @@
     "twitter": "https://x.com/vinuchain",
     "telegram": "https://t.me/vinuchain",
     "discord": "https://discord.gg/vinu"
-  }
+  },
+  "related_registries": [
+    {
+      "name": "VinuChain Name Service",
+      "path": "../vns",
+      "network": "testnet-206",
+      "summary": "ENS v1.7.0 port for the .vinu TLD. Live on testnet only; mainnet rollout is gated on Root.lock(vinu), owner-key split, mainnet deployment, and explorer multi-chain support. See ../vns/deployment-testnet.json for active addresses."
+    }
+  ]
 }
