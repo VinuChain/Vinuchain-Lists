@@ -45,7 +45,14 @@ jobs:
       VNS_USD_ORACLE_ADDRESS: '0xde7931dCA452Be9647e4AF13C92edCFac1f26d52'
       VNS_ORACLE_CHAIN_ID: '206'
       VNS_PRICE_CHAIN_ID: '207'
-      VNS_ORACLE_REQUIRE_POOL_GUARD: '1'
+      # Pool guard is OFF on testnet: the VinuSwap V3 pool used for the TWAP
+      # cross-check froze at byte-identical values for >18 h on 2026-05-20
+      # because testnet liquidity is too thin to keep the TWAP moving.
+      # The guard is a manipulation protection for mainnet; on testnet
+      # (chain 206), there are no real funds at risk, so the guard adds
+      # operational fragility without protecting anything. Re-enable when
+      # the VNS stack is deployed on mainnet.
+      VNS_ORACLE_REQUIRE_POOL_GUARD: '0'
       VNS_ORACLE_RPC_URL: ${{ vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
       VNS_PRICE_RPC_URL: ${{ vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
       VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}
