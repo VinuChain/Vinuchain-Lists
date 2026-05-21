@@ -65,3 +65,7 @@ AUDIT*.md
 # is meaningless but the directory is created anyway.
 hardhat-noop-cache/
 hardhat-noop-artifacts/
+
+# Hardhat-v3 (VNS source) regenerable build outputs
+contracts/vns/source/cache/
+contracts/vns/source/generated/
