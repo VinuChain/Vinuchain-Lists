@@ -236,13 +236,19 @@ function validateContractFiles(contract, projectSlug, projectPath) {
     return false;
   }
 
+  // Token contracts intentionally share the token registry address.
+  // Cross-reference validation below verifies the token.project link.
+  const isRegisteredTokenContract = contract.type === 'token' && tokenAddresses.has(contract.address);
+
   // Check for duplicate addresses
-  if (allAddresses.has(contract.address)) {
+  if (allAddresses.has(contract.address) && !isRegisteredTokenContract) {
     logger.error(`  Duplicate address found: ${contract.address} (${contract.name})`);
     return false;
   }
 
-  allAddresses.add(contract.address);
+  if (!isRegisteredTokenContract) {
+    allAddresses.add(contract.address);
+  }
   contractAddresses.set(contract.address, { project: projectSlug, contract: contract.name });
 
   // Verify contract files exist (using safe path construction - addresses CRITICAL-01)

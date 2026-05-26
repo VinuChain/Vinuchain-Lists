@@ -5,6 +5,7 @@
   "decimals": 6,
   "description": "Bridged Tether (USDT) stablecoin on VinuChain, providing a stable USD-pegged asset for trading and DeFi applications.",
   "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+  "website": "https://tether.to",
   "coingecko":"https://www.coingecko.com/en/coins/tether",
   "coinmarketcap":"https://coinmarketcap.com/currencies/tether/"
 }

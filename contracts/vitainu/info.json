@@ -1,0 +1,22 @@
+{
+  "name": "Vita Inu",
+  "website": "https://vitainu.org",
+  "description": "Vita Inu token contract bridged to VinuChain.",
+  "contact": "hello@vitainu.org",
+  "security": "hello@vitainu.org",
+  "contracts": [
+    {
+      "name": "VitaInu",
+      "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
+      "type": "token",
+      "description": "ERC-20 burnable Vita Inu token bridged to VinuChain"
+    }
+  ],
+  "social": {
+    "github": "https://github.com/vita-inu",
+    "twitter": "https://x.com/vitainucoin",
+    "telegram": "https://t.me/vitainu",
+    "discord": "https://discord.gg/vinu",
+    "medium": "https://medium.com/@vitainu"
+  }
+}
