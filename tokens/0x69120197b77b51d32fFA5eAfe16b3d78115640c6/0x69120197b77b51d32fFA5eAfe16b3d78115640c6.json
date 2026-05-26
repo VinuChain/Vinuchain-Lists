@@ -4,7 +4,8 @@
   "address": "0x69120197b77b51d32fFA5eAfe16b3d78115640c6",
   "decimals": 8,
   "description": "Bridged Bitcoin on VinuChain, enabling BTC holders to access DeFi applications and smart contracts on the VinuChain network.",
-  "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/bitcoin/info/logo.png",
+  "logoURI": "https://raw.githubusercontent.com/VinuChain/vinuchain-lists/main/tokens/0x69120197b77b51d32fFA5eAfe16b3d78115640c6/0x69120197b77b51d32fFA5eAfe16b3d78115640c6.png",
+  "website":"https://bitcoin.org",
   "coingecko":"https://www.coingecko.com/en/coins/bitcoin",
   "coinmarketcap":"https://coinmarketcap.com/currencies/bitcoin/"
 }
