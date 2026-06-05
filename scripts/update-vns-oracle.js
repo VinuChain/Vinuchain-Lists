@@ -12,6 +12,12 @@ const DEPLOYMENT_PATH = path.join(__dirname, '../contracts/vns/deployment-testne
 // Ethereum mainnet or an L2 fork that happens to be in shell history) fails
 // fast before broadcasting against the wrong network.
 const KNOWN_VINUCHAIN_CHAIN_IDS = new Set([205, 206, 207]);
+// VinuChain mainnet. When the oracle target is mainnet the automated updater is
+// forced strict regardless of flags — BOTH a source disagreement and a missing
+// pool hard-fail, so a CoinGecko reading is never pushed on-chain without the
+// V3 TWAP corroborating it. Backstops the workflow's event-based relaxation if
+// this updater is ever pointed at mainnet.
+const MAINNET_CHAIN_ID = 207;
 
 function parseRpcUrls(...values) {
   return values
@@ -547,24 +553,65 @@ function toOracleAnswer(usd) {
   return BigInt(scaled);
 }
 
-async function resolveVnsOraclePrice() {
-  const [coingeckoResult, poolResult] = await Promise.allSettled([
-    fetchCoinGeckoPrice(),
-    fetchPoolPrice(),
-  ]);
-  const coingecko =
-    coingeckoResult.status === 'fulfilled' ? coingeckoResult.value : null;
-  const pool = poolResult.status === 'fulfilled' ? poolResult.value : null;
-  const coingeckoError =
-    coingeckoResult.status === 'rejected' ? coingeckoResult.reason?.message : null;
-  const poolError = poolResult.status === 'rejected' ? poolResult.reason?.message : null;
+// Pure reconciliation of the two price sources. Extracted from
+// resolveVnsOraclePrice() so the guard/deviation policy is unit-testable without
+// hitting the network. `requirePoolGuard`/`allowSingleSource`/`maxDeviationBps`
+// are passed in so the same logic can be exercised under every operating mode.
+function reconcileVnsPrice({
+  coingecko,
+  pool,
+  coingeckoError,
+  poolError,
+  requirePoolGuard,
+  allowSingleSource,
+  maxDeviationBps,
+  targetChainId,
+}) {
+  // "Strict" means both sources must corroborate: the pool is REQUIRED and we
+  // are not permitted to fall back to a single source. This is the mainnet /
+  // `--send` default. When it is false the pool is advisory (testnet posture),
+  // so a missing OR disagreeing pool degrades gracefully to CoinGecko rather
+  // than failing the run.
+  // On mainnet the automated updater must never push a price the pool cannot
+  // corroborate — neither on a source DISAGREEMENT nor on a MISSING pool. Force
+  // strict there regardless of flags; a deliberate emergency single-source
+  // mainnet update must be done out-of-band, never via this auto-relaxing path.
+  // Off-mainnet (testnet/staging) the pool is advisory: degrade to CoinGecko.
+  const strict =
+    targetChainId === MAINNET_CHAIN_ID ||
+    (requirePoolGuard && !allowSingleSource);
 
   if (coingecko && pool) {
     const deviation = deviationBps(coingecko.usd, pool.usd);
-    if (deviation > MAX_DEVIATION_BPS) {
-      throw new Error(
-        `CoinGecko/V3 TWAP deviation ${deviation.toFixed(1)} bps exceeds ${MAX_DEVIATION_BPS}`,
+    if (deviation > maxDeviationBps) {
+      if (strict) {
+        throw new Error(
+          `CoinGecko/V3 TWAP deviation ${deviation.toFixed(1)} bps exceeds ${maxDeviationBps}`,
+        );
+      }
+      // Pool advisory: a thin/lagging testnet TWAP routinely diverges from
+      // CoinGecko on fast moves. Trust CoinGecko (the canonical VC/USD source)
+      // and surface the disagreement instead of going stale.
+      logger.warn(
+        'CoinGecko/V3 TWAP deviation exceeds cap; pool advisory — using CoinGecko',
+        {
+          deviationBps: Math.round(deviation),
+          maxDeviationBps,
+          coingeckoUsd: coingecko.usd,
+          poolUsd: pool.usd,
+        },
       );
+      return {
+        usd: coingecko.usd,
+        source: 'coingecko (pool advisory: deviation exceeded cap)',
+        updatedAt: coingecko.updatedAt,
+        priceChainId: pool.priceChainId,
+        deviationBps: Math.round(deviation),
+        poolDeviationBps: pool.deviationBps,
+        coingeckoUsd: coingecko.usd,
+        poolUsd: pool.usd,
+        pools: pool.pools,
+      };
     }
     return {
       usd: coingecko.usd,
@@ -580,7 +627,7 @@ async function resolveVnsOraclePrice() {
   }
 
   if (coingecko) {
-    if (REQUIRE_POOL_GUARD && !ALLOW_SINGLE_SOURCE) {
+    if (strict) {
       throw new Error(
         `CoinGecko price is available but V3 TWAP guard failed: ${poolError || 'no pool price'}`,
       );
@@ -589,7 +636,7 @@ async function resolveVnsOraclePrice() {
   }
 
   if (pool) {
-    if (REQUIRE_POOL_GUARD && !ALLOW_SINGLE_SOURCE) {
+    if (strict) {
       throw new Error(
         `V3 TWAP fallback is available but CoinGecko guard failed: ${coingeckoError || 'no CoinGecko price'}`,
       );
@@ -598,6 +645,32 @@ async function resolveVnsOraclePrice() {
   }
 
   throw new Error('Unable to price VC from CoinGecko or guarded V3 TWAP pools');
+}
+
+// `targetChainId` is the chain the updater is actually connected to. In main()
+// it is the value returned by resolveCheckedProvider(), which has already
+// asserted the live RPC's chainId equals EXPECTED_TARGET_CHAIN_ID — so the
+// mainnet strict gate in reconcileVnsPrice() keys on the verified connected
+// chain, not merely on the configured expectation. Defaults to the expectation
+// for standalone/exported callers.
+async function resolveVnsOraclePrice(targetChainId = EXPECTED_TARGET_CHAIN_ID) {
+  const [coingeckoResult, poolResult] = await Promise.allSettled([
+    fetchCoinGeckoPrice(),
+    fetchPoolPrice(),
+  ]);
+  return reconcileVnsPrice({
+    coingecko:
+      coingeckoResult.status === 'fulfilled' ? coingeckoResult.value : null,
+    pool: poolResult.status === 'fulfilled' ? poolResult.value : null,
+    coingeckoError:
+      coingeckoResult.status === 'rejected' ? coingeckoResult.reason?.message : null,
+    poolError:
+      poolResult.status === 'rejected' ? poolResult.reason?.message : null,
+    requirePoolGuard: REQUIRE_POOL_GUARD,
+    allowSingleSource: ALLOW_SINGLE_SOURCE,
+    maxDeviationBps: MAX_DEVIATION_BPS,
+    targetChainId,
+  });
 }
 
 async function verifyOracleForUpdate(provider, signer, oracle, answer) {
@@ -772,7 +845,7 @@ async function main() {
     EXPECTED_TARGET_CHAIN_ID,
     'target oracle',
   );
-  const price = await resolveVnsOraclePrice();
+  const price = await resolveVnsOraclePrice(targetChainId);
 
   const answer = toOracleAnswer(price.usd);
   logger.info('price resolution complete', {
@@ -844,6 +917,7 @@ module.exports = {
   readRecordedOracleMaxAgeSeconds,
   resolveCheckedProvider,
   rpcUrlsWithFallback,
+  reconcileVnsPrice,
   resolveVnsOraclePrice,
   resolveExpectedOracleMaxAge,
   sanitizeRpcError,

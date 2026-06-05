@@ -17,7 +17,7 @@ on:
           - dry-run
           - send
       allow_single_source:
-        description: 'Emergency only: allow CoinGecko or guarded pool fallback alone'
+        description: 'Force single-source/advisory-pool fallback on a manual run (schedule already allows it on testnet)'
         required: true
         default: false
         type: boolean
@@ -59,7 +59,16 @@ jobs:
       # deploy when the official testnet ELB is unavailable.
       VNS_ORACLE_RPC_URLS: ${{ vars.VNS_ORACLE_RPC_URLS || vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
       VNS_PRICE_RPC_URLS: ${{ vars.VNS_PRICE_RPC_URLS || vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
-      VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}
+      # Testnet posture: the VinuSwap V3 TWAP cross-check is ADVISORY here (thin
+      # liquidity makes it lag/freeze vs the real VC price). The scheduled cron
+      # therefore allows CoinGecko-only / deviation-fallback so a lagging pool
+      # can't fail the run (it would otherwise go stale and re-open the cron
+      # failure issue). Manual dispatch can still force the strict both-sources
+      # check by leaving 'allow_single_source' unchecked. Backstop: when the
+      # target chain is mainnet (207) the updater forces STRICT regardless of
+      # these flags (both a source disagreement and a missing pool hard-fail),
+      # so even a mainnet copy of this workflow cannot push an unguarded price.
+      VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ (github.event_name == 'schedule' || inputs.allow_single_source == true) && '1' || '0' }}
       # Source-disagreement cap. Default 500 bps (5%) is the steady-state
       # operating ceiling; expose as a `vars.VNS_ORACLE_MAX_DEVIATION_BPS`
       # repo variable so operators can widen it during thin-pool TWAP
