@@ -16,7 +16,51 @@ function names(items) {
   return items.map(item => item.name).filter(Boolean);
 }
 
+function normalizeNewlines(value) {
+  return value.replace(/\r\n/g, '\n');
+}
+
 describe('VNS pricing oracle registry', () => {
+  it('parses ordered RPC fallback lists without leaking full URLs in diagnostics', () => {
+    const updater = require('../../scripts/update-vns-oracle');
+
+    expect(
+      updater.parseRpcUrls(
+        'https://primary.example/rpc, https://backup.example/rpc',
+        'https://legacy.example/rpc\nhttps://space.example/rpc',
+      ),
+    ).to.deep.equal([
+      'https://primary.example/rpc',
+      'https://backup.example/rpc',
+      'https://legacy.example/rpc',
+      'https://space.example/rpc',
+    ]);
+    expect(
+      updater.rpcUrlsWithFallback(
+        'https://default.example/rpc',
+        'https://configured.example/rpc',
+      ),
+    ).to.deep.equal(['https://configured.example/rpc']);
+    expect(updater.rpcUrlsWithFallback('https://default.example/rpc', '')).to.deep.equal([
+      'https://default.example/rpc',
+    ]);
+    expect(updater.describeRpcUrl('https://rpc.example/secret-token')).to.equal(
+      'https://rpc.example',
+    );
+    expect(
+      updater.sanitizeRpcError(
+        new Error('failed https://rpc.example/secret-token'),
+        ['https://rpc.example/secret-token'],
+      ),
+    ).to.equal('failed [rpc-1]');
+    expect(
+      updater.sanitizeRpcError(
+        new Error('failed https://rpc.example/secret-token-extra'),
+        ['https://rpc.example/secret-token', 'https://rpc.example/secret-token-extra'],
+      ),
+    ).to.equal('failed [rpc-2]');
+  });
+
   it('keeps the USD rent curve owner-governed and VC-enforced through the oracle', () => {
     const stableOracle = read('contracts/vns/source/contracts/ethregistrar/StablePriceOracle.sol');
     const controller = read('contracts/vns/source/contracts/ethregistrar/ETHRegistrarController.sol');
@@ -35,10 +79,13 @@ describe('VNS pricing oracle registry', () => {
     const updater = read('scripts/update-vns-oracle.js');
 
     expect(updater).to.include("'https://vinufoundation-rpc.com'");
+    expect(updater).to.include('process.env.VNS_ORACLE_RPC_URLS');
+    expect(updater).to.include('resolveCheckedProvider(');
+    expect(updater).to.include("await rawJsonRpc(url, 'eth_blockNumber')");
     expect(updater).to.include(
       'const EXPECTED_TARGET_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206)',
     );
-    expect(updater).to.include("await assertChain(");
+    expect(updater).to.include("await rawJsonRpc(url, 'eth_chainId')");
     expect(updater).to.include("'function observe(uint32[] secondsAgos) view returns");
     expect(updater).to.not.include('balanceOf(poolAddress)');
   });
@@ -55,6 +102,8 @@ describe('VNS pricing oracle registry', () => {
     expect(updater).to.include('deployment.oracleStack?.oracleMaxAgeSeconds');
     expect(updater).to.include('return readRecordedOracleMaxAgeSeconds() || 12n * 60n * 60n;');
     expect(workflow).to.not.include('VNS_EXPECTED_ORACLE_MAX_AGE_SECONDS');
+    expect(workflow).to.include('VNS_ORACLE_RPC_URLS');
+    expect(workflow).to.include('vars.VNS_ORACLE_RPC_URLS || vars.VNS_ORACLE_RPC_URL');
     expect(workflow).to.include("cron: '17 */4 * * *'");
   });
 
@@ -94,7 +143,7 @@ describe('VNS pricing oracle registry', () => {
       buildInfo.input.sources[artifact.inputSourceName]?.content;
     const abiNames = names(artifact.abi);
 
-    expect(compiledSource).to.equal(oracle);
+    expect(normalizeNewlines(compiledSource)).to.equal(normalizeNewlines(oracle));
     expect(abiNames).to.include('MAX_AGE_CEILING');
     expect(abiNames).to.include('MAX_CHANGE_BPS_CEILING');
     expect(abiNames).to.include('BOUNDS_WIDEN_FACTOR_CEILING');

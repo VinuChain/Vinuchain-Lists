@@ -13,12 +13,31 @@ const DEPLOYMENT_PATH = path.join(__dirname, '../contracts/vns/deployment-testne
 // fast before broadcasting against the wrong network.
 const KNOWN_VINUCHAIN_CHAIN_IDS = new Set([205, 206, 207]);
 
-const TARGET_RPC_URL =
-  process.env.VNS_ORACLE_RPC_URL ||
-  process.env.VINUCHAIN_RPC_URL ||
-  'https://vinufoundation-rpc.com';
+function parseRpcUrls(...values) {
+  return values
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(/[\s,]+/))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function rpcUrlsWithFallback(fallback, ...values) {
+  const configured = parseRpcUrls(...values);
+  return configured.length ? configured : parseRpcUrls(fallback);
+}
+
+const TARGET_RPC_URLS = rpcUrlsWithFallback(
+  'https://vinufoundation-rpc.com',
+  process.env.VNS_ORACLE_RPC_URLS,
+  process.env.VNS_ORACLE_RPC_URL,
+  process.env.VINUCHAIN_RPC_URL,
+);
 const EXPECTED_TARGET_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206);
-const PRICE_RPC_URL = process.env.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com';
+const PRICE_RPC_URLS = rpcUrlsWithFallback(
+  'https://vinuchain-rpc.com',
+  process.env.VNS_PRICE_RPC_URLS,
+  process.env.VNS_PRICE_RPC_URL,
+);
 const EXPECTED_PRICE_CHAIN_ID = Number(process.env.VNS_PRICE_CHAIN_ID || 207);
 const ORACLE_ADDRESS = process.env.VNS_USD_ORACLE_ADDRESS;
 const PRIVATE_KEY = process.env.VNS_ORACLE_PRIVATE_KEY;
@@ -46,6 +65,7 @@ const BROADCAST_BACKOFF_FACTOR = Number(
 const TX_FEE_BUMP_FACTOR = Number(
   process.env.VNS_ORACLE_FEE_BUMP_FACTOR || 1.5,
 );
+const RPC_HEALTH_TIMEOUT_MS = Number(process.env.VNS_ORACLE_RPC_HEALTH_TIMEOUT_MS || 8_000);
 const DISABLE_COINGECKO =
   process.env.VNS_ORACLE_DISABLE_COINGECKO === '1' ||
   process.argv.includes('--no-coingecko');
@@ -222,6 +242,142 @@ async function assertChain(provider, expectedChainId, label) {
   return chainId;
 }
 
+function describeRpcUrl(url) {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return '<invalid-url>';
+  }
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function sanitizeRpcError(error, urls) {
+  let message = errorMessage(error);
+  urls
+    .map((url, index) => ({ url, index }))
+    .sort((a, b) => b.url.length - a.url.length)
+    .forEach(({ url, index }) => {
+      message = message.split(url).join(`[rpc-${index + 1}]`);
+    });
+  return message;
+}
+
+function parseQuantity(value, label, method) {
+  if (typeof value !== 'string' || !/^0x[0-9a-fA-F]+$/.test(value)) {
+    throw new Error(`${label} RPC returned invalid ${method} result ${value}`);
+  }
+  const parsed = Number(BigInt(value));
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    throw new Error(`${label} RPC returned unsafe ${method} result ${value}`);
+  }
+  return parsed;
+}
+
+async function rawJsonRpc(url, method, params = []) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RPC_HEALTH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      signal: controller.signal,
+    });
+    const body = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
+    }
+    let payload;
+    try {
+      payload = JSON.parse(body);
+    } catch (error) {
+      throw new Error(`invalid JSON-RPC response for ${method}: ${errorMessage(error)}`);
+    }
+    if (payload.error) {
+      throw new Error(`${method} JSON-RPC error ${payload.error.code ?? 'unknown'}`);
+    }
+    return payload.result;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`${method} timed out after ${RPC_HEALTH_TIMEOUT_MS}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function probeRpcEndpoint(url, expectedChainId, label) {
+  if (!KNOWN_VINUCHAIN_CHAIN_IDS.has(expectedChainId)) {
+    throw new Error(
+      `${label} expected chainId ${expectedChainId} is not a known VinuChain network (allowed: ${[
+        ...KNOWN_VINUCHAIN_CHAIN_IDS,
+      ].join(', ')})`,
+    );
+  }
+
+  const chainId = parseQuantity(await rawJsonRpc(url, 'eth_chainId'), label, 'eth_chainId');
+  if (chainId !== expectedChainId) {
+    throw new Error(`${label} RPC is chain ${chainId}; expected ${expectedChainId}`);
+  }
+  const blockNumber = parseQuantity(
+    await rawJsonRpc(url, 'eth_blockNumber'),
+    label,
+    'eth_blockNumber',
+  );
+  return { chainId, blockNumber };
+}
+
+async function resolveCheckedProvider(urls, expectedChainId, label) {
+  if (!urls.length) {
+    throw new Error(`${label} RPC URL list is empty`);
+  }
+
+  const failures = [];
+  for (const [index, url] of urls.entries()) {
+    try {
+      const { chainId, blockNumber } = await probeRpcEndpoint(
+        url,
+        expectedChainId,
+        label,
+      );
+      const provider = new JsonRpcProvider(url);
+      if (index > 0) {
+        logger.warn('using fallback RPC endpoint', {
+          label,
+          endpoint: describeRpcUrl(url),
+          endpointIndex: index + 1,
+          chainId,
+          blockNumber,
+        });
+      }
+      return { provider, chainId, blockNumber, rpcUrl: url };
+    } catch (error) {
+      const message = sanitizeRpcError(error, urls);
+      failures.push({
+        endpoint: describeRpcUrl(url),
+        endpointIndex: index + 1,
+        error: message,
+      });
+      logger.warn('RPC endpoint failed health check', {
+        label,
+        endpoint: describeRpcUrl(url),
+        endpointIndex: index + 1,
+        error: message,
+      });
+    }
+  }
+
+  throw new Error(
+    `${label} RPC endpoints failed health checks: ${failures
+      .map((failure) => `${failure.endpointIndex}:${failure.error}`)
+      .join('; ')}`,
+  );
+}
+
 async function fetchCoinGeckoPrice() {
   if (DISABLE_COINGECKO) return null;
 
@@ -343,9 +499,12 @@ function deviationBpsBigInt(a, b) {
 }
 
 async function fetchPoolPrice() {
-  const provider = new JsonRpcProvider(PRICE_RPC_URL);
-  const priceChainId = await assertChain(
+  const {
     provider,
+    chainId: priceChainId,
+    rpcUrl,
+  } = await resolveCheckedProvider(
+    PRICE_RPC_URLS,
     EXPECTED_PRICE_CHAIN_ID,
     'VinuSwap price',
   );
@@ -374,6 +533,7 @@ async function fetchPoolPrice() {
     usd: direct,
     source: 'v3-twap',
     priceChainId,
+    priceRpcEndpoint: describeRpcUrl(rpcUrl),
     deviationBps: Math.round(deviation),
     pools: [vcUsdt, vinuVc, vinuUsdt],
   };
@@ -603,9 +763,12 @@ async function broadcastWithRetries(provider, signer, oracle, answer, sourceTag)
 }
 
 async function main() {
-  const targetProvider = new JsonRpcProvider(TARGET_RPC_URL);
-  const targetChainId = await assertChain(
-    targetProvider,
+  const {
+    provider: targetProvider,
+    chainId: targetChainId,
+    rpcUrl: targetRpcUrl,
+  } = await resolveCheckedProvider(
+    TARGET_RPC_URLS,
     EXPECTED_TARGET_CHAIN_ID,
     'target oracle',
   );
@@ -617,7 +780,9 @@ async function main() {
     oracleAnswer: answer.toString(),
     source: price.source,
     targetChainId,
+    targetRpcEndpoint: describeRpcUrl(targetRpcUrl),
     priceChainId: price.priceChainId || null,
+    priceRpcEndpoint: price.priceRpcEndpoint || null,
     deviationBps: price.deviationBps ?? null,
     coingeckoUsd: price.coingeckoUsd ?? null,
     poolUsd: price.poolUsd ?? null,
@@ -668,11 +833,19 @@ module.exports = {
   assertChain,
   assertNoStuckPendingTx,
   broadcastWithRetries,
+  describeRpcUrl,
   fetchCoinGeckoPrice,
   fetchPoolPrice,
   logger,
+  parseQuantity,
+  parseRpcUrls,
+  probeRpcEndpoint,
+  rawJsonRpc,
   readRecordedOracleMaxAgeSeconds,
+  resolveCheckedProvider,
+  rpcUrlsWithFallback,
   resolveVnsOraclePrice,
   resolveExpectedOracleMaxAge,
+  sanitizeRpcError,
   toOracleAnswer,
 };

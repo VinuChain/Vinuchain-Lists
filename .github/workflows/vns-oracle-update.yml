@@ -53,8 +53,12 @@ jobs:
       # operational fragility without protecting anything. Re-enable when
       # the VNS stack is deployed on mainnet.
       VNS_ORACLE_REQUIRE_POOL_GUARD: '0'
-      VNS_ORACLE_RPC_URL: ${{ vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
-      VNS_PRICE_RPC_URL: ${{ vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
+      # Ordered comma/newline/space-separated RPC fallbacks. The updater
+      # health-checks each endpoint with chainId + blockNumber before using it,
+      # so operators can add a temporary chain-206 fallback without a code
+      # deploy when the official testnet ELB is unavailable.
+      VNS_ORACLE_RPC_URLS: ${{ vars.VNS_ORACLE_RPC_URLS || vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
+      VNS_PRICE_RPC_URLS: ${{ vars.VNS_PRICE_RPC_URLS || vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
       VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ inputs.allow_single_source == true && '1' || '0' }}
       # Source-disagreement cap. Default 500 bps (5%) is the steady-state
       # operating ceiling; expose as a `vars.VNS_ORACLE_MAX_DEVIATION_BPS`
