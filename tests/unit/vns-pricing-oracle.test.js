@@ -88,6 +88,11 @@ describe('VNS pricing oracle registry', () => {
     expect(updater).to.include("await rawJsonRpc(url, 'eth_chainId')");
     expect(updater).to.include("'function observe(uint32[] secondsAgos) view returns");
     expect(updater).to.not.include('balanceOf(poolAddress)');
+    // mainnet strict gate is keyed on the verified connected chain id, wired
+    // from main()'s resolveCheckedProvider result into the price resolver.
+    expect(updater).to.include('const price = await resolveVnsOraclePrice(targetChainId);');
+    expect(updater).to.include('targetChainId === MAINNET_CHAIN_ID');
+    expect(updater).to.include('const MAINNET_CHAIN_ID = 207;');
   });
 
   it('keeps oracle maxAge defaults consistent across deploy, update, and workflow paths', () => {
@@ -165,5 +170,97 @@ describe('VNS pricing oracle registry', () => {
       expect(entryNames).to.include('InvalidRentPrices');
       expect(entryNames).to.include('RentPriceChanged');
     }
+  });
+});
+
+
+describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
+  const { reconcileVnsPrice } = require('../../scripts/update-vns-oracle');
+  const cg = { usd: 0.0003, source: 'coingecko', updatedAt: 1234567890 };
+  // ~1% apart (within cap) and ~21% apart (over the 500 bps cap)
+  const poolClose = { usd: 0.000303, source: 'v3-twap', priceChainId: 207, deviationBps: 10, pools: [] };
+  const poolFar = { usd: 0.00037, source: 'v3-twap', priceChainId: 207, deviationBps: 10, pools: [] };
+
+  it('returns coingecko+v3-twap when both sources agree within the cap', () => {
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: poolClose,
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+    });
+    expect(r.source).to.equal('coingecko+v3-twap');
+    expect(r.usd).to.equal(cg.usd);
+  });
+
+  it('throws on deviation in strict mode (pool required, single-source disallowed)', () => {
+    expect(() => reconcileVnsPrice({
+      coingecko: cg, pool: poolFar,
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+    })).to.throw(/deviation .* exceeds 500/);
+  });
+
+  it('falls back to CoinGecko on deviation when single-source is allowed (testnet send)', () => {
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: poolFar,
+      requirePoolGuard: true, allowSingleSource: true, maxDeviationBps: 500,
+      targetChainId: 206,
+    });
+    expect(r.usd).to.equal(cg.usd);
+    expect(r.source).to.match(/pool advisory/);
+    expect(r.poolUsd).to.equal(poolFar.usd);
+    expect(r.deviationBps).to.be.greaterThan(500);
+  });
+
+  it('NEVER advisory-falls-back on mainnet (207): a deviation hard-fails even with flags relaxed', () => {
+    expect(() => reconcileVnsPrice({
+      coingecko: cg, pool: poolFar,
+      requirePoolGuard: true, allowSingleSource: true, maxDeviationBps: 500,
+      targetChainId: 207,
+    })).to.throw(/deviation .* exceeds 500/);
+    // and with the guard fully off, too
+    expect(() => reconcileVnsPrice({
+      coingecko: cg, pool: poolFar,
+      requirePoolGuard: false, allowSingleSource: true, maxDeviationBps: 500,
+      targetChainId: 207,
+    })).to.throw(/deviation .* exceeds 500/);
+  });
+
+  it('requires the pool on mainnet (207) even with single-source allowed (missing pool hard-fails)', () => {
+    expect(() => reconcileVnsPrice({
+      coingecko: cg, pool: null, poolError: 'OLD',
+      requirePoolGuard: false, allowSingleSource: true, maxDeviationBps: 500,
+      targetChainId: 207,
+    })).to.throw(/V3 TWAP guard failed/);
+  });
+
+  it('falls back to CoinGecko on deviation when the pool guard is off (testnet dry-run)', () => {
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: poolFar,
+      requirePoolGuard: false, allowSingleSource: false, maxDeviationBps: 500,
+      targetChainId: 206,
+    });
+    expect(r.usd).to.equal(cg.usd);
+    expect(r.source).to.match(/pool advisory/);
+  });
+
+  it('requires the pool in strict mode when it is missing', () => {
+    expect(() => reconcileVnsPrice({
+      coingecko: cg, pool: null, poolError: 'OLD',
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+    })).to.throw(/V3 TWAP guard failed/);
+  });
+
+  it('allows CoinGecko-only when not strict and the pool is missing', () => {
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: null, poolError: 'OLD',
+      requirePoolGuard: false, allowSingleSource: false, maxDeviationBps: 500,
+    });
+    expect(r.usd).to.equal(cg.usd);
+    expect(r.source).to.equal('coingecko');
+  });
+
+  it('throws when neither source is available', () => {
+    expect(() => reconcileVnsPrice({
+      coingecko: null, pool: null,
+      requirePoolGuard: false, allowSingleSource: false, maxDeviationBps: 500,
+    })).to.throw(/Unable to price VC/);
   });
 });
