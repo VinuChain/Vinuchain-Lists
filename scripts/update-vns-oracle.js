@@ -114,6 +114,10 @@ const TWAP_WINDOWS_SECONDS = Array.from(
 // tolerance was a deploy-safety setting, not an operating one.
 const MAX_DEVIATION_BPS = Number(process.env.VNS_ORACLE_MAX_DEVIATION_BPS || 500);
 const MAX_UPDATE_BPS = Number(process.env.VNS_ORACLE_MAX_UPDATE_BPS || 2000);
+const ORACLE_SOURCE_MAX_BYTES = 32;
+const ORACLE_SOURCE_TAGS = Object.freeze({
+  'coingecko (pool advisory: deviation exceeded cap)': 'coingecko-pool-advisory',
+});
 function readRecordedOracleMaxAgeSeconds() {
   if (!fs.existsSync(DEPLOYMENT_PATH)) return null;
   const deployment = JSON.parse(fs.readFileSync(DEPLOYMENT_PATH, 'utf8'));
@@ -553,6 +557,20 @@ function toOracleAnswer(usd) {
   return BigInt(scaled);
 }
 
+function toOracleSourceTag(source) {
+  const tag = ORACLE_SOURCE_TAGS[source] || String(source || '');
+  const byteLength = Buffer.byteLength(tag, 'utf8');
+  if (byteLength === 0) {
+    throw new Error('Oracle source tag is empty');
+  }
+  if (byteLength > ORACLE_SOURCE_MAX_BYTES) {
+    throw new Error(
+      `Oracle source tag "${tag}" is ${byteLength} bytes; max is ${ORACLE_SOURCE_MAX_BYTES}`,
+    );
+  }
+  return tag;
+}
+
 // Pure reconciliation of the two price sources. Extracted from
 // resolveVnsOraclePrice() so the guard/deviation policy is unit-testable without
 // hitting the network. `requirePoolGuard`/`allowSingleSource`/`maxDeviationBps`
@@ -848,10 +866,12 @@ async function main() {
   const price = await resolveVnsOraclePrice(targetChainId);
 
   const answer = toOracleAnswer(price.usd);
+  const oracleSourceTag = toOracleSourceTag(price.source);
   logger.info('price resolution complete', {
     vcUsd: price.usd,
     oracleAnswer: answer.toString(),
     source: price.source,
+    oracleSourceTag,
     targetChainId,
     targetRpcEndpoint: describeRpcUrl(targetRpcUrl),
     priceChainId: price.priceChainId || null,
@@ -889,7 +909,7 @@ async function main() {
   const signer = new Wallet(PRIVATE_KEY, targetProvider);
   const oracle = new Contract(ORACLE_ADDRESS, ORACLE_ABI, signer);
   await verifyOracleForUpdate(targetProvider, signer, oracle, answer);
-  await broadcastWithRetries(targetProvider, signer, oracle, answer, price.source);
+  await broadcastWithRetries(targetProvider, signer, oracle, answer, oracleSourceTag);
 }
 
 if (require.main === module) {
@@ -922,4 +942,5 @@ module.exports = {
   resolveExpectedOracleMaxAge,
   sanitizeRpcError,
   toOracleAnswer,
+  toOracleSourceTag,
 };
