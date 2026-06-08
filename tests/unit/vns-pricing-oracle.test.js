@@ -175,7 +175,7 @@ describe('VNS pricing oracle registry', () => {
 
 
 describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
-  const { reconcileVnsPrice } = require('../../scripts/update-vns-oracle');
+  const { reconcileVnsPrice, toOracleSourceTag } = require('../../scripts/update-vns-oracle');
   const cg = { usd: 0.0003, source: 'coingecko', updatedAt: 1234567890 };
   // ~1% apart (within cap) and ~21% apart (over the 500 bps cap)
   const poolClose = { usd: 0.000303, source: 'v3-twap', priceChainId: 207, deviationBps: 10, pools: [] };
@@ -205,6 +205,7 @@ describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
     });
     expect(r.usd).to.equal(cg.usd);
     expect(r.source).to.match(/pool advisory/);
+    expect(toOracleSourceTag(r.source)).to.equal('coingecko-pool-advisory');
     expect(r.poolUsd).to.equal(poolFar.usd);
     expect(r.deviationBps).to.be.greaterThan(500);
   });
@@ -239,6 +240,14 @@ describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
     });
     expect(r.usd).to.equal(cg.usd);
     expect(r.source).to.match(/pool advisory/);
+  });
+
+  it('maps verbose diagnostic sources to contract-safe on-chain source tags', () => {
+    const tag = toOracleSourceTag('coingecko (pool advisory: deviation exceeded cap)');
+    expect(tag).to.equal('coingecko-pool-advisory');
+    expect(Buffer.byteLength(tag, 'utf8')).to.be.at.most(32);
+    expect(toOracleSourceTag('coingecko+v3-twap')).to.equal('coingecko+v3-twap');
+    expect(() => toOracleSourceTag('x'.repeat(33))).to.throw(/max is 32/);
   });
 
   it('requires the pool in strict mode when it is missing', () => {
