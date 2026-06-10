@@ -453,7 +453,7 @@ describe('on-chain validator', () => {
           chainId: 207,
           accounts: {
             [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
-            [IMPL_ADDR]:  { code: '0xchanged' }, // wrong impl bytecode
+            [IMPL_ADDR]:  { code: '0xdeadbeef' }, // valid hex, different bytecode → real keccak mismatch
           },
         });
         const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });

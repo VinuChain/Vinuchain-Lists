@@ -249,8 +249,10 @@ async function main() {
 
     // --- implCodeHash: probe the EIP-1967 slot for every contract entry ---
     // Proxy-ness is determined from the chain, not from the JSON, so we always
-    // probe. When the slot is nonzero we pin; when it is zero we skip (and
-    // clear any stale implCodeHash pin left over from a prior run).
+    // probe. When the slot is nonzero we pin it. When it is zero we do NOT
+    // touch the JSON: if a stale implCodeHash pin is present we REPORT it (we
+    // never silently rewrite registry data here), and the on-chain validator
+    // hard-errors on a declared-pin/zero-slot mismatch anyway.
     if (target.probeProxy) {
       let implAddr;
       try {

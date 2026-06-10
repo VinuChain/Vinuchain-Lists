@@ -39,7 +39,8 @@ The JSON file must contain the following structure:
   "name": "Vita Inu",
   "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
   "decimals": 18,
-  "chainId": 207
+  "chainId": 207,
+  "codeHash": "0x<keccak256 of the deployed bytecode — run `npm run capture:codehashes`>"
 }
 ```
 
@@ -52,6 +53,7 @@ The JSON file must contain the following structure:
   "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
   "decimals": 18,
   "chainId": 207,
+  "codeHash": "0xa5c8...<64 hex>",
   "description": "Bridged VINU on VinuChain, bringing the vibrant community and innovative features of Vita Inu to the VinuChain ecosystem.",
   "project": "vinuswap",
   "logoURI": "https://vinuexplorer.org/icons/vitainu.svg",
@@ -89,6 +91,7 @@ The JSON file must contain the following structure:
 - **address**: EIP-55 checksummed contract address (must match directory and filename)
 - **decimals**: Number of decimal places (integer, 0-18)
 - **chainId**: VinuChain network the token is deployed on — `207` for mainnet, `206` for testnet. Required. The CI on-chain validator verifies the address has code (and that decimals/symbol match) on this chain.
+- **codeHash**: `0x`-prefixed keccak256 of the deployed runtime bytecode (`eth_getCode`) at this address on its `chainId`. Required — it pins the contract's bytecode/type so a substituted-but-checksummed address fails CI. Don't compute it by hand: run `npm run capture:codehashes` and it is written for you. (For a proxy, `capture:codehashes` also adds `implCodeHash` from the EIP-1967 implementation slot.)
 
 ### Optional Fields
 
