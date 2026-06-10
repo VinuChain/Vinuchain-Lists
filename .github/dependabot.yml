@@ -1,0 +1,24 @@
+version: 2
+
+# Keeps the registry's two supply-chain surfaces patched: the npm dependency
+# tree (ethers, ajv, mocha, hardhat — used by the validator and the oracle
+# updater) and the GitHub Actions used by CI and the oracle cron. Actions are
+# SHA-pinned in the workflows; Dependabot bumps those pins (and their comments)
+# when new versions ship. Addresses AUD-09.
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
