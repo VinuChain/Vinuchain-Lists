@@ -8,5 +8,6 @@
   "logoURI": "https://raw.githubusercontent.com/VinuChain/vinuchain-lists/main/tokens/0x69120197b77b51d32fFA5eAfe16b3d78115640c6/0x69120197b77b51d32fFA5eAfe16b3d78115640c6.png",
   "website": "https://bitcoin.org",
   "coingecko": "https://www.coingecko.com/en/coins/bitcoin",
-  "coinmarketcap": "https://coinmarketcap.com/currencies/bitcoin/"
+  "coinmarketcap": "https://coinmarketcap.com/currencies/bitcoin/",
+  "codeHash": "0x1e46e6eb16ce4efa0d9a5e9e6f4e057d79282f5ac1cbd445a1146b7a849caffe"
 }

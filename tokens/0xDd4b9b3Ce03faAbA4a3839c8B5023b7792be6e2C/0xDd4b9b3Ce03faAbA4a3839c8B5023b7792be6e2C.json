@@ -8,5 +8,6 @@
   "logoURI": "https://raw.githubusercontent.com/VinuChain/vinuchain-lists/main/tokens/0xDd4b9b3Ce03faAbA4a3839c8B5023b7792be6e2C/0xDd4b9b3Ce03faAbA4a3839c8B5023b7792be6e2C.png",
   "website": "https://ethereum.org",
   "coingecko": "https://www.coingecko.com/en/coins/ethereum",
-  "coinmarketcap": "https://coinmarketcap.com/currencies/ethereum/"
+  "coinmarketcap": "https://coinmarketcap.com/currencies/ethereum/",
+  "codeHash": "0x1e46e6eb16ce4efa0d9a5e9e6f4e057d79282f5ac1cbd445a1146b7a849caffe"
 }

@@ -10,35 +10,40 @@
       "address": "0xFC00FACE00000000000000000000000000000000",
       "type": "staking",
       "chainId": 207,
-      "description": "Special Fee Contract — manages validator creation, stake delegation, epoch rewards, lockups, and slashing"
+      "description": "Special Fee Contract — manages validator creation, stake delegation, epoch rewards, lockups, and slashing",
+      "codeHash": "0x00b4e7b3c68458e0e7a79f02370bfb9153e5f4b63e484d959e9c8d77c0d88bf1"
     },
     {
       "name": "NodeDriverAuth",
       "address": "0xD100ae0000000000000000000000000000000000",
       "type": "system",
       "chainId": 207,
-      "description": "Owner-controlled governance contract for network administration — queues and executes time-locked migrations, network rule updates, epoch advances, and nonce increments"
+      "description": "Owner-controlled governance contract for network administration — queues and executes time-locked migrations, network rule updates, epoch advances, and nonce increments",
+      "codeHash": "0x697a57bb41f56573acb3a2fa00676e9dc7a8b5a5c17a2ddbe56a8a2bada481c5"
     },
     {
       "name": "NodeDriver",
       "address": "0xd100A01E00000000000000000000000000000000",
       "type": "system",
       "chainId": 207,
-      "description": "EVM-facing relay contract between NodeDriverAuth and the EvmWriter precompile — emits canonical events for validator weight/pubkey changes, network rule updates, and epoch advances"
+      "description": "EVM-facing relay contract between NodeDriverAuth and the EvmWriter precompile — emits canonical events for validator weight/pubkey changes, network rule updates, and epoch advances",
+      "codeHash": "0xf8d8f32cbea10ec751984b6caca46ea99c76a51362bc51851bc0d773b855f03b"
     },
     {
       "name": "OptimizedTransparentUpgradeableProxy",
       "address": "0x824B93dE7221cf8a35FBd29d5202f6eFa3A29C5D",
       "type": "staking",
       "chainId": 206,
-      "description": "Legacy testnet Quota/Payback EIP-1967 proxy kept for historical transactions. PaybackV2 switched active quota accounting to the non-proxy QuotaContractV2 entry on 2026-05-16."
+      "description": "Legacy testnet Quota/Payback EIP-1967 proxy kept for historical transactions. PaybackV2 switched active quota accounting to the non-proxy QuotaContractV2 entry on 2026-05-16.",
+      "codeHash": "0x1e71c4a5b01c61a4b1a4afa98257a085e472bfc63a362efa77be9a23e714cdc9"
     },
     {
       "name": "QuotaContract",
       "address": "0x0c8735bD6b3E90eaD4cdAB917474Cc6e8E58ce82",
       "type": "staking",
       "chainId": 206,
-      "description": "Historical verified pre-PaybackV2 Quota/Payback implementation behind the legacy testnet proxy. Active testnet payback now uses QuotaContractV2."
+      "description": "Historical verified pre-PaybackV2 Quota/Payback implementation behind the legacy testnet proxy. Active testnet payback now uses QuotaContractV2.",
+      "codeHash": "0x73711ebcc33887dd6ce29edfb3e1eaa97e72e5abde5510685246083e337d3b8d"
     },
     {
       "name": "QuotaContractV2",
@@ -46,7 +51,8 @@
       "address": "0x89D1cBD9DEAaB4dFf6f800a336FBDd9A5c6829e4",
       "type": "staking",
       "chainId": 206,
-      "description": "Active testnet PaybackV2 non-proxy contract. stakeFor(address) credits receiver refunds; funding wallet owns/withdraws stake via unstakeFor(address,uint256). Deployed 2026-05-16."
+      "description": "Active testnet PaybackV2 non-proxy contract. stakeFor(address) credits receiver refunds; funding wallet owns/withdraws stake via unstakeFor(address,uint256). Deployed 2026-05-16.",
+      "codeHash": "0x77c89af1920577cf6cd79da4281b20ac94cd1e262c1b53ccb1f968d77442e95e"
     }
   ],
   "social": {

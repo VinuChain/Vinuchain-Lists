@@ -11,35 +11,40 @@
       "address": "0x75a267fe2910BF96bA42924a67411E1091Be97C3",
       "type": "other",
       "chainId": 206,
-      "description": "Canonical VNS registry for name owner, resolver, and TTL records on VinuChain testnet."
+      "description": "Canonical VNS registry for name owner, resolver, and TTL records on VinuChain testnet.",
+      "codeHash": "0x24c2480951e13704e7f454e2ac4c94ac09f80ccddfe8a2d796e9bb03b872dfff"
     },
     {
       "name": "Root",
       "address": "0xeC612586627a4315954fA80ba3982D28c15735bE",
       "type": "governance",
       "chainId": 206,
-      "description": "Ownable root controller that manages top-level VNS subnodes such as .vinu and reverse."
+      "description": "Ownable root controller that manages top-level VNS subnodes such as .vinu and reverse.",
+      "codeHash": "0xed15e572c18da955b50ccbdc1313144810b8cc4d55cfd9935985e6bb62caca3e"
     },
     {
       "name": "ReverseRegistrar",
       "address": "0xB7d2D6C6c897cEfe6D4a92164DCBdAA9a6294FD7",
       "type": "controller",
       "chainId": 206,
-      "description": "ENS-compatible addr.reverse registrar used for VNS primary-name reverse records."
+      "description": "ENS-compatible addr.reverse registrar used for VNS primary-name reverse records.",
+      "codeHash": "0x6c6145ba2484bc8eb7ba748fee71fb0ece3945f1144d200878e1920dcb60e6e6"
     },
     {
       "name": "DefaultReverseRegistrar",
       "address": "0x787e8D94D39a2c296E8Aeca482a522BCDA5d2F2E",
       "type": "controller",
       "chainId": 206,
-      "description": "Standalone default.reverse registrar for chain-default reverse name records."
+      "description": "Standalone default.reverse registrar for chain-default reverse name records.",
+      "codeHash": "0xc7a0f45254638abb2609940df39fd3fa07a0d3f1b59d8c8be772d5c58ce00bca"
     },
     {
       "name": "DefaultReverseResolver",
       "address": "0x22Df7D962e56619145ec448a0F7cEB6A7C844cD2",
       "type": "helper",
       "chainId": 206,
-      "description": "Resolver for default.reverse records backed by DefaultReverseRegistrar."
+      "description": "Resolver for default.reverse records backed by DefaultReverseRegistrar.",
+      "codeHash": "0x6d38cc52c1cdced10c10e4a0c4a5c823764b02ecd92f0483ec2e1f18c89134ee"
     },
     {
       "name": "VNSBaseRegistrar",
@@ -47,14 +52,16 @@
       "address": "0x9e450D84E12090c7A927ec369D514c969F76f11C",
       "type": "nft",
       "chainId": 206,
-      "description": "ERC-721 base registrar for second-level .vinu names."
+      "description": "ERC-721 base registrar for second-level .vinu names.",
+      "codeHash": "0x34342def39263bc0e11b04de9eb3ef494d95709e9e5cdaa699703c535c2e0f98"
     },
     {
       "name": "OwnedResolver",
       "address": "0xF45Ee4Be3C1f93B6daD46d3d4A5264151C084794",
       "type": "helper",
       "chainId": 206,
-      "description": "Owner-controlled resolver assigned to the .vinu node for interface records."
+      "description": "Owner-controlled resolver assigned to the .vinu node for interface records.",
+      "codeHash": "0xa285f4118bb8accb421edb5c0ceb6d7455f5a56d025f5bff49736aba7c2764ab"
     },
     {
       "name": "LegacyDummyOracle",
@@ -62,28 +69,32 @@
       "type": "oracle",
       "chainId": 206,
       "description": "Legacy static USD price oracle retained for provenance; no longer used by the active VNS registrar controller.",
-      "artifact": "DummyOracle"
+      "artifact": "DummyOracle",
+      "codeHash": "0xc8992e58cf7ea532ae8430a1e2ecf896b43fc2f76b349f9187027e9038b647e5"
     },
     {
       "name": "ExponentialPremiumPriceOracle",
       "address": "0xf165a2a7858C6E215e56B27a3Bf4565Bcf16e226",
       "type": "oracle",
       "chainId": 206,
-      "description": "Active ENS exponential premium price oracle for VNS testnet registrations. It converts the owner-governed USD rent curve into the enforced VC payment amount using VinuUsdOracle at quote time."
+      "description": "Active ENS exponential premium price oracle for VNS testnet registrations. It converts the owner-governed USD rent curve into the enforced VC payment amount using VinuUsdOracle at quote time.",
+      "codeHash": "0x835a452717a00588777f21379b8174ac864a68d0c65e2c3a9414c0230e4ac853"
     },
     {
       "name": "StaticMetadataService",
       "address": "0xAE8B12256B7AFEdc250914501867cbaC0a5A9eeB",
       "type": "helper",
       "chainId": 206,
-      "description": "Static metadata URL service for wrapped VNS name tokens."
+      "description": "Static metadata URL service for wrapped VNS name tokens.",
+      "codeHash": "0x09cde84f26c8556b418d5829c75de515d8202cd0aa1f7cb56fe75aab05fbdc91"
     },
     {
       "name": "NameWrapper",
       "address": "0x7e82c20DB1E128F73D0370Ea05CA98d0CCDB5E26",
       "type": "nft",
       "chainId": 206,
-      "description": "Patched ENS NameWrapper using .vinu constants and DNS wire names."
+      "description": "Patched ENS NameWrapper using .vinu constants and DNS wire names.",
+      "codeHash": "0xec75d6647c2fb7643e10cbfc10251922830acffadcb5caf4307e4c666e372612"
     },
     {
       "name": "VNSRegistrarController",
@@ -91,7 +102,8 @@
       "address": "0x313b4C7CDe49a74983205c938f904b4a488bDb14",
       "type": "controller",
       "chainId": 206,
-      "description": "Active patched ENS registrar controller that registers .vinu names, reads the real VinuUsdOracle-backed price oracle, and writes VNS reverse records."
+      "description": "Active patched ENS registrar controller that registers .vinu names, reads the real VinuUsdOracle-backed price oracle, and writes VNS reverse records.",
+      "codeHash": "0xabbcf8fdcfbd7bd195f909a627c0d6a7b2d98cc0a6b8855b4b9f276bd75e031f"
     },
     {
       "name": "VNSBulkRenewal",
@@ -99,7 +111,8 @@
       "address": "0xC3E55936B1014c41370A678ea22F986C1Ef57288",
       "type": "helper",
       "chainId": 206,
-      "description": "Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller."
+      "description": "Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller.",
+      "codeHash": "0x418b27ed0c62b8734a782491e9f9f460b00c9b91acbfb2f1de54edca86175130"
     },
     {
       "name": "VNSPublicResolver",
@@ -107,28 +120,32 @@
       "address": "0x4A48039E378d7a29A27BC737d9D6E303D46A6620",
       "type": "helper",
       "chainId": 206,
-      "description": "Public resolver for VNS address, text, contenthash, interface, pubkey, and multicall records."
+      "description": "Public resolver for VNS address, text, contenthash, interface, pubkey, and multicall records.",
+      "codeHash": "0xe8f4f9faade23c406fae5a8f4716fe118b42881cbf38edbd352bd791d43b29b7"
     },
     {
       "name": "GatewayProvider",
       "address": "0xbd3D532604cDC469aF0C69e7D8fbC11420eB7BaC",
       "type": "helper",
       "chainId": 206,
-      "description": "Gateway provider used by the universal resolver for offchain lookup routing."
+      "description": "Gateway provider used by the universal resolver for offchain lookup routing.",
+      "codeHash": "0xaed9fc896b6fb0d4dba9bbc499884a1d1b8646ac5d0a0c24f11977bd8db790bb"
     },
     {
       "name": "UniversalResolver",
       "address": "0x79165046bac745Aad2649b2278EEb1389AA577AA",
       "type": "helper",
       "chainId": 206,
-      "description": "ENS universal resolver deployed against the VNS registry."
+      "description": "ENS universal resolver deployed against the VNS registry.",
+      "codeHash": "0xe143034b6a5bcd0ef3af819ab9a049d88e52d3e7c3a413422b301caaa47f9727"
     },
     {
       "name": "VinuUsdOracle",
       "address": "0xde7931dCA452Be9647e4AF13C92edCFac1f26d52",
       "type": "oracle",
       "chainId": 206,
-      "description": "Automated VC/USD conversion oracle used by the active VNS price oracle to enforce current VC name costs. Scheduled updates are sourced from CoinGecko and guarded by VinuSwap V3 TWAP fallback pricing."
+      "description": "Automated VC/USD conversion oracle used by the active VNS price oracle to enforce current VC name costs. Scheduled updates are sourced from CoinGecko and guarded by VinuSwap V3 TWAP fallback pricing.",
+      "codeHash": "0x5a2fa7e7d3b5c0b67b06fc0236107922dd8b1e86ce2eaa95aa02c209344d1024"
     },
     {
       "name": "LegacyExponentialPremiumPriceOracle",
@@ -136,7 +153,8 @@
       "address": "0x8B889e24679BfB83af796dAD6676C85237ca3b31",
       "type": "oracle",
       "chainId": 206,
-      "description": "Legacy VNS premium price oracle that read the static DummyOracle before the real oracle-stack switch."
+      "description": "Legacy VNS premium price oracle that read the static DummyOracle before the real oracle-stack switch.",
+      "codeHash": "0x9d483022dcdfd28ec7d8a103cba1f57834c75b21a5a2480ed319a18e7a788e95"
     },
     {
       "name": "LegacyVNSRegistrarController",
@@ -144,7 +162,8 @@
       "address": "0x24Cf3e3094787c223ee2Ba6b106DC15d4474a844",
       "type": "controller",
       "chainId": 206,
-      "description": "Legacy VNS registrar controller retained for provenance after controller permissions were moved to the real oracle stack."
+      "description": "Legacy VNS registrar controller retained for provenance after controller permissions were moved to the real oracle stack.",
+      "codeHash": "0xef3bb46801fa52803e29c32ebc777f9b69b4954c6e6fb8aee74f972d7a343edd"
     },
     {
       "name": "LegacyVNSBulkRenewal",
@@ -152,7 +171,8 @@
       "address": "0xb666eDA6Fb0180741923Ef2ff8f35AfE5642eB76",
       "type": "helper",
       "chainId": 206,
-      "description": "Legacy bulk renewal helper that targets the pre-switch VNS registrar controller."
+      "description": "Legacy bulk renewal helper that targets the pre-switch VNS registrar controller.",
+      "codeHash": "0xc0c39a55b32a477578c648eb4324ea3a0c008cf938cf97e5cfe804d5637908b5"
     },
     {
       "name": "PreviousVinuUsdOracle",
@@ -160,7 +180,8 @@
       "address": "0x02387e01050340d51d328Bb8cC088f9488C2c5Ff",
       "type": "oracle",
       "chainId": 206,
-      "description": "Previous active VC/USD conversion oracle retained after the mutable USD-curve stack redeploy."
+      "description": "Previous active VC/USD conversion oracle retained after the mutable USD-curve stack redeploy.",
+      "codeHash": "0x5a2fa7e7d3b5c0b67b06fc0236107922dd8b1e86ce2eaa95aa02c209344d1024"
     },
     {
       "name": "PreviousExponentialPremiumPriceOracle",
@@ -168,7 +189,8 @@
       "address": "0x46f987cb963122BdF172Af1CA81AC7dF0616d11F",
       "type": "oracle",
       "chainId": 206,
-      "description": "Previous active VNS price oracle retained after the mutable USD-curve stack redeploy."
+      "description": "Previous active VNS price oracle retained after the mutable USD-curve stack redeploy.",
+      "codeHash": "0xd9a675ca9dcd824c6155027a4d25ccca0929a0c468f97e447d7c03e68e44f194"
     },
     {
       "name": "PreviousVNSRegistrarController",
@@ -176,7 +198,8 @@
       "address": "0xe793903D6C81ED9E907f3B8EaD820deBEDf63C21",
       "type": "controller",
       "chainId": 206,
-      "description": "Previous active VNS registrar controller retained after the mutable USD-curve stack redeploy."
+      "description": "Previous active VNS registrar controller retained after the mutable USD-curve stack redeploy.",
+      "codeHash": "0x70293265d8c6d2199ccf98572ccdb479ab75d99728bc8e0557c044864a8876e0"
     },
     {
       "name": "PreviousVNSBulkRenewal",
@@ -184,7 +207,8 @@
       "address": "0x810e4C552Db16c83009a03F135A646BeBeEcc20b",
       "type": "helper",
       "chainId": 206,
-      "description": "Previous active VNS bulk renewal helper retained after the mutable USD-curve stack redeploy."
+      "description": "Previous active VNS bulk renewal helper retained after the mutable USD-curve stack redeploy.",
+      "codeHash": "0xc0c39a55b32a477578c648eb4324ea3a0c008cf938cf97e5cfe804d5637908b5"
     }
   ],
   "social": {

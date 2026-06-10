@@ -10,49 +10,56 @@
       "address": "0x17bA239f2815BA01152522521737275a2439216f",
       "type": "governance",
       "chainId": 207,
-      "description": "Governance contract for VinuFinance pools — manages pool whitelisting via token-weighted voting, veto holder approval, and vote token snapshots"
+      "description": "Governance contract for VinuFinance pools — manages pool whitelisting via token-weighted voting, veto holder approval, and vote token snapshots",
+      "codeHash": "0xb2315e088506da1a6c8ff4d166ba30510fdff26c3f7a578264e6964bd66d49e8"
     },
     {
       "name": "EmergencyWithdrawal",
       "address": "0xeBC1C9Ae7FC761330929d682d97334513C1FcB4b",
       "type": "utility",
       "chainId": 207,
-      "description": "Allows a pre-approved escrow address to trigger emergency removal of liquidity on behalf of an LP across any VinuFinance pool"
+      "description": "Allows a pre-approved escrow address to trigger emergency removal of liquidity on behalf of an LP across any VinuFinance pool",
+      "codeHash": "0xc8079b7196f9f8caea177ac091688377616c8ad3eb2a84f476738423f5c0424a"
     },
     {
       "name": "MultiClaim",
       "address": "0xA260d19aEe266cC85F41f160271F9C72ea8E2837",
       "type": "utility",
       "chainId": 207,
-      "description": "Batches reward claims across multiple VinuFinance lending pools in a single transaction"
+      "description": "Batches reward claims across multiple VinuFinance lending pools in a single transaction",
+      "codeHash": "0x7418c30808f2c917606cd9e1a8699c4fb339685b29c4569866ac9dad7daacf50"
     },
     {
       "name": "BasePool",
       "address": "0x00257663EB5ed175603a20694bA6086f01e4D103",
       "type": "lending",
       "chainId": 207,
-      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
+      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details.",
+      "codeHash": "0x838f8f4d0795b201d0a8c8b3fc28c86dce0f456343a94c996afeb96fae381265"
     },
     {
       "name": "BasePool",
       "address": "0xf4a51C250E49fA480EB9Cf216E8A58d4326e91bc",
       "type": "lending",
       "chainId": 207,
-      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
+      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details.",
+      "codeHash": "0x838f8f4d0795b201d0a8c8b3fc28c86dce0f456343a94c996afeb96fae381265"
     },
     {
       "name": "BasePool",
       "address": "0x26397f13411555a90c1B7bB9a9DeF814BfE2Ba3B",
       "type": "lending",
       "chainId": 207,
-      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
+      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details.",
+      "codeHash": "0x838f8f4d0795b201d0a8c8b3fc28c86dce0f456343a94c996afeb96fae381265"
     },
     {
       "name": "BasePool",
       "address": "0xF26c65dC348336c49517C54A16c9d112A4307315",
       "type": "lending",
       "chainId": 207,
-      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
+      "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details.",
+      "codeHash": "0x838f8f4d0795b201d0a8c8b3fc28c86dce0f456343a94c996afeb96fae381265"
     }
   ],
   "social": {
