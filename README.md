@@ -33,13 +33,23 @@ VinuChain Lists is a **community-maintained registry** providing:
 
 ## Network Information
 
-| Property | Value |
-|----------|-------|
-| **Chain Name** | VinuChain |
-| **Chain ID** | 207 |
-| **RPC Endpoint** | https://rpc.vinuchain.org/ |
-| **Block Explorer** | [VinuExplorer](https://vinuexplorer.org/) |
-| **Native Token** | VC |
+This registry covers **two** VinuChain networks. Every token and contract entry
+carries a required `chainId` field so consumers can tell them apart
+programmatically — an address without a chainId is half an address.
+
+| Property | Mainnet | Testnet |
+|----------|---------|---------|
+| **Chain Name** | VinuChain | VinuChain Testnet |
+| **Chain ID** (`chainId`) | `207` | `206` |
+| **RPC Endpoint** | https://vinuchain-rpc.com | https://vinufoundation-rpc.com |
+| **Block Explorer** | [VinuExplorer](https://vinuexplorer.org/) | — |
+| **Native Token** | VC | VC |
+
+Most listed content is mainnet-207 (the bridged tokens, VinuSwap, VinuFinance,
+Vita Inu, and the core SFC/NodeDriver contracts). Testnet-206 entries are the
+VinuChain Name Service (VNS) deployment and the legacy/active quota contracts;
+these are tagged `"chainId": 206` and the CI on-chain check verifies them
+against the testnet RPC (tolerating its periodic reboots).
 
 ---
 
@@ -326,6 +336,36 @@ LOG_FORMAT=json npm run validate
 ---
 
 ## Using the Registry
+
+### Pin a release, don't track `main` (recommended)
+
+`main` is a moving target: every merged PR is instantly live with no rollback
+point. For production use, **pin a tagged release** instead. Each `v*` tag
+publishes a [GitHub Release](https://github.com/VinuChain/Vinuchain-Lists/releases)
+with:
+
+- `vinuchain.tokenlist.json` — a [Uniswap-tokenlist](https://tokenlists.org/)
+  format file (one entry per token, with `chainId`, `address`, `symbol`,
+  `name`, `decimals`, `logoURI`) suitable for direct consumption by wallets and
+  DEX frontends;
+- `vinuchain-lists-registry-<tag>.tar.gz` — the full `tokens/`, `contracts/`,
+  and `schemas/` tree;
+- `SHA256SUMS` — checksums for both artifacts.
+
+```javascript
+// Pin the tokenlist at a specific release tag (immutable — replace the tag
+// with the release you have vetted; see the Releases page for the latest):
+const TAG = 'v1.2.0';
+const url =
+  `https://github.com/VinuChain/Vinuchain-Lists/releases/download/${TAG}/vinuchain.tokenlist.json`;
+// Or track the newest release (mutable, convenient for dev):
+//   https://github.com/VinuChain/Vinuchain-Lists/releases/latest/download/vinuchain.tokenlist.json
+const list = await (await fetch(url)).json();
+const mainnetTokens = list.tokens.filter(t => t.chainId === 207);
+```
+
+The examples below read a local clone for convenience, but should be treated as
+illustrative — prefer the pinned release artifact for anything user-facing.
 
 ### Load Token Data
 
