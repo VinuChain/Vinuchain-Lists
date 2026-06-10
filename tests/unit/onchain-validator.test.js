@@ -354,6 +354,8 @@ describe('on-chain validator', () => {
     describe('EIP-1967 proxy implCodeHash checks', () => {
       const IMPL_ADDR = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       const PROXY_ADDR = '0x48f450475a8b501A7480C1Fd02935a7327F713Ad';
+
+      // Fully-pinned proxy entry (codeHash + implCodeHash both set).
       const proxyEntry = {
         projectSlug: 'vinuchain',
         contract: {
@@ -361,8 +363,8 @@ describe('on-chain validator', () => {
           address: PROXY_ADDR,
           type: 'staking',
           chainId: 207,
-          codeHash: hashOf('0x6001'),       // proxy shell bytecode
-          implCodeHash: hashOf('0x6002'),    // impl bytecode
+          codeHash: hashOf('0x6001'),
+          implCodeHash: hashOf('0x6002'),
         },
       };
 
@@ -379,43 +381,22 @@ describe('on-chain validator', () => {
         expect(r.warnings).to.equal(0);
       });
 
-      it('HARD-ERRORS when impl bytecode mismatches (implementation replaced)', async () => {
+      it('HARD-ERRORS when impl bytecode mismatches the pin (implementation replaced)', async () => {
         const fetchImpl = makeFetch({
           chainId: 207,
           accounts: {
             [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
-            [IMPL_ADDR]:  { code: '0xdifferent' }, // wrong impl
+            [IMPL_ADDR]:  { code: '0xchanged' }, // wrong impl bytecode
           },
         });
         const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
         expect(r.errors).to.equal(1);
       });
 
-      it('HARD-ERRORS when impl slot is zero but implCodeHash is pinned', async () => {
-        const fetchImpl = makeFetch({
-          chainId: 207,
-          accounts: {
-            [PROXY_ADDR]: { code: '0x6001' }, // no implSlot set → slot returns zero
-          },
-        });
-        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
-        expect(r.errors).to.equal(1);
-      });
-
-      it('HARD-ERRORS when impl address has no code', async () => {
-        const fetchImpl = makeFetch({
-          chainId: 207,
-          accounts: {
-            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
-            // IMPL_ADDR not in accounts → eth_getCode returns '0x'
-          },
-        });
-        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
-        expect(r.errors).to.equal(1);
-      });
-
-      it('does NOT check implCodeHash when the field is absent (no warning)', async () => {
-        const noImpl = {
+      it('HARD-ERRORS when proxy detected on-chain but implCodeHash is NOT in the JSON', async () => {
+        // Deleting implCodeHash from the JSON cannot bypass the check — the chain
+        // itself reports a nonzero impl slot, so the validator hard-errors regardless.
+        const unpinned = {
           ...proxyEntry,
           contract: { ...proxyEntry.contract, implCodeHash: undefined },
         };
@@ -426,8 +407,71 @@ describe('on-chain validator', () => {
             [IMPL_ADDR]:  { code: '0x6002' },
           },
         });
-        const r = await runOnchainChecks({ contracts: [noImpl], fetchImpl, log: silentLog });
-        // codeHash matches → no error, no warning from impl check (field absent)
+        const r = await runOnchainChecks({ contracts: [unpinned], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('HARD-ERRORS when impl slot is nonzero but implCodeHash absent (no codeHash either)', async () => {
+        // Same bypass-attempt with no codeHash either — still a hard error.
+        const bare = {
+          projectSlug: 'test',
+          contract: { name: 'BareProxy', address: PROXY_ADDR, type: 'other', chainId: 207 },
+        };
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0x6002' },
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [bare], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('when EIP-1967 slot is zero, passes even if implCodeHash is set in JSON (slot wins)', async () => {
+        // The chain says slot=0 → not a proxy → impl check skipped entirely.
+        // A stale implCodeHash in the JSON is silently ignored here; capture:codehashes
+        // reports it as a stale pin separately so the operator can clean it up.
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001' }, // no implSlot → slot returns zero
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(0);
+      });
+
+      it('HARD-ERRORS when impl address has no code', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            // IMPL_ADDR absent → eth_getCode returns '0x'
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('non-proxy contract (impl slot zero) passes without implCodeHash', async () => {
+        // A plain non-proxy entry with codeHash but no implCodeHash. The impl
+        // slot is zero → no proxy requirement → no error or warning from impl.
+        const plain = {
+          ...proxyEntry,
+          contract: {
+            ...proxyEntry.contract,
+            implCodeHash: undefined,
+            // implSlot NOT set in accounts → slot returns zero
+          },
+        };
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001' }, // no implSlot → not a proxy
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [plain], fetchImpl, log: silentLog });
         expect(r.errors).to.equal(0);
         expect(r.warnings).to.equal(0);
       });

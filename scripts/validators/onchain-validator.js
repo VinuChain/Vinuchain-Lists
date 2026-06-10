@@ -368,11 +368,17 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
  * non-token contracts there is no symbol/name cross-check, so codeHash is the
  * primary type check, but it pins type, not a unique instance.
  *
- * implCodeHash (when present): for EIP-1967 proxy contracts, reads the
- * implementation slot (0x360894...) via eth_getStorageAt to locate the
- * implementation address, then verifies that address's bytecode keccak256
- * matches the pinned value. This adds depth for proxies where codeHash only
- * pins the proxy shell bytecode.
+ * EIP-1967 proxy detection (always): the implementation slot (0x360894...) is
+ * probed unconditionally via eth_getStorageAt. If it is nonzero the address IS
+ * a proxy on-chain:
+ *   - implCodeHash present → fetch impl code, keccak256 it, hard-error on
+ *     mismatch (implementation was upgraded or replaced).
+ *   - implCodeHash absent  → HARD ERROR: proxy detected but implementation not
+ *     pinned. A proxy's codeHash only covers the shell; an unverified
+ *     implementation can be swapped without touching the shell hash. This cannot
+ *     be bypassed by omitting implCodeHash from the JSON — the chain itself
+ *     reports the non-zero slot.
+ * If the slot is zero (not a proxy) → implCodeHash is not expected; no check.
  *
  * Returns { errors: string[], warnings: string[] }.
  */
@@ -402,19 +408,22 @@ async function checkContractCode(url, contract, projectSlug, fetchImpl, timeoutM
     );
   }
 
-  // EIP-1967 implementation pin: when implCodeHash is present, read the proxy
-  // implementation slot and verify the implementation's bytecode hash. This
-  // catches an attacker who replaces the proxy's implementation while leaving
-  // the proxy shell bytecode unchanged.
-  if (contract.implCodeHash) {
-    try {
-      const implAddr = await readEip1967Impl(url, contract.address, fetchImpl, timeoutMs);
-      if (!implAddr) {
+  // EIP-1967 proxy detection: always probe the implementation slot so the
+  // on-chain proxy shape — not the JSON — determines whether implCodeHash is
+  // required. An entry without implCodeHash cannot bypass this by simply
+  // omitting the field; the slot value comes from the chain itself.
+  try {
+    const implAddr = await readEip1967Impl(url, contract.address, fetchImpl, timeoutMs);
+    if (implAddr) {
+      // Address IS a proxy on-chain.
+      if (!contract.implCodeHash) {
         errors.push(
-          `${label}: implCodeHash is pinned but EIP-1967 implementation slot is zero ` +
-          `(not a proxy or implementation not set)`
+          `${label}: proxy detected on-chain (EIP-1967 implementation slot → ${implAddr}) ` +
+          `but implCodeHash is not pinned. The proxy shell codeHash cannot cover the ` +
+          `implementation — run \`npm run capture:codehashes\` to pin it.`
         );
       } else {
+        // implCodeHash present — verify the implementation.
         const implCode = await getCode(url, implAddr, fetchImpl, timeoutMs);
         if (!implCode || implCode === '0x') {
           errors.push(
@@ -431,9 +440,10 @@ async function checkContractCode(url, contract, projectSlug, fetchImpl, timeoutM
           }
         }
       }
-    } catch (e) {
-      errors.push(`${label}: implCodeHash check failed: ${e.message}`);
     }
+    // implAddr === null → not a proxy; no implCodeHash needed.
+  } catch (e) {
+    errors.push(`${label}: EIP-1967 proxy slot check failed: ${e.message}`);
   }
 
   return { errors, warnings };

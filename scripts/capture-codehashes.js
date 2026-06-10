@@ -155,17 +155,14 @@ function collectTargets(tokensDir, contractsDir) {
       const info = safeReadJSON(infoPath);
       if (!Array.isArray(info.contracts)) continue;
       for (const contract of info.contracts) {
-        // Treat as a proxy candidate if it already has implCodeHash pinned,
-        // or if its name suggests it is a proxy.
-        const likelyProxy =
-          typeof contract.implCodeHash === 'string' ||
-          /proxy/i.test(contract.name);
         targets.push({
           kind: 'contract',
           label: `${projectSlug}/${contract.name} (${contract.address})`,
           chainId: contract.chainId,
           address: contract.address,
-          isProxy: likelyProxy,
+          // Always probe the EIP-1967 impl slot for every contract entry —
+          // proxy-ness is determined from the chain, not from a name heuristic.
+          probeProxy: true,
           file: infoPath,
           obj: contract,
           // whole info.json is rewritten once per file; shared `info` ref
@@ -247,8 +244,11 @@ async function main() {
       dirtyFiles.set(target.file, target.serialize);
     }
 
-    // --- implCodeHash: for proxy entries, pin the implementation bytecode ---
-    if (target.isProxy) {
+    // --- implCodeHash: probe the EIP-1967 slot for every contract entry ---
+    // Proxy-ness is determined from the chain, not from the JSON, so we always
+    // probe. When the slot is nonzero we pin; when it is zero we skip (and
+    // clear any stale implCodeHash pin left over from a prior run).
+    if (target.probeProxy) {
       let implAddr;
       try {
         implAddr = await readImplAddr(rpcUrl, target.address, fetchImpl, DEFAULT_TIMEOUT_MS);
@@ -257,15 +257,15 @@ async function main() {
         continue;
       }
       if (!implAddr) {
-        // Not an EIP-1967 proxy at this address (impl slot is zero). Only
-        // report as unpinned if the entry currently has an implCodeHash pin,
-        // because that would be a stale pin worth investigating.
+        // Not a proxy (slot is zero). If the entry somehow has a stale
+        // implCodeHash pin, report it so the operator can investigate.
         if (target.obj.implCodeHash) {
           unpinned.push(
             `${target.label} [implCodeHash]: impl slot is zero but entry has an existing ` +
-            `implCodeHash pin ${target.obj.implCodeHash} — investigate.`
+            `implCodeHash pin ${target.obj.implCodeHash} — stale pin; investigate.`
           );
         }
+        // No impl to capture; continue to next entry.
         continue;
       }
       let implCode;
