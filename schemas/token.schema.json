@@ -9,13 +9,17 @@
     "name",
     "address",
     "decimals",
-    "chainId"
+    "chainId",
+    "codeHash"
   ],
   "properties": {
     "chainId": {
       "type": "integer",
       "description": "VinuChain network the token is deployed on: 206 = testnet, 207 = mainnet. An address without a chainId is half an address; the on-chain validator verifies code/decimals/symbol against the RPC for this chain.",
-      "enum": [206, 207]
+      "enum": [
+        206,
+        207
+      ]
     },
     "symbol": {
       "type": "string",
@@ -43,7 +47,7 @@
     },
     "codeHash": {
       "type": "string",
-      "description": "Optional bytecode-type pin: keccak256 of the deployed runtime bytecode (eth_getCode) for this address on its declared chainId. Proves the expected contract TYPE is deployed here; a mismatch hard-errors. NOTE: codeHash pins type, not a unique instance — multiple tokens can share identical bytecode (e.g. tokens from the same factory). Per-instance identity for ERC-20 tokens always requires a matching symbol() or name() in addition. When absent, the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
+      "description": "Optional bytecode-type pin: keccak256 of the deployed runtime bytecode (eth_getCode) for this address on its declared chainId. Proves the expected contract TYPE is deployed here; a mismatch hard-errors. NOTE: codeHash pins type, not a unique instance \u2014 multiple tokens can share identical bytecode (e.g. tokens from the same factory). Per-instance identity for ERC-20 tokens always requires a matching symbol() or name() in addition. When absent, the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
       "pattern": "^0x[a-fA-F0-9]{64}$"
     },
     "description": {
@@ -154,12 +158,21 @@
       "description": "Security warnings or concerns with evidence (use sparingly)",
       "items": {
         "type": "object",
-        "required": ["severity", "description"],
+        "required": [
+          "severity",
+          "description"
+        ],
         "properties": {
           "severity": {
             "type": "string",
             "description": "Severity level of the security concern",
-            "enum": ["critical", "high", "medium", "low", "info"]
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
           },
           "description": {
             "type": "string",

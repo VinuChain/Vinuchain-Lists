@@ -58,10 +58,13 @@ hosts the contract the entry claims. The `codeHash` and `implCodeHash` fields ad
 on-chain pinning to close that gap.
 
 **`codeHash`** holds the keccak256 of the deployed runtime bytecode (`eth_getCode`)
-for the entry's address on its declared `chainId`. When present,
-`npm run validate:onchain` fetches the live code, hashes it, and hard-errors on any
-mismatch — this detects a substituted address whose bytecode differs from the
-expected contract type.
+for the entry's address on its declared `chainId`. It is **required** on every
+token and contract entry (enforced by the schema, so off-chain `npm run validate`
+rejects a missing pin in CI regardless of RPC reachability) — this closes the
+delete-the-pin-and-swap-the-address bypass. `npm run validate:onchain` then
+fetches the live code, hashes it, and hard-errors on any mismatch, detecting a
+substituted address whose bytecode differs from the expected contract type. Run
+`npm run capture:codehashes` to populate the pin for a new entry.
 
 **Scope of `codeHash`:** it pins the contract's *type* (bytecode), not a unique
 *instance*. Multiple contracts can legitimately share identical runtime bytecode —

@@ -23,12 +23,17 @@ const contractSchema = JSON.parse(
 const validateToken = ajv.compile(tokenSchema);
 const validateContract = ajv.compile(contractSchema);
 
+// codeHash is a required identity pin (keccak256 of deployed bytecode); a
+// valid 32-byte hex placeholder keeps these schema fixtures well-formed.
+const CODEHASH = '0x' + '11'.repeat(32);
+
 const baseToken = {
   symbol: 'USDT',
   name: 'USDT@VinuChain',
   address: '0xC0264277fcCa5FCfabd41a8bC01c1FcAF8383E41',
   decimals: 6,
   chainId: 207,
+  codeHash: CODEHASH,
 };
 
 const baseContract = {
@@ -40,6 +45,7 @@ const baseContract = {
       address: '0xFC00FACE00000000000000000000000000000000',
       type: 'staking',
       chainId: 207,
+      codeHash: CODEHASH,
     },
   ],
 };
