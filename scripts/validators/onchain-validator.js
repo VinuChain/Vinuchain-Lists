@@ -125,6 +125,21 @@ function decodeAbiString(hex) {
 }
 
 /**
+ * Redact an RPC URL for log/error output: keep scheme + host(+port), drop
+ * userinfo, path, and query — provider URLs routinely embed API keys in the
+ * path (.../v3/<key>) or as query/userinfo, and validator errors end up in CI
+ * logs.
+ */
+function redactUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return '<invalid-url>';
+  }
+}
+
+/**
  * Probe an RPC endpoint: confirm its eth_chainId matches and it answers
  * eth_blockNumber. Returns the verified url on success; throws otherwise.
  */
@@ -137,7 +152,7 @@ async function probeEndpoint(url, expectedChainId, fetchImpl, timeoutMs) {
   }
   const chainId = parseHexInt(await rawJsonRpc(url, 'eth_chainId', [], fetchImpl, timeoutMs));
   if (chainId !== expectedChainId) {
-    throw new Error(`RPC ${url} is chain ${chainId}; expected ${expectedChainId}`);
+    throw new Error(`RPC ${redactUrl(url)} is chain ${chainId}; expected ${expectedChainId}`);
   }
   await rawJsonRpc(url, 'eth_blockNumber', [], fetchImpl, timeoutMs);
   return url;
@@ -157,7 +172,7 @@ async function resolveCheckedRpc(chainId, fetchImpl, timeoutMs) {
     try {
       return await probeEndpoint(url, chainId, fetchImpl, timeoutMs);
     } catch (e) {
-      failures.push(`${url}: ${e.message}`);
+      failures.push(`${redactUrl(url)}: ${e.message}`);
     }
   }
   throw new Error(`all RPC endpoints for chain ${chainId} failed health checks: ${failures.join('; ')}`);

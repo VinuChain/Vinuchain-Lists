@@ -37,6 +37,11 @@ jobs:
       - name: Validate registry
         run: npm run validate
 
+      # The on-chain cross-check is the AUD-01 defense (substituted-but-
+      # checksummed addresses); a release artifact must never ship without it.
+      - name: On-chain cross-check
+        run: npm run validate:onchain
+
       - name: Build pinned tokenlist
         env:
           REF: ${{ github.ref_name }}
