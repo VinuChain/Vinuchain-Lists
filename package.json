@@ -16,6 +16,7 @@
   "scripts": {
     "validate": "node scripts/validate.js",
     "validate:onchain": "node scripts/validate-onchain.js",
+    "capture:codehashes": "node scripts/capture-codehashes.js",
     "audit:vinuchain-quota": "node scripts/audit-vinuchain-quota.js",
     "finalize:vinuchain-quota": "node scripts/finalize-vinuchain-quota.js",
     "vns:oracle:dry-run": "node scripts/update-vns-oracle.js",

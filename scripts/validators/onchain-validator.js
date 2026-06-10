@@ -16,6 +16,20 @@
  *     on-chain symbol decodes cleanly; tolerated only when `symbol()` reverts
  *     or returns an undecodable value, as some legitimate tokens do).
  *
+ * Identity pinning (the real substitution defense): an entry MAY carry a
+ * `codeHash` = keccak256 of the deployed bytecode (eth_getCode) for that
+ * address on its declared chain. When present, the validator fetches the live
+ * code, hashes it, and HARD-ERRORS on any mismatch — a swapped address yields
+ * different bytecode, so this catches the AUD-01 substitution that
+ * code-exists + matching-decimals cannot. When absent, the entry is flagged
+ * with a WARNING that it is not identity-pinned, so the registry can ratchet
+ * every entry toward a pin over time.
+ *
+ * ERC-20 tokens additionally fail closed on identity: a token must verify at
+ * least one STRONG signal — a matching codeHash OR a cleanly-decoded matching
+ * symbol(). A token whose symbol() reverts AND has no codeHash is a HARD ERROR,
+ * because decimals + code-existence alone are forgeable.
+ *
  * It reuses the chain-ID-guard + RPC-health-probe pattern from
  * scripts/update-vns-oracle.js: an endpoint is only trusted after its
  * eth_chainId matches the expected chainId, so a mis-set RPC env var pointing
@@ -27,6 +41,7 @@
  */
 
 const path = require('path');
+const { keccak256 } = require('ethers');
 
 const {
   VALID_CHAIN_IDS,
@@ -201,6 +216,27 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
     return { errors, warnings };
   }
 
+  // codeHash identity pin — the strongest signal. A matching pin is by itself a
+  // sufficient identity proof; a mismatch is the substitution this validator
+  // exists to catch and is always a hard error.
+  let codeHashVerified = false;
+  if (token.codeHash) {
+    const onChainHash = keccak256(code);
+    if (onChainHash.toLowerCase() !== String(token.codeHash).toLowerCase()) {
+      errors.push(
+        `${label}: on-chain code keccak256 ${onChainHash} != pinned codeHash ${token.codeHash} ` +
+        `(substituted contract or stale pin)`
+      );
+    } else {
+      codeHashVerified = true;
+    }
+  } else {
+    warnings.push(
+      `${label}: no codeHash pin — entry is not identity-pinned. ` +
+      `Capture one with \`npm run capture:codehashes\` to harden against address substitution.`
+    );
+  }
+
   // decimals() — hard check
   try {
     const decRaw = await ethCall(url, token.address, SELECTOR_DECIMALS, fetchImpl, timeoutMs);
@@ -216,33 +252,77 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
 
   // symbol() — hard when it decodes cleanly: a readable on-chain symbol that
   // disagrees with the registry is exactly the phishing-substitution vector
-  // this validator exists to block. Reverting/undecodable symbols (bytes32
-  // tokens etc.) are the only tolerated case.
+  // this validator exists to block.
+  let symbolDecoded = false; // cleanly decoded to *something* (match or not)
   try {
     const symRaw = await ethCall(url, token.address, SELECTOR_SYMBOL, fetchImpl, timeoutMs);
     const onChainSymbol = decodeAbiString(symRaw);
-    if (onChainSymbol && onChainSymbol.toUpperCase() !== token.symbol.toUpperCase()) {
-      errors.push(
-        `${label}: on-chain symbol "${onChainSymbol}" != declared "${token.symbol}"`
-      );
+    if (onChainSymbol) {
+      symbolDecoded = true;
+      if (onChainSymbol.toUpperCase() !== token.symbol.toUpperCase()) {
+        errors.push(
+          `${label}: on-chain symbol "${onChainSymbol}" != declared "${token.symbol}"`
+        );
+      }
     }
   } catch (e) {
-    warnings.push(`${label}: symbol() call failed (tolerated): ${e.message}`);
+    // symbol() reverted or the endpoint errored — undecodable symbol is the
+    // only tolerated case, and only when some OTHER strong identity signal
+    // (codeHash) holds. Handled by the fail-closed check below.
+    warnings.push(`${label}: symbol() call failed: ${e.message}`);
+  }
+
+  // Token identity fail-closed: an ERC-20 entry must verify at least ONE strong
+  // identity signal — a matching codeHash OR a cleanly-decoded matching
+  // symbol(). decimals + code-existence alone are forgeable. A cleanly-decoded
+  // MISMATCHING symbol already hard-errored above, so we only add the
+  // fail-closed error when symbol() did not decode at all (revert/bytes32) AND
+  // no codeHash verified — that is the previously-tolerated-but-forgeable case.
+  if (!codeHashVerified && !symbolDecoded) {
+    errors.push(
+      `${label}: no strong identity signal — symbol() did not cleanly decode to "${token.symbol}" ` +
+      `and there is no matching codeHash pin. decimals+code alone are forgeable; ` +
+      `add a codeHash pin (\`npm run capture:codehashes\`) to harden this entry.`
+    );
   }
 
   return { errors, warnings };
 }
 
 /**
- * Check a single contract entry: code must exist on its declared chain.
+ * Check a single contract entry: code must exist on its declared chain, and —
+ * when a codeHash is pinned — the live bytecode's keccak256 must match it
+ * (hard). An entry without a codeHash passes on code-existence but is flagged
+ * with a warning that it is not identity-pinned.
+ *
+ * Returns { errors: string[], warnings: string[] }.
  */
 async function checkContractCode(url, contract, projectSlug, fetchImpl, timeoutMs) {
+  const errors = [];
+  const warnings = [];
   const label = `${projectSlug}/${contract.name} (${contract.address})`;
   const code = await getCode(url, contract.address, fetchImpl, timeoutMs);
   if (!code || code === '0x') {
-    return [`${label}: no contract code at address on chain ${contract.chainId}`];
+    errors.push(`${label}: no contract code at address on chain ${contract.chainId}`);
+    return { errors, warnings };
   }
-  return [];
+
+  if (contract.codeHash) {
+    const onChainHash = keccak256(code);
+    if (onChainHash.toLowerCase() !== String(contract.codeHash).toLowerCase()) {
+      errors.push(
+        `${label}: on-chain code keccak256 ${onChainHash} != pinned codeHash ${contract.codeHash} ` +
+        `(substituted contract or stale pin)`
+      );
+    }
+  } else {
+    warnings.push(
+      `${label}: no codeHash pin — entry is not identity-pinned. ` +
+      `Capture one with \`npm run capture:codehashes\` to harden against address substitution.`
+    );
+  }
+
+  return { errors, warnings };
 }
 
 /**
@@ -328,10 +408,10 @@ async function runOnchainChecks(options) {
 
     for (const { projectSlug, contract } of group.contracts) {
       try {
-        const errs = await checkContractCode(rpcUrl, contract, projectSlug, fetchImpl, timeoutMs);
-        if (errs.length) {
-          errs.forEach(msg => { errors++; (log.error || log.log)(`  ❌ ${msg}`); });
-        } else {
+        const result = await checkContractCode(rpcUrl, contract, projectSlug, fetchImpl, timeoutMs);
+        result.errors.forEach(msg => { errors++; (log.error || log.log)(`  ❌ ${msg}`); });
+        result.warnings.forEach(msg => { warnings++; (log.warn || log.log)(`  ⚠️  ${msg}`); });
+        if (!result.errors.length) {
           (log.success || log.info || log.log)(`  ✓ ${projectSlug}/${contract.name} (${contract.address})`);
         }
       } catch (e) {

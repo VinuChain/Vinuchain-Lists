@@ -5,6 +5,7 @@
  */
 
 const { expect } = require('chai');
+const { keccak256 } = require('ethers');
 const {
   runOnchainChecks,
   decodeAbiString,
@@ -12,6 +13,12 @@ const {
   SELECTOR_DECIMALS,
   SELECTOR_SYMBOL,
 } = require('../../scripts/validators/onchain-validator');
+
+// keccak256 of a piece of deployed bytecode — the value a real codeHash pin
+// holds. Tests that want a MATCHING pin compute it from the account's `code`.
+function hashOf(code) {
+  return keccak256(code);
+}
 
 // Encode a JS string as an ABI-encoded dynamic `string` return value.
 function encodeAbiString(str) {
@@ -103,12 +110,26 @@ describe('on-chain validator', () => {
       chainId: 207,
     };
 
-    it('passes when code, decimals, and symbol all match', async () => {
+    // A token with a matching codeHash pin. keccak256 of its code is the pin.
+    const pinnedToken = { ...token, codeHash: hashOf('0x6080') };
+
+    it('passes (with not-pinned warning) when code, decimals, and symbol all match', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [token.address]: { code: '0x6080', decimals: 6, symbol: 'USDT' } },
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0);
+      // symbol() verifies identity; the only warning is "not identity-pinned".
+      expect(r.warnings).to.equal(1);
+    });
+
+    it('passes with ZERO warnings when codeHash, decimals, and symbol all match', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: { [pinnedToken.address]: { code: '0x6080', decimals: 6, symbol: 'USDT' } },
+      });
+      const r = await runOnchainChecks({ tokens: [pinnedToken], fetchImpl, log: silentLog });
       expect(r.errors).to.equal(0);
       expect(r.warnings).to.equal(0);
     });
@@ -135,17 +156,34 @@ describe('on-chain validator', () => {
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
       expect(r.errors).to.equal(1);
-      expect(r.warnings).to.equal(0);
     });
 
-    it('tolerates a token whose symbol() reverts (bytes32/non-standard)', async () => {
+    it('HARD-ERRORS when on-chain codeHash mismatches the pin (substituted contract)', async () => {
+      // Account hosts DIFFERENT bytecode than the pin was captured from.
       const fetchImpl = makeFetch({
         chainId: 207,
-        accounts: { [token.address]: { code: '0x6080', decimals: 6 } }, // no symbol
+        accounts: { [pinnedToken.address]: { code: '0xdeadbeef', decimals: 6, symbol: 'USDT' } },
+      });
+      const r = await runOnchainChecks({ tokens: [pinnedToken], fetchImpl, log: silentLog });
+      expect(r.errors).to.be.greaterThan(0);
+    });
+
+    it('HARD-ERRORS when symbol() reverts AND there is no codeHash (decimals+code alone are forgeable)', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: { [token.address]: { code: '0x6080', decimals: 6 } }, // no symbol, no pin
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
-      expect(r.errors).to.equal(0);
-      expect(r.warnings).to.equal(1); // advisory warning, not a failure
+      expect(r.errors).to.equal(1); // fail-closed: no strong identity signal
+    });
+
+    it('PASSES when symbol() reverts but a matching codeHash pins identity', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: { [pinnedToken.address]: { code: '0x6080', decimals: 6 } }, // no symbol
+      });
+      const r = await runOnchainChecks({ tokens: [pinnedToken], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0); // codeHash is a sufficient strong signal
     });
   });
 
@@ -160,13 +198,35 @@ describe('on-chain validator', () => {
       },
     };
 
-    it('passes when contract code exists', async () => {
+    it('passes when contract code exists, but WARNS it is not identity-pinned', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [entry.contract.address]: { code: '0x6080' } },
       });
       const r = await runOnchainChecks({ contracts: [entry], fetchImpl, log: silentLog });
       expect(r.errors).to.equal(0);
+      expect(r.warnings).to.equal(1);
+    });
+
+    it('passes with ZERO warnings when a matching codeHash pins the contract', async () => {
+      const pinned = { ...entry, contract: { ...entry.contract, codeHash: hashOf('0x6080') } };
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: { [pinned.contract.address]: { code: '0x6080' } },
+      });
+      const r = await runOnchainChecks({ contracts: [pinned], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0);
+      expect(r.warnings).to.equal(0);
+    });
+
+    it('HARD-ERRORS when a pinned contract serves different bytecode (substitution)', async () => {
+      const pinned = { ...entry, contract: { ...entry.contract, codeHash: hashOf('0x6080') } };
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: { [pinned.contract.address]: { code: '0xdeadbeef' } },
+      });
+      const r = await runOnchainChecks({ contracts: [pinned], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(1);
     });
 
     it('errors when contract has no code', async () => {
