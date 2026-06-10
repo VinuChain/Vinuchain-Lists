@@ -9,42 +9,49 @@
       "name": "Controller",
       "address": "0x17bA239f2815BA01152522521737275a2439216f",
       "type": "governance",
+      "chainId": 207,
       "description": "Governance contract for VinuFinance pools — manages pool whitelisting via token-weighted voting, veto holder approval, and vote token snapshots"
     },
     {
       "name": "EmergencyWithdrawal",
       "address": "0xeBC1C9Ae7FC761330929d682d97334513C1FcB4b",
       "type": "utility",
+      "chainId": 207,
       "description": "Allows a pre-approved escrow address to trigger emergency removal of liquidity on behalf of an LP across any VinuFinance pool"
     },
     {
       "name": "MultiClaim",
       "address": "0xA260d19aEe266cC85F41f160271F9C72ea8E2837",
       "type": "utility",
+      "chainId": 207,
       "description": "Batches reward claims across multiple VinuFinance lending pools in a single transaction"
     },
     {
       "name": "BasePool",
       "address": "0x00257663EB5ed175603a20694bA6086f01e4D103",
       "type": "lending",
+      "chainId": 207,
       "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
     },
     {
       "name": "BasePool",
       "address": "0xf4a51C250E49fA480EB9Cf216E8A58d4326e91bc",
       "type": "lending",
+      "chainId": 207,
       "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
     },
     {
       "name": "BasePool",
       "address": "0x26397f13411555a90c1B7bB9a9DeF814BfE2Ba3B",
       "type": "lending",
+      "chainId": 207,
       "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
     },
     {
       "name": "BasePool",
       "address": "0xF26c65dC348336c49517C54A16c9d112A4307315",
       "type": "lending",
+      "chainId": 207,
       "description": "VinuFinance lending pool — fixed-rate fixed-tenor loans with LP liquidity provision and reward distribution. Call getPoolInfo() for loan/collateral token details."
     }
   ],

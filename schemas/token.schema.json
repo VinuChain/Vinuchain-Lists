@@ -8,9 +8,15 @@
     "symbol",
     "name",
     "address",
-    "decimals"
+    "decimals",
+    "chainId"
   ],
   "properties": {
+    "chainId": {
+      "type": "integer",
+      "description": "VinuChain network the token is deployed on: 206 = testnet, 207 = mainnet. An address without a chainId is half an address; the on-chain validator verifies code/decimals/symbol against the RPC for this chain.",
+      "enum": [206, 207]
+    },
     "symbol": {
       "type": "string",
       "description": "Token symbol/ticker (uppercase, 1-20 characters)",

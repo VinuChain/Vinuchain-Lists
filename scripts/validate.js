@@ -66,6 +66,35 @@ const allAddresses = new Set();
 const tokenAddresses = new Map(); // address -> token data (addresses QUALITY-05)
 const contractAddresses = new Map(); // address -> {project, contract}
 
+// Track token symbols/names per chain to detect impersonation collisions
+// (addresses AUD-06). Keyed by `${chainId}:${SYMBOL}` so the same symbol on
+// testnet and mainnet is allowed, but two different mainnet addresses both
+// claiming "USDT" is a hard error unless explicitly allowlisted.
+const tokenSymbolsByChain = new Map(); // "chainId:SYMBOL" -> address
+const tokenNamesByChain = new Map(); // "chainId:name" (lowercased) -> address
+
+// Load the collision allowlist (legitimate same-symbol/same-chain duplicates,
+// e.g. a token migration with both versions briefly listed). Absent file = no
+// allowlisted collisions.
+function loadCollisionAllowlist() {
+  const allowlistPath = path.join(__dirname, '../tokens/symbol-collisions.allowlist.json');
+  if (!fs.existsSync(allowlistPath)) {
+    return { symbols: new Set(), names: new Set() };
+  }
+  try {
+    const data = safeReadJSON(allowlistPath);
+    return {
+      symbols: new Set((data.symbols || []).map(s => String(s))),
+      names: new Set((data.names || []).map(s => String(s))),
+    };
+  } catch (e) {
+    logger.warn(`Could not read symbol-collisions allowlist: ${e.message}`);
+    return { symbols: new Set(), names: new Set() };
+  }
+}
+
+const collisionAllowlist = loadCollisionAllowlist();
+
 /**
  * Validate all tokens in the repository
  * @param {string} tokensDir - Path to tokens directory
@@ -201,6 +230,30 @@ function validateTokens(tokensDir) {
       logger.error(`Duplicate address found: ${tokenData.address}`);
       continue;
     }
+
+    // Detect symbol/name impersonation collisions on the same chain
+    // (addresses AUD-06). Two different addresses claiming the same symbol on
+    // the same chain is the classic phishing-substitution vector.
+    const symbolKey = `${tokenData.chainId}:${tokenData.symbol.toUpperCase()}`;
+    const nameKey = `${tokenData.chainId}:${tokenData.name.toLowerCase()}`;
+    if (tokenSymbolsByChain.has(symbolKey) && !collisionAllowlist.symbols.has(symbolKey)) {
+      logger.error(
+        `Duplicate token symbol "${tokenData.symbol}" on chain ${tokenData.chainId}: ` +
+        `${tokenData.address} collides with ${tokenSymbolsByChain.get(symbolKey)}. ` +
+        'If this is a legitimate listing, add the key to tokens/symbol-collisions.allowlist.json.'
+      );
+      continue;
+    }
+    if (tokenNamesByChain.has(nameKey) && !collisionAllowlist.names.has(nameKey)) {
+      logger.error(
+        `Duplicate token name "${tokenData.name}" on chain ${tokenData.chainId}: ` +
+        `${tokenData.address} collides with ${tokenNamesByChain.get(nameKey)}. ` +
+        'If this is a legitimate listing, add the key to tokens/symbol-collisions.allowlist.json.'
+      );
+      continue;
+    }
+    tokenSymbolsByChain.set(symbolKey, tokenData.address);
+    tokenNamesByChain.set(nameKey, tokenData.address);
 
     allAddresses.add(tokenData.address);
     tokenAddresses.set(tokenData.address, tokenData); // Cache for later (addresses QUALITY-05)

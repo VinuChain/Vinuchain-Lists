@@ -98,10 +98,12 @@ body:
       label: Contract List
       description: |
         Provide contract details in this format (one per line):
-        Name | Address | Type | Description
+        Name | Address | Type | ChainId | Description
+        ChainId is REQUIRED per contract: 207 = mainnet, 206 = testnet. A single
+        project may mix chains (e.g. mainnet core contracts + testnet-only deployments).
       placeholder: |
-        Factory | 0x... | factory | Creates trading pairs
-        Router | 0x... | router | Routes trades through pools
+        Factory | 0x... | factory | 207 | Creates trading pairs
+        Router | 0x... | router | 207 | Routes trades through pools
       value: |
 
     validations:

@@ -3,6 +3,7 @@
   "name": "Vita Inu",
   "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
   "decimals": 18,
+  "chainId": 207,
   "description": "Bridged VINU on VinuChain, bringing the vibrant community and innovative features of Vita Inu to the VinuChain ecosystem.",
   "project": "vitainu",
   "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/15270.png",
@@ -18,6 +19,6 @@
   "facebook": "https://facebook.com/vitainucoin",
   "reddit": "https://reddit.com/r/vitainu",
   "youtube": "https://www.youtube.com/c/vitainucoin",
-  "coingecko":"https://www.coingecko.com/en/coins/vita-inu",
-  "coinmarketcap":"https://coinmarketcap.com/currencies/vita-inu/"
+  "coingecko": "https://www.coingecko.com/en/coins/vita-inu",
+  "coinmarketcap": "https://coinmarketcap.com/currencies/vita-inu/"
 }

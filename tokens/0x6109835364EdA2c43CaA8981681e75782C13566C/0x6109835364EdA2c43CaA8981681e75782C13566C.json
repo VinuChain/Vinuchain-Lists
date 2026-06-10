@@ -3,6 +3,7 @@
   "name": "VINUHUB",
   "address": "0x6109835364EdA2c43CaA8981681e75782C13566C",
   "decimals": 18,
+  "chainId": 207,
   "description": "VINUHUB is the utility token for VinuHub, building DeFi applications on the VinuChain network.",
   "logoURI": "https://photos.pinksale.finance/file/pinksale-logo-upload/1763443557015-9ce8a16b705d502d6c86a4d62854c26e.png",
   "website": "https://vInuhub.xyz",

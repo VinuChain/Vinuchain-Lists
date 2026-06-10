@@ -9,6 +9,7 @@
       "name": "VitaInu",
       "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
       "type": "token",
+      "chainId": 207,
       "description": "ERC-20 burnable Vita Inu token bridged to VinuChain"
     }
   ],

@@ -9,36 +9,42 @@
       "name": "VinuSwapFactory",
       "address": "0xd74dEe1C78D5C58FbdDe619b707fcFbAE50c3EEe",
       "type": "core",
+      "chainId": 207,
       "description": "Deploys and tracks VinuSwapPool instances; ownership held by Controller which governs pool creation and fee settings"
     },
     {
       "name": "SwapRouter",
       "address": "0x48f450475a8b501A7480C1Fd02935a7327F713Ad",
       "type": "periphery",
+      "chainId": 207,
       "description": "Stateless router for exact-input and exact-output single-hop and multi-hop swaps against VinuSwap pools"
     },
     {
       "name": "NonfungiblePositionManager",
       "address": "0xF699ec0764741f66F81068665eFFAeefA3c6037a",
       "type": "periphery",
+      "chainId": 207,
       "description": "ERC-721 position manager — mint, increase, decrease, and collect liquidity positions as NFTs; supports optional position locking until a specified timestamp"
     },
     {
       "name": "NonfungibleTokenPositionDescriptor",
       "address": "0xCA04dFDEE5778f6c23a7BdBa46A8D95F5094e4B5",
       "type": "periphery",
+      "chainId": 207,
       "description": "Generates on-chain SVG token URIs for NonfungiblePositionManager NFTs"
     },
     {
       "name": "VinuSwapQuoter",
       "address": "0xEed635Fa2343355d9bA726C379F2B5dEa70fE65C",
       "type": "periphery",
+      "chainId": 207,
       "description": "Off-chain quoter — simulates swaps to return expected output/input amounts and price impact without executing a trade"
     },
     {
       "name": "Controller",
       "address": "0x47fF80713b1d66DdA47237AB374F3080E2075528",
       "type": "governance",
+      "chainId": 207,
       "description": "Owns VinuSwapFactory; manages pool creation, initialization, protocol fee configuration, fee collection, and distribution to payee accounts by share"
     }
   ],

@@ -3,6 +3,7 @@
   "name": "VinuRepublic",
   "address": "0x71B4E99547Ad8b307C1313284b4bAc64988C53BB",
   "decimals": 18,
+  "chainId": 207,
   "description": "VinuRepublic is a community-driven utility token project on VinuChain dedicated to growing the VINU Ecosystem. We simplify how the community can earn, lock, and burn VINU and VC while providing utmost support to every project building on VinuChain.",
   "logoURI": "https://images2.imgbox.com/70/30/BgDbSRY4_o.png",
   "website": "https://vinurepublic.com",

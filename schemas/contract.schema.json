@@ -50,9 +50,15 @@
         "required": [
           "name",
           "address",
-          "type"
+          "type",
+          "chainId"
         ],
         "properties": {
+          "chainId": {
+            "type": "integer",
+            "description": "VinuChain network the contract is deployed on: 206 = testnet, 207 = mainnet. Required per-contract because a single project (e.g. vinuchain) legitimately mixes mainnet core contracts with testnet-only quota/VNS deployments. The on-chain validator verifies code exists at the address on this chain.",
+            "enum": [206, 207]
+          },
           "name": {
             "type": "string",
             "description": "Contract name in PascalCase (e.g., 'Factory', 'Router')",

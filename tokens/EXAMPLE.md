@@ -38,7 +38,8 @@ The JSON file must contain the following structure:
   "symbol": "VINU",
   "name": "Vita Inu",
   "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
-  "decimals": 18
+  "decimals": 18,
+  "chainId": 207
 }
 ```
 
@@ -50,6 +51,7 @@ The JSON file must contain the following structure:
   "name": "Vita Inu",
   "address": "0x00c1E515EA9579856304198EFb15f525A0bb50f6",
   "decimals": 18,
+  "chainId": 207,
   "description": "Bridged VINU on VinuChain, bringing the vibrant community and innovative features of Vita Inu to the VinuChain ecosystem.",
   "project": "vinuswap",
   "logoURI": "https://vinuexplorer.org/icons/vitainu.svg",
@@ -86,6 +88,7 @@ The JSON file must contain the following structure:
 - **name**: Full token name (1-100 characters)
 - **address**: EIP-55 checksummed contract address (must match directory and filename)
 - **decimals**: Number of decimal places (integer, 0-18)
+- **chainId**: VinuChain network the token is deployed on — `207` for mainnet, `206` for testnet. Required. The CI on-chain validator verifies the address has code (and that decimals/symbol match) on this chain.
 
 ### Optional Fields
 

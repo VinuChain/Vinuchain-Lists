@@ -58,6 +58,17 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: chainId
+    attributes:
+      label: Chain ID
+      description: VinuChain network the token is deployed on (207 = mainnet, 206 = testnet)
+      options:
+        - "207 (mainnet)"
+        - "206 (testnet)"
+    validations:
+      required: true
+
   - type: markdown
     attributes:
       value: |
