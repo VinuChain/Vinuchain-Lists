@@ -78,6 +78,37 @@ jobs:
       - name: Run hardhat behavioural tests
         run: npm run test:hardhat
 
+  onchain:
+    name: On-chain Cross-check
+    runs-on: ubuntu-latest
+    # ADVISORY during burn-in: this job talks to public RPC endpoints (mainnet
+    # vinuchain-rpc.com and testnet vinufoundation-rpc.com) which can be flaky,
+    # and the testnet endpoint reboots. continue-on-error keeps a transient RPC
+    # outage from blocking unrelated PRs while the check earns trust. Once it has
+    # proven stable, REMOVE continue-on-error to make on-chain mismatches block
+    # merges (the AUD-01 fix). Testnet outages are already tolerated inside the
+    # validator (skipped with a warning), so flipping this to blocking will not
+    # make a 206 reboot fail CI.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Asserts every entry's address has code on the chain it declares (and that
+      # token decimals/symbol match) against the live RPC. Catches a deliberately
+      # substituted-but-checksummed address that all off-chain checks miss.
+      - name: Run on-chain cross-check
+        run: npm run validate:onchain
+
   comment:
     name: Comment on PR
     runs-on: ubuntu-latest
