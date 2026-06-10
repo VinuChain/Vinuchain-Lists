@@ -187,7 +187,11 @@ async function probeEndpoint(url, expectedChainId, fetchImpl, timeoutMs) {
   }
   const chainId = parseHexInt(await rawJsonRpc(url, 'eth_chainId', [], fetchImpl, timeoutMs));
   if (chainId !== expectedChainId) {
-    throw new Error(`RPC ${redactUrl(url)} is chain ${chainId}; expected ${expectedChainId}`);
+    // A reachable endpoint answering with the WRONG chain is a misconfiguration,
+    // not an outage — flag it so the caller can keep it fatal even for testnet.
+    const err = new Error(`RPC ${redactUrl(url)} is chain ${chainId}; expected ${expectedChainId}`);
+    err.chainMismatch = true;
+    throw err;
   }
   await rawJsonRpc(url, 'eth_blockNumber', [], fetchImpl, timeoutMs);
   return url;
@@ -203,14 +207,20 @@ async function resolveCheckedRpc(chainId, fetchImpl, timeoutMs) {
     throw new Error(`no RPC URL configured for chain ${chainId}`);
   }
   const failures = [];
+  let sawChainMismatch = false;
   for (const url of urls) {
     try {
       return await probeEndpoint(url, chainId, fetchImpl, timeoutMs);
     } catch (e) {
+      if (e.chainMismatch) sawChainMismatch = true;
       failures.push(`${redactUrl(url)}: ${e.message}`);
     }
   }
-  throw new Error(`all RPC endpoints for chain ${chainId} failed health checks: ${failures.join('; ')}`);
+  const err = new Error(`all RPC endpoints for chain ${chainId} failed health checks: ${failures.join('; ')}`);
+  // If any endpoint answered with the wrong chainId, this is a config error,
+  // not an outage — propagate the flag so testnet tolerance does not hide it.
+  if (sawChainMismatch) err.chainMismatch = true;
+  throw err;
 }
 
 async function getCode(url, address, fetchImpl, timeoutMs) {
@@ -560,7 +570,11 @@ async function runOnchainChecks(options) {
     try {
       rpcUrl = await resolveCheckedRpc(chainId, fetchImpl, timeoutMs);
     } catch (e) {
-      const tolerate = chainId === TESTNET_CHAIN_ID && !strictTestnet;
+      // Tolerance is for testnet RPC *unreachability* only. A reachable
+      // endpoint answering with the wrong chainId is a misconfiguration and
+      // stays fatal even on testnet — otherwise a mis-set TESTNET_RPC_URL
+      // pointing at mainnet would silently skip every 206 check and pass.
+      const tolerate = chainId === TESTNET_CHAIN_ID && !strictTestnet && !e.chainMismatch;
       if (tolerate) {
         skippedChains.push(chainId);
         warnings++;
@@ -571,7 +585,11 @@ async function runOnchainChecks(options) {
         );
         continue;
       }
-      (log.error || log.log)(`\n❌ Chain ${chainId} RPC unreachable and not tolerated: ${e.message}`);
+      if (e.chainMismatch) {
+        (log.error || log.log)(`\n❌ Chain ${chainId} RPC is misconfigured (answered for a different chain): ${e.message}`);
+      } else {
+        (log.error || log.log)(`\n❌ Chain ${chainId} RPC unreachable and not tolerated: ${e.message}`);
+      }
       errors++;
       continue;
     }

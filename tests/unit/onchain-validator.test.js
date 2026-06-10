@@ -573,6 +573,16 @@ describe('on-chain validator', () => {
       expect(r.skippedChains).to.deep.equal([206]);
     });
 
+    it('HARD-ERRORS (not skip) when the testnet RPC answers for the WRONG chain', async () => {
+      // A reachable TESTNET_RPC_URL that returns chainId 207 for a 206 entry is
+      // a misconfiguration, not an outage — it must fail, not be tolerated,
+      // otherwise every 206 check is silently skipped and CI passes.
+      const fetchImpl = makeFetch({ chainId: 207 }); // reachable, but wrong chain
+      const r = await runOnchainChecks({ tokens: [testnetToken], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(1);
+      expect(r.skippedChains).to.deep.equal([]);
+    });
+
     it('fails testnet outage when ONCHAIN_STRICT_TESTNET is forced', async () => {
       const fetchImpl = makeFetch({ failChainId: true });
       const r = await runOnchainChecks({
