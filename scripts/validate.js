@@ -101,11 +101,17 @@ function validateTokens(tokensDir) {
     return true;
   });
 
-  // Check rate limit (addresses MEDIUM-03)
+  // DoS bound on whole-repo validation (addresses MEDIUM-03).
+  // This guards against an attacker committing thousands of token directories,
+  // not against legitimate batch size — validate.js always validates the entire
+  // tree. If this fires, the registry has grown past its safety ceiling and the
+  // bound in scripts/utils/constants.js should be raised deliberately.
   if (tokenDirs.length > MAX_TOKENS) {
     logger.error(
-      `Too many tokens to validate: ${tokenDirs.length} (max: ${MAX_TOKENS}). ` +
-      'Please submit tokens in smaller batches.'
+      `Token count ${tokenDirs.length} exceeds the validation safety ceiling ` +
+      `(MAX_TOKENS=${MAX_TOKENS}). This is a DoS bound on whole-repo validation, ` +
+      'not a per-PR limit; raise MAX_TOKENS in scripts/utils/constants.js if the ' +
+      'registry has legitimately grown this large.'
     );
     process.exit(EXIT_CODES.VALIDATION_ERROR);
   }
@@ -345,10 +351,13 @@ function validateContracts(contractsDir) {
     return isDirectory(fullPath);
   });
 
-  // Check rate limit (addresses MEDIUM-03)
+  // DoS bound on whole-repo validation (addresses MEDIUM-03). See the
+  // MAX_TOKENS note above — this is a safety ceiling, not a per-PR batch limit.
   if (projectDirs.length > MAX_PROJECTS) {
     logger.error(
-      `Too many projects to validate: ${projectDirs.length} (max: ${MAX_PROJECTS})`
+      `Project count ${projectDirs.length} exceeds the validation safety ceiling ` +
+      `(MAX_PROJECTS=${MAX_PROJECTS}). Raise MAX_PROJECTS in scripts/utils/constants.js ` +
+      'if the registry has legitimately grown this large.'
     );
     process.exit(EXIT_CODES.VALIDATION_ERROR);
   }

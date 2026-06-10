@@ -20,11 +20,31 @@ module.exports = {
   NAME_MIN_LENGTH: 1,
   NAME_MAX_LENGTH: 100,
 
-  // Rate limiting
-  MAX_TOKENS: 10,
-  MAX_PROJECTS: 10,
-  MAX_CONTRACTS_PER_PROJECT: 50,
+  // DoS bounds for whole-repo validation.
+  // These are generous safety ceilings on how many entries validate.js will
+  // process in a single run — NOT a per-submission batch limit. The registry
+  // validates the entire tokens/ and contracts/ tree every run, so these must
+  // comfortably exceed the real registry size with headroom for organic growth.
+  MAX_TOKENS: 500,
+  MAX_PROJECTS: 100,
+  MAX_CONTRACTS_PER_PROJECT: 100,
   MAX_RED_FLAGS: 10,
+
+  // Recognised VinuChain network IDs. 206 = testnet, 207 = mainnet.
+  // Mirrors the chain-ID guard in scripts/update-vns-oracle.js (which also
+  // recognises 205 = staging) but the registry only lists production-relevant
+  // testnet/mainnet entries.
+  VALID_CHAIN_IDS: [206, 207],
+  MAINNET_CHAIN_ID: 207,
+  TESTNET_CHAIN_ID: 206,
+
+  // Default public read-only RPC endpoints per chainId, used by the on-chain
+  // validator. Overridable via env (VINUCHAIN_MAINNET_RPC_URL /
+  // VINUCHAIN_TESTNET_RPC_URL) to point at private/archive nodes in CI.
+  RPC_URLS_BY_CHAIN_ID: {
+    207: 'https://vinuchain-rpc.com',
+    206: 'https://vinufoundation-rpc.com',
+  },
 
   // URL validation
   MAX_URL_LENGTH: 500,
