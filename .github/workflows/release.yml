@@ -56,7 +56,16 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          tar -czf "dist/vinuchain-lists-registry-${TAG}.tar.gz" tokens contracts schemas
+          # Pin the archive timestamp to the tagged commit's time so the same
+          # tag always rebuilds byte-identically. --sort=name gives a stable
+          # traversal order; --owner/--group/--numeric-owner strip UID/GID
+          # metadata; gzip -n suppresses the embedded filename+mtime header.
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct HEAD)"
+          tar --sort=name \
+              --mtime="@${SOURCE_DATE_EPOCH}" \
+              --owner=0 --group=0 --numeric-owner \
+              -cf - tokens contracts schemas \
+            | gzip -n > "dist/vinuchain-lists-registry-${TAG}.tar.gz"
 
       - name: Generate checksums
         run: |
