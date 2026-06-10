@@ -78,6 +78,11 @@
             "description": "EIP-55 checksummed contract address",
             "pattern": "^0x[a-fA-F0-9]{40}$"
           },
+          "codeHash": {
+            "type": "string",
+            "description": "Optional identity pin: keccak256 of the deployed bytecode (eth_getCode result) for this address on its declared chainId. When present, the on-chain validator hard-errors if the live code's keccak256 differs — the real defense against a substituted-but-checksummed address. When absent, the entry is not identity-pinned and the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
+            "pattern": "^0x[a-fA-F0-9]{64}$"
+          },
           "type": {
             "type": "string",
             "description": "Contract type",

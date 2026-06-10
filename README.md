@@ -51,6 +51,33 @@ VinuChain Name Service (VNS) deployment and the legacy/active quota contracts;
 these are tagged `"chainId": 206` and the CI on-chain check verifies them
 against the testnet RPC (tolerating its periodic reboots).
 
+### Identity pinning with `codeHash`
+
+A correctly-checksummed address proves the address is *well-formed*, not that it
+hosts the contract the entry claims. A substituted-but-checksummed address of an
+attacker's own contract — one that even returns a matching `decimals()` — passes
+checksum and "code exists" checks. The defense is **`codeHash`**: an optional
+field on every token and contract entry holding the **keccak256 of the deployed
+bytecode** (`eth_getCode`) for that address on its declared `chainId`.
+
+- When an entry **has** a `codeHash`, `npm run validate:onchain` fetches the live
+  code, hashes it, and **hard-errors** on any mismatch. A swapped address yields
+  different bytecode, so this is the real substitution defense.
+- When an entry **lacks** a `codeHash`, the older checks still run but the entry
+  is flagged with a **warning** that it is not identity-pinned, so coverage can be
+  ratcheted to 100%.
+- ERC-20 tokens additionally **fail closed**: a token must verify at least one
+  strong identity signal — a matching `codeHash` **or** a cleanly-decoded matching
+  `symbol()`. A token whose `symbol()` reverts **and** has no `codeHash` is now a
+  hard error, because `decimals()` + code-existence alone are forgeable.
+
+Capture or refresh pins with `npm run capture:codehashes`, which fetches
+`eth_getCode` for every registry entry on its declared chain and writes the
+keccak256 back as `codeHash`. It never overwrites an existing pin that disagrees
+with the live code (pass `--force` to do so) — a disagreement is surfaced loudly
+because it may indicate a substituted contract. Testnet-206 entries unreachable
+during a reboot are skipped and reported as left-unpinned.
+
 ---
 
 ## Quick Start
@@ -75,7 +102,9 @@ npm test
 ### Validation Commands
 
 ```bash
-npm run validate           # Validate tokens and contracts
+npm run validate           # Validate tokens and contracts (off-chain)
+npm run validate:onchain   # Cross-check every entry against the live chain it declares
+npm run capture:codehashes # Pin each entry's deployed-bytecode keccak256 as codeHash
 npm run audit:vinuchain-quota  # Report live testnet Quota proxy/list alignment
 npm test                   # Run all 204 tests
 npm run test:unit          # Run unit tests only
@@ -217,6 +246,7 @@ Each token submission requires **two files** in `tokens/{address}/`:
 ```json
 {
   "description": "Brief description of the token and its purpose (10-500 chars)",
+  "codeHash": "0x...",            // keccak256 of deployed bytecode (identity pin, see below)
   "project": "project-slug",      // Reference to contracts/{project-slug}/
   "logoURI": "https://...",       // HTTPS URL to logo (200x200px PNG recommended)
   "website": "https://...",       // Official website
@@ -290,6 +320,7 @@ contracts/{project-slug}/
       "name": "Factory",                                    // PascalCase only
       "address": "0xd74dEe1C78D5C58FbdDe619b707fcFbAE50c3EEe", // EIP-55 checksummed
       "type": "factory",                                    // See contract types below
+      "codeHash": "0x...",                                  // Optional identity pin (see Network Information)
       "description": "Factory contract description"
     }
   ],
