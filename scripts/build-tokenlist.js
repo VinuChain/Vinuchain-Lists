@@ -6,9 +6,11 @@
  * instead of reading a moving `main` (AUD-07).
  *
  * Output is deterministic: tokens are sorted by (chainId, address) and the
- * version is taken from package.json, so the same registry + version always
- * produces a byte-identical list. logoURI points at the tagged ref when REF is
- * provided (e.g. the release tag) so the logo URL is also immutable.
+ * version is derived from the release tag when REF is a v-tag (falling back
+ * to package.json otherwise), so the published artifact's version always
+ * matches the tag it is attached to. All same-repo logo URLs are rewritten
+ * to the pinned ref so an old release never renders logos from a moving
+ * branch.
  *
  * Usage:
  *   node scripts/build-tokenlist.js [--out <path>] [--ref <git-ref>]
@@ -46,12 +48,24 @@ function loadTokens() {
     .map(d => safeReadJSON(path.join(TOKENS_DIR, d, `${d}.json`)));
 }
 
+// Rewrites a same-repo raw.githubusercontent URL to the pinned ref so release
+// artifacts never reference the moving `main` branch. External URLs pass
+// through unchanged.
+function pinSameRepoUrl(url, ref) {
+  const re = new RegExp(
+    `^https://raw\\.githubusercontent\\.com/${REPO_SLUG.replace('/', '\\/')}/[^/]+/`,
+    'i'
+  );
+  return url.replace(re, `https://raw.githubusercontent.com/${REPO_SLUG}/${ref}/`);
+}
+
 function logoUri(token, ref) {
-  // Prefer the entry's own logoURI when it is an external HTTPS URL; otherwise
-  // point at the physical logo file at the pinned ref. We can't know the exact
-  // extension cheaply here, so we resolve it from disk.
+  // Prefer the entry's own logoURI when it is an external HTTPS URL (same-repo
+  // raw URLs get re-pinned to the release ref); otherwise point at the
+  // physical logo file at the pinned ref. We can't know the exact extension
+  // cheaply here, so we resolve it from disk.
   if (token.logoURI && /^https:\/\//.test(token.logoURI)) {
-    return token.logoURI;
+    return pinSameRepoUrl(token.logoURI, ref);
   }
   const dir = path.join(TOKENS_DIR, token.address);
   const logo = fs
@@ -77,12 +91,16 @@ function buildTokenList(ref) {
     })
     .sort((a, b) => a.chainId - b.chainId || a.address.localeCompare(b.address));
 
+  // Tokenlist consumers use `version` to order releases — it must match the
+  // tag the artifact is published under, not whatever package.json says.
+  const tagVersion = /^v\d+\.\d+\.\d+$/.test(ref) ? ref.slice(1) : null;
+
   return {
     name: 'VinuChain Default List',
     timestamp: process.env.SOURCE_DATE_EPOCH
       ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString()
       : new Date().toISOString(),
-    version: parseSemver(pkg.version),
+    version: parseSemver(tagVersion || pkg.version),
     tags: {},
     logoURI: `https://raw.githubusercontent.com/${REPO_SLUG}/${ref}/tokens/EXAMPLE.md`,
     keywords: ['vinuchain', 'default', 'tokens'],

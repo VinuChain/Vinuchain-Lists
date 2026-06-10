@@ -61,10 +61,17 @@ const contractSchema = loadSchema(
 const validateTokenSchema = ajv.compile(tokenSchema);
 const validateContractSchema = ajv.compile(contractSchema);
 
-// Track all addresses to detect duplicates
+// Track all addresses to detect duplicates. Keys are `${chainId}:${address}`
+// so the same EVM address legitimately deployed on both testnet (206) and
+// mainnet (207) is not a false-positive duplicate, and cross-references can
+// never match an entry from the wrong chain.
 const allAddresses = new Set();
-const tokenAddresses = new Map(); // address -> token data (addresses QUALITY-05)
-const contractAddresses = new Map(); // address -> {project, contract}
+const tokenAddresses = new Map(); // "chainId:address" -> token data (addresses QUALITY-05)
+const contractAddresses = new Map(); // "chainId:address" -> {project, contract}
+
+function chainAddressKey(chainId, address) {
+  return `${chainId}:${address}`;
+}
 
 // Track token symbols/names per chain to detect impersonation collisions
 // (addresses AUD-06). Keyed by `${chainId}:${SYMBOL}` so the same symbol on
@@ -225,9 +232,9 @@ function validateTokens(tokensDir) {
       logoValidation.warnings.forEach(w => logger.warn(`  ${w}`));
     }
 
-    // Check for duplicate addresses
-    if (allAddresses.has(tokenData.address)) {
-      logger.error(`Duplicate address found: ${tokenData.address}`);
+    // Check for duplicate addresses (scoped per chain)
+    if (allAddresses.has(chainAddressKey(tokenData.chainId, tokenData.address))) {
+      logger.error(`Duplicate address found on chain ${tokenData.chainId}: ${tokenData.address}`);
       continue;
     }
 
@@ -255,8 +262,8 @@ function validateTokens(tokensDir) {
     tokenSymbolsByChain.set(symbolKey, tokenData.address);
     tokenNamesByChain.set(nameKey, tokenData.address);
 
-    allAddresses.add(tokenData.address);
-    tokenAddresses.set(tokenData.address, tokenData); // Cache for later (addresses QUALITY-05)
+    allAddresses.add(chainAddressKey(tokenData.chainId, tokenData.address));
+    tokenAddresses.set(chainAddressKey(tokenData.chainId, tokenData.address), tokenData); // Cache for later (addresses QUALITY-05)
 
     tokenCount++;
     logger.success(`${tokenData.symbol} (${tokenData.name}) - ${addressDir}`);
@@ -297,18 +304,19 @@ function validateContractFiles(contract, projectSlug, projectPath) {
 
   // Token contracts intentionally share the token registry address.
   // Cross-reference validation below verifies the token.project link.
-  const isRegisteredTokenContract = contract.type === 'token' && tokenAddresses.has(contract.address);
+  const contractKey = chainAddressKey(contract.chainId, contract.address);
+  const isRegisteredTokenContract = contract.type === 'token' && tokenAddresses.has(contractKey);
 
-  // Check for duplicate addresses
-  if (allAddresses.has(contract.address) && !isRegisteredTokenContract) {
-    logger.error(`  Duplicate address found: ${contract.address} (${contract.name})`);
+  // Check for duplicate addresses (scoped per chain)
+  if (allAddresses.has(contractKey) && !isRegisteredTokenContract) {
+    logger.error(`  Duplicate address found on chain ${contract.chainId}: ${contract.address} (${contract.name})`);
     return false;
   }
 
   if (!isRegisteredTokenContract) {
-    allAddresses.add(contract.address);
+    allAddresses.add(contractKey);
   }
-  contractAddresses.set(contract.address, { project: projectSlug, contract: contract.name });
+  contractAddresses.set(contractKey, { project: projectSlug, contract: contract.name });
 
   // Verify contract files exist (using safe path construction - addresses CRITICAL-01)
   const solPathResult = safePathJoin(projectPath, `${artifactName}.sol`);
@@ -525,10 +533,12 @@ function validateCrossReferences(contractsDir) {
     }
   }
 
-  // Check if contract addresses that are also tokens have project reference
-  for (const [address, contractInfo] of contractAddresses) {
-    if (tokenAddresses.has(address)) {
-      const tokenData = tokenAddresses.get(address);
+  // Check if contract addresses that are also tokens have project reference.
+  // Both maps are keyed "chainId:address", so the match is chain-exact.
+  for (const [key, contractInfo] of contractAddresses) {
+    if (tokenAddresses.has(key)) {
+      const tokenData = tokenAddresses.get(key);
+      const address = key.slice(key.indexOf(':') + 1);
 
       if (!tokenData.project) {
         logger.error(
