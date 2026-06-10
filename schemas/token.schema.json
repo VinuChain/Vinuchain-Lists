@@ -50,6 +50,11 @@
       "description": "Optional bytecode-type pin: keccak256 of the deployed runtime bytecode (eth_getCode) for this address on its declared chainId. Proves the expected contract TYPE is deployed here; a mismatch hard-errors. NOTE: codeHash pins type, not a unique instance \u2014 multiple tokens can share identical bytecode (e.g. tokens from the same factory). Per-instance identity for ERC-20 tokens always requires a matching symbol() or name() in addition. When absent, the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
       "pattern": "^0x[a-fA-F0-9]{64}$"
     },
+    "implCodeHash": {
+      "type": "string",
+      "description": "Optional EIP-1967 implementation pin for proxy token contracts: keccak256 of the implementation contract's runtime bytecode (eth_getCode on the address found at EIP-1967 slot 0x360894...). When present, the on-chain validator reads the implementation slot via eth_getStorageAt and hard-errors if the implementation's bytecode hash differs \u2014 catches an implementation upgrade or replacement without touching the proxy shell. Also hard-errors if this field is present but the on-chain EIP-1967 slot is zero (implementation cleared or address substituted). Capture/refresh with `npm run capture:codehashes`.",
+      "pattern": "^0x[a-fA-F0-9]{64}$"
+    },
     "description": {
       "type": "string",
       "description": "Brief description of the token and its purpose",

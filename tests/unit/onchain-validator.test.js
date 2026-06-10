@@ -300,6 +300,73 @@ describe('on-chain validator', () => {
       const r = await runOnchainChecks({ tokens: [btc], fetchImpl, log: silentLog });
       expect(r.errors).to.be.greaterThan(0);
     });
+
+    describe('EIP-1967 proxy implCodeHash checks for tokens', () => {
+      const TOKEN_ADDR = '0xC0264277fcCa5FCfabd41a8bC01c1FcAF8383E41';
+      const IMPL_ADDR  = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+      const baseToken = {
+        symbol: 'USDT', name: 'USDT@VinuChain',
+        address: TOKEN_ADDR, decimals: 6, chainId: 207,
+        codeHash: hashOf('0x6001'),
+        implCodeHash: hashOf('0x6002'),
+      };
+
+      it('PASSES when proxy token codeHash and implCodeHash both match', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [TOKEN_ADDR]: { code: '0x6001', decimals: 6, symbol: 'USDT', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0x6002' },
+          },
+        });
+        const r = await runOnchainChecks({ tokens: [baseToken], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(0);
+        expect(r.warnings).to.equal(0);
+      });
+
+      it('HARD-ERRORS when proxy token detected on-chain but implCodeHash is NOT in JSON', async () => {
+        // Deleting implCodeHash from a token JSON cannot bypass the check —
+        // the chain itself reports a nonzero impl slot.
+        const unpinned = { ...baseToken, implCodeHash: undefined };
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [TOKEN_ADDR]: { code: '0x6001', decimals: 6, symbol: 'USDT', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0x6002' },
+          },
+        });
+        const r = await runOnchainChecks({ tokens: [unpinned], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('PASSES when non-proxy token has slot zero and no implCodeHash', async () => {
+        // Standard ERC-20 (no proxy): slot is zero, no implCodeHash required.
+        const plain = { ...baseToken, implCodeHash: undefined };
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [TOKEN_ADDR]: { code: '0x6001', decimals: 6, symbol: 'USDT' }, // no implSlot
+          },
+        });
+        const r = await runOnchainChecks({ tokens: [plain], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(0);
+        expect(r.warnings).to.equal(0);
+      });
+
+      it('HARD-ERRORS when token declares implCodeHash but EIP-1967 slot is zero (stale/substituted)', async () => {
+        // Token JSON has implCodeHash but the chain reports slot=0 — either the
+        // implementation was cleared or the address was substituted.
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [TOKEN_ADDR]: { code: '0x6001', decimals: 6, symbol: 'USDT' }, // no implSlot
+          },
+        });
+        const r = await runOnchainChecks({ tokens: [baseToken], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -428,10 +495,10 @@ describe('on-chain validator', () => {
         expect(r.errors).to.equal(1);
       });
 
-      it('when EIP-1967 slot is zero, passes even if implCodeHash is set in JSON (slot wins)', async () => {
-        // The chain says slot=0 → not a proxy → impl check skipped entirely.
-        // A stale implCodeHash in the JSON is silently ignored here; capture:codehashes
-        // reports it as a stale pin separately so the operator can clean it up.
+      it('HARD-ERRORS when EIP-1967 slot is zero but entry declares implCodeHash (stale/substituted)', async () => {
+        // The entry pins an implCodeHash but the chain reports slot=0 — either the
+        // implementation was cleared (deactivated proxy) or the address was substituted
+        // with a non-proxy contract. Both are hard errors.
         const fetchImpl = makeFetch({
           chainId: 207,
           accounts: {
@@ -439,7 +506,7 @@ describe('on-chain validator', () => {
           },
         });
         const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
-        expect(r.errors).to.equal(0);
+        expect(r.errors).to.equal(1);
       });
 
       it('HARD-ERRORS when impl address has no code', async () => {

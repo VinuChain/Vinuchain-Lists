@@ -140,7 +140,10 @@ function collectTargets(tokensDir, contractsDir) {
         label: `${json.symbol} (${json.address})`,
         chainId: json.chainId,
         address: json.address,
-        isProxy: false, // tokens are never proxies in this registry
+        // Always probe the EIP-1967 impl slot for token entries too — a proxy
+        // ERC-20 is valid and must have its implementation pinned just like a
+        // contract entry. Proxy-ness is determined from the chain, not the JSON.
+        probeProxy: true,
         file,
         obj: json,
         serialize: () => JSON.stringify(json, null, 2) + '\n',

@@ -356,6 +356,57 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
     );
   }
 
+  // EIP-1967 proxy detection for tokens: always probe the implementation slot
+  // so the on-chain proxy shape — not the JSON — determines whether implCodeHash
+  // is required. This is symmetric with checkContractCode.
+  //
+  //   - slot nonzero + no implCodeHash → HARD ERROR (proxy impl not pinned)
+  //   - slot nonzero + implCodeHash present → verify impl bytecode hash
+  //   - slot zero + implCodeHash present → HARD ERROR (stale/inconsistent pin)
+  //   - slot zero + no implCodeHash → no check needed
+  try {
+    const implAddr = await readEip1967Impl(url, token.address, fetchImpl, timeoutMs);
+    if (implAddr) {
+      // Token IS a proxy on-chain.
+      if (!token.implCodeHash) {
+        errors.push(
+          `${label}: proxy detected on-chain (EIP-1967 implementation slot → ${implAddr}) ` +
+          `but implCodeHash is not pinned. The proxy shell codeHash cannot cover the ` +
+          `implementation — run \`npm run capture:codehashes\` to pin it.`
+        );
+      } else {
+        // implCodeHash present — verify the implementation.
+        const implCode = await getCode(url, implAddr, fetchImpl, timeoutMs);
+        if (!implCode || implCode === '0x') {
+          errors.push(
+            `${label}: implementation at ${implAddr} has no code`
+          );
+        } else {
+          const implHash = keccak256(implCode);
+          if (implHash.toLowerCase() !== String(token.implCodeHash).toLowerCase()) {
+            errors.push(
+              `${label}: implementation ${implAddr} code keccak256 ${implHash} ` +
+              `!= pinned implCodeHash ${token.implCodeHash} ` +
+              `(implementation was upgraded or replaced)`
+            );
+          }
+        }
+      }
+    } else {
+      // Slot is zero — not a proxy. If the entry declares implCodeHash that is
+      // inconsistent: either the implementation was cleared or the address was
+      // substituted. Either case is a hard error.
+      if (token.implCodeHash) {
+        errors.push(
+          `${label}: entry declares implCodeHash but on-chain EIP-1967 slot is zero ` +
+          `— implementation cleared or address substituted`
+        );
+      }
+    }
+  } catch (e) {
+    errors.push(`${label}: EIP-1967 proxy slot check failed: ${e.message}`);
+  }
+
   return { errors, warnings };
 }
 
@@ -440,8 +491,17 @@ async function checkContractCode(url, contract, projectSlug, fetchImpl, timeoutM
           }
         }
       }
+    } else {
+      // Slot is zero — not a proxy. If the entry declares implCodeHash that is
+      // inconsistent: either the implementation was cleared or the address was
+      // substituted. Either case is a hard error.
+      if (contract.implCodeHash) {
+        errors.push(
+          `${label}: entry declares implCodeHash but on-chain EIP-1967 slot is zero ` +
+          `— implementation cleared or address substituted`
+        );
+      }
     }
-    // implAddr === null → not a proxy; no implCodeHash needed.
   } catch (e) {
     errors.push(`${label}: EIP-1967 proxy slot check failed: ${e.message}`);
   }
