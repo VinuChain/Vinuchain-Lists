@@ -128,14 +128,14 @@ describe('on-chain validator', () => {
       expect(r.errors).to.equal(1);
     });
 
-    it('warns (not errors) when on-chain symbol differs', async () => {
+    it('hard-errors when a cleanly-decoded on-chain symbol differs (phishing substitution)', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [token.address]: { code: '0x6080', decimals: 6, symbol: 'USDC' } },
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
-      expect(r.errors).to.equal(0);
-      expect(r.warnings).to.equal(1);
+      expect(r.errors).to.equal(1);
+      expect(r.warnings).to.equal(0);
     });
 
     it('tolerates a token whose symbol() reverts (bytes32/non-standard)', async () => {

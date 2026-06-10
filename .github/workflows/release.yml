@@ -42,6 +42,9 @@ jobs:
           REF: ${{ github.ref_name }}
         run: |
           mkdir -p dist
+          # Pin the artifact timestamp to the tagged commit's time so the same
+          # tag always rebuilds byte-identically (reproducible releases).
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct HEAD)"
           node scripts/build-tokenlist.js --out dist/vinuchain.tokenlist.json --ref "$REF"
 
       - name: Bundle registry data

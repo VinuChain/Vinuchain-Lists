@@ -81,15 +81,13 @@ jobs:
   onchain:
     name: On-chain Cross-check
     runs-on: ubuntu-latest
-    # ADVISORY during burn-in: this job talks to public RPC endpoints (mainnet
-    # vinuchain-rpc.com and testnet vinufoundation-rpc.com) which can be flaky,
-    # and the testnet endpoint reboots. continue-on-error keeps a transient RPC
-    # outage from blocking unrelated PRs while the check earns trust. Once it has
-    # proven stable, REMOVE continue-on-error to make on-chain mismatches block
-    # merges (the AUD-01 fix). Testnet outages are already tolerated inside the
-    # validator (skipped with a warning), so flipping this to blocking will not
-    # make a 206 reboot fail CI.
-    continue-on-error: true
+    # BLOCKING: this is the AUD-01 defense — a deliberately substituted but
+    # correctly-checksummed address passes every off-chain check and only this
+    # job catches it, so it must gate merges. Flake tolerance lives inside the
+    # validator, in the right places: testnet (206) outages are skipped with a
+    # loud warning, and each chain probes multiple RPC endpoints before
+    # failing. A hard failure here means a real mismatch or a full mainnet RPC
+    # outage — both are reasons not to merge registry changes.
 
     steps:
       - name: Checkout code

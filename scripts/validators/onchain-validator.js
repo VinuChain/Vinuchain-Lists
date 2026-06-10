@@ -12,8 +12,9 @@
  *
  *   - the address has code (`eth_getCode !== '0x'`);
  *   - for ERC-20 tokens, `decimals()` matches the JSON decimals (hard);
- *   - for ERC-20 tokens, `symbol()` matches the JSON symbol (advisory — some
- *     legitimate tokens use bytes32 symbols or revert).
+ *   - for ERC-20 tokens, `symbol()` matches the JSON symbol (hard when the
+ *     on-chain symbol decodes cleanly; tolerated only when `symbol()` reverts
+ *     or returns an undecodable value, as some legitimate tokens do).
  *
  * It reuses the chain-ID-guard + RPC-health-probe pattern from
  * scripts/update-vns-oracle.js: an endpoint is only trusted after its
@@ -198,12 +199,15 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
     errors.push(`${label}: decimals() call failed: ${e.message}`);
   }
 
-  // symbol() — advisory (bytes32/reverting tokens are legitimate)
+  // symbol() — hard when it decodes cleanly: a readable on-chain symbol that
+  // disagrees with the registry is exactly the phishing-substitution vector
+  // this validator exists to block. Reverting/undecodable symbols (bytes32
+  // tokens etc.) are the only tolerated case.
   try {
     const symRaw = await ethCall(url, token.address, SELECTOR_SYMBOL, fetchImpl, timeoutMs);
     const onChainSymbol = decodeAbiString(symRaw);
     if (onChainSymbol && onChainSymbol.toUpperCase() !== token.symbol.toUpperCase()) {
-      warnings.push(
+      errors.push(
         `${label}: on-chain symbol "${onChainSymbol}" != declared "${token.symbol}"`
       );
     }
