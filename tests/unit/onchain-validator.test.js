@@ -1,7 +1,6 @@
 /**
  * Unit tests for the on-chain cross-check validator (addresses AUD-01).
- * Uses a mocked fetch so no network is required; exercises the code-missing,
- * decimals-mismatch, symbol-mismatch, chain-ID-guard, and testnet-skip paths.
+ * Uses a mocked fetch so no network is required.
  */
 
 const { expect } = require('chai');
@@ -12,10 +11,11 @@ const {
   parseHexInt,
   SELECTOR_DECIMALS,
   SELECTOR_SYMBOL,
+  SELECTOR_NAME,
+  EIP1967_IMPL_SLOT,
 } = require('../../scripts/validators/onchain-validator');
 
-// keccak256 of a piece of deployed bytecode — the value a real codeHash pin
-// holds. Tests that want a MATCHING pin compute it from the account's `code`.
+// keccak256 of a piece of deployed bytecode — the value a real codeHash pin holds.
 function hashOf(code) {
   return keccak256(code);
 }
@@ -26,7 +26,6 @@ function encodeAbiString(str) {
   const lenHex = bytes.length.toString(16).padStart(64, '0');
   const offset = '0'.repeat(62) + '20';
   let dataHex = bytes.toString('hex');
-  // pad to 32-byte boundary
   while (dataHex.length % 64 !== 0) dataHex += '0';
   return '0x' + offset + lenHex + dataHex;
 }
@@ -35,9 +34,24 @@ function uintHex(n) {
   return '0x' + n.toString(16).padStart(64, '0');
 }
 
-// Build a fake fetch over a routing table:
-//   chainId: number returned by eth_chainId
-//   accounts: { [address]: { code, decimals, symbol } }
+// Encode an address as a 32-byte storage slot value (low 20 bytes = address).
+function encodeAddr(addr) {
+  const hex = addr.startsWith('0x') ? addr.slice(2) : addr;
+  return '0x' + hex.toLowerCase().padStart(64, '0');
+}
+
+/**
+ * Build a fake fetch over a routing table.
+ *
+ * accounts: { [address]: { code, decimals?, symbol?, name?, implSlot? } }
+ *   - code: hex bytecode returned by eth_getCode
+ *   - decimals: integer returned by decimals()
+ *   - symbol: string returned by symbol()
+ *   - name: string returned by name()
+ *   - implSlot: address string — value returned by eth_getStorageAt(EIP1967_IMPL_SLOT)
+ *
+ * failChainId: if true, throw ECONNREFUSED on every call.
+ */
 function makeFetch({ chainId = 207, accounts = {}, failChainId = false } = {}) {
   return async function fakeFetch(_url, init) {
     const req = JSON.parse(init.body);
@@ -47,23 +61,37 @@ function makeFetch({ chainId = 207, accounts = {}, failChainId = false } = {}) {
       statusText: 'OK',
       text: async () => JSON.stringify({ jsonrpc: '2.0', id: 1, result }),
     });
-    if (failChainId) {
-      throw new Error('ECONNREFUSED');
-    }
+    if (failChainId) throw new Error('ECONNREFUSED');
+
     switch (req.method) {
       case 'eth_chainId':
         return ok(uintHex(chainId).replace(/^0x0+/, '0x'));
       case 'eth_blockNumber':
         return ok('0x100');
+
       case 'eth_getCode': {
-        const addr = req.params[0];
-        const acct = accounts[addr];
+        const addr = req.params[0].toLowerCase();
+        // Look up case-insensitively
+        const acct = Object.entries(accounts).find(([k]) => k.toLowerCase() === addr)?.[1];
         return ok(acct && acct.code ? acct.code : '0x');
       }
+
+      case 'eth_getStorageAt': {
+        const addr = req.params[0].toLowerCase();
+        const slot = req.params[1];
+        const acct = Object.entries(accounts).find(([k]) => k.toLowerCase() === addr)?.[1];
+        // Only handle the EIP-1967 impl slot
+        if (slot === EIP1967_IMPL_SLOT && acct && acct.implSlot) {
+          return ok(encodeAddr(acct.implSlot));
+        }
+        // Slot not set — return zero
+        return ok('0x' + '0'.repeat(64));
+      }
+
       case 'eth_call': {
-        const to = req.params[0].to;
+        const to = req.params[0].to.toLowerCase();
         const data = req.params[0].data;
-        const acct = accounts[to] || {};
+        const acct = Object.entries(accounts).find(([k]) => k.toLowerCase() === to)?.[1] || {};
         if (data === SELECTOR_DECIMALS) {
           if (acct.decimals === undefined) throw new Error('execution reverted');
           return ok(uintHex(acct.decimals));
@@ -72,8 +100,13 @@ function makeFetch({ chainId = 207, accounts = {}, failChainId = false } = {}) {
           if (acct.symbol === undefined) throw new Error('execution reverted');
           return ok(encodeAbiString(acct.symbol));
         }
+        if (data === SELECTOR_NAME) {
+          if (acct.name === undefined) throw new Error('execution reverted');
+          return ok(encodeAbiString(acct.name));
+        }
         throw new Error('unexpected call');
       }
+
       default:
         throw new Error(`unexpected method ${req.method}`);
     }
@@ -82,6 +115,7 @@ function makeFetch({ chainId = 207, accounts = {}, failChainId = false } = {}) {
 
 const silentLog = { error() {}, warn() {}, info() {}, success() {}, log() {} };
 
+// ---------------------------------------------------------------------------
 describe('on-chain validator', () => {
   describe('decodeAbiString', () => {
     it('decodes a dynamic string', () => {
@@ -101,6 +135,7 @@ describe('on-chain validator', () => {
     });
   });
 
+  // -------------------------------------------------------------------------
   describe('token checks', () => {
     const token = {
       symbol: 'USDT',
@@ -110,7 +145,7 @@ describe('on-chain validator', () => {
       chainId: 207,
     };
 
-    // A token with a matching codeHash pin. keccak256 of its code is the pin.
+    // Pinned token: codeHash = keccak256('0x6080')
     const pinnedToken = { ...token, codeHash: hashOf('0x6080') };
 
     it('passes (with not-pinned warning) when code, decimals, and symbol all match', async () => {
@@ -120,11 +155,11 @@ describe('on-chain validator', () => {
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
       expect(r.errors).to.equal(0);
-      // symbol() verifies identity; the only warning is "not identity-pinned".
+      // One warning: "no codeHash pin"
       expect(r.warnings).to.equal(1);
     });
 
-    it('passes with ZERO warnings when codeHash, decimals, and symbol all match', async () => {
+    it('passes with ZERO warnings when codeHash matches and symbol matches', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [pinnedToken.address]: { code: '0x6080', decimals: 6, symbol: 'USDT' } },
@@ -158,8 +193,7 @@ describe('on-chain validator', () => {
       expect(r.errors).to.equal(1);
     });
 
-    it('HARD-ERRORS when on-chain codeHash mismatches the pin (substituted contract)', async () => {
-      // Account hosts DIFFERENT bytecode than the pin was captured from.
+    it('HARD-ERRORS when on-chain codeHash mismatches the pin (wrong contract type)', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [pinnedToken.address]: { code: '0xdeadbeef', decimals: 6, symbol: 'USDT' } },
@@ -168,25 +202,107 @@ describe('on-chain validator', () => {
       expect(r.errors).to.be.greaterThan(0);
     });
 
-    it('HARD-ERRORS when symbol() reverts AND there is no codeHash (decimals+code alone are forgeable)', async () => {
+    it('HARD-ERRORS when symbol() reverts AND no name() — no per-instance identity', async () => {
+      // Neither symbol nor name available — cannot distinguish instances
       const fetchImpl = makeFetch({
         chainId: 207,
-        accounts: { [token.address]: { code: '0x6080', decimals: 6 } }, // no symbol, no pin
+        accounts: { [token.address]: { code: '0x6080', decimals: 6 } }, // no symbol, no name
       });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
-      expect(r.errors).to.equal(1); // fail-closed: no strong identity signal
+      expect(r.errors).to.equal(1);
     });
 
-    it('PASSES when symbol() reverts but a matching codeHash pins identity', async () => {
+    it('HARD-ERRORS when symbol() reverts AND no name() EVEN WITH a matching codeHash', async () => {
+      // codeHash pins type, not instance — identical-bytecode tokens exist in the registry
+      // (BTC/USDT/ETH share one codeHash). So codeHash alone is not sufficient.
       const fetchImpl = makeFetch({
         chainId: 207,
-        accounts: { [pinnedToken.address]: { code: '0x6080', decimals: 6 } }, // no symbol
+        accounts: { [pinnedToken.address]: { code: '0x6080', decimals: 6 } }, // no symbol, no name
       });
       const r = await runOnchainChecks({ tokens: [pinnedToken], fetchImpl, log: silentLog });
-      expect(r.errors).to.equal(0); // codeHash is a sufficient strong signal
+      expect(r.errors).to.equal(1); // fail-closed: codeHash alone cannot distinguish instances
+    });
+
+    it('PASSES when symbol() reverts but name() matches (fallback instance signal)', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: {
+          [token.address]: { code: '0x6080', decimals: 6, name: 'USDT@VinuChain' }, // no symbol
+        },
+      });
+      const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0);
+    });
+
+    it('PASSES with codeHash + matching name() when symbol() reverts', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: {
+          [pinnedToken.address]: { code: '0x6080', decimals: 6, name: 'USDT@VinuChain' },
+        },
+      });
+      const r = await runOnchainChecks({ tokens: [pinnedToken], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0);
+    });
+
+    it('hard-errors when name() mismatches and symbol() reverted', async () => {
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: {
+          [token.address]: { code: '0x6080', decimals: 6, name: 'Wrong@VinuChain' },
+        },
+      });
+      const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(1);
+    });
+
+    it('demonstrates two tokens with SAME codeHash are distinguished by symbol()', async () => {
+      // BTC and USDT share identical bytecode in the real registry — they must
+      // be distinguished by symbol(), not by codeHash. This test simulates that.
+      const sharedCode = '0x6080';
+      const sharedHash = hashOf(sharedCode);
+      const btc = {
+        symbol: 'BTC', name: 'BTC@VinuChain',
+        address: '0x1111111111111111111111111111111111111111',
+        decimals: 8, chainId: 207, codeHash: sharedHash,
+      };
+      const usdt = {
+        symbol: 'USDT', name: 'USDT@VinuChain',
+        address: '0x2222222222222222222222222222222222222222',
+        decimals: 6, chainId: 207, codeHash: sharedHash,
+      };
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: {
+          [btc.address]:  { code: sharedCode, decimals: 8, symbol: 'BTC' },
+          [usdt.address]: { code: sharedCode, decimals: 6, symbol: 'USDT' },
+        },
+      });
+      const r = await runOnchainChecks({ tokens: [btc, usdt], fetchImpl, log: silentLog });
+      expect(r.errors).to.equal(0);
+    });
+
+    it('catches substituted token: same codeHash but wrong symbol reveals the swap', async () => {
+      const sharedCode = '0x6080';
+      const sharedHash = hashOf(sharedCode);
+      const btc = {
+        symbol: 'BTC', name: 'BTC@VinuChain',
+        address: '0x1111111111111111111111111111111111111111',
+        decimals: 8, chainId: 207, codeHash: sharedHash,
+      };
+      // Attacker swapped BTC address with another factory token — same bytecode, wrong symbol
+      const fetchImpl = makeFetch({
+        chainId: 207,
+        accounts: {
+          [btc.address]: { code: sharedCode, decimals: 6, symbol: 'USDT' }, // wrong!
+        },
+      });
+      const r = await runOnchainChecks({ tokens: [btc], fetchImpl, log: silentLog });
+      expect(r.errors).to.be.greaterThan(0);
     });
   });
 
+  // -------------------------------------------------------------------------
   describe('contract checks', () => {
     const entry = {
       projectSlug: 'vinuswap',
@@ -198,7 +314,7 @@ describe('on-chain validator', () => {
       },
     };
 
-    it('passes when contract code exists, but WARNS it is not identity-pinned', async () => {
+    it('passes when contract code exists, but WARNS it is not pinned', async () => {
       const fetchImpl = makeFetch({
         chainId: 207,
         accounts: { [entry.contract.address]: { code: '0x6080' } },
@@ -219,7 +335,7 @@ describe('on-chain validator', () => {
       expect(r.warnings).to.equal(0);
     });
 
-    it('HARD-ERRORS when a pinned contract serves different bytecode (substitution)', async () => {
+    it('HARD-ERRORS when a pinned contract serves different bytecode (wrong type)', async () => {
       const pinned = { ...entry, contract: { ...entry.contract, codeHash: hashOf('0x6080') } };
       const fetchImpl = makeFetch({
         chainId: 207,
@@ -234,20 +350,104 @@ describe('on-chain validator', () => {
       const r = await runOnchainChecks({ contracts: [entry], fetchImpl, log: silentLog });
       expect(r.errors).to.equal(1);
     });
+
+    describe('EIP-1967 proxy implCodeHash checks', () => {
+      const IMPL_ADDR = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const PROXY_ADDR = '0x48f450475a8b501A7480C1Fd02935a7327F713Ad';
+      const proxyEntry = {
+        projectSlug: 'vinuchain',
+        contract: {
+          name: 'OptimizedTransparentUpgradeableProxy',
+          address: PROXY_ADDR,
+          type: 'staking',
+          chainId: 207,
+          codeHash: hashOf('0x6001'),       // proxy shell bytecode
+          implCodeHash: hashOf('0x6002'),    // impl bytecode
+        },
+      };
+
+      it('PASSES when proxy codeHash and implCodeHash both match', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0x6002' },
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(0);
+        expect(r.warnings).to.equal(0);
+      });
+
+      it('HARD-ERRORS when impl bytecode mismatches (implementation replaced)', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0xdifferent' }, // wrong impl
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('HARD-ERRORS when impl slot is zero but implCodeHash is pinned', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001' }, // no implSlot set → slot returns zero
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('HARD-ERRORS when impl address has no code', async () => {
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            // IMPL_ADDR not in accounts → eth_getCode returns '0x'
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [proxyEntry], fetchImpl, log: silentLog });
+        expect(r.errors).to.equal(1);
+      });
+
+      it('does NOT check implCodeHash when the field is absent (no warning)', async () => {
+        const noImpl = {
+          ...proxyEntry,
+          contract: { ...proxyEntry.contract, implCodeHash: undefined },
+        };
+        const fetchImpl = makeFetch({
+          chainId: 207,
+          accounts: {
+            [PROXY_ADDR]: { code: '0x6001', implSlot: IMPL_ADDR },
+            [IMPL_ADDR]:  { code: '0x6002' },
+          },
+        });
+        const r = await runOnchainChecks({ contracts: [noImpl], fetchImpl, log: silentLog });
+        // codeHash matches → no error, no warning from impl check (field absent)
+        expect(r.errors).to.equal(0);
+        expect(r.warnings).to.equal(0);
+      });
+    });
   });
 
+  // -------------------------------------------------------------------------
   describe('chain-ID guard', () => {
     it('errors on mainnet (207) when the RPC reports the wrong chain', async () => {
       const token = {
         symbol: 'X', name: 'X', address: '0x1111111111111111111111111111111111111111',
         decimals: 18, chainId: 207,
       };
-      const fetchImpl = makeFetch({ chainId: 1 }); // RPC is on a different chain
+      const fetchImpl = makeFetch({ chainId: 1 });
       const r = await runOnchainChecks({ tokens: [token], fetchImpl, log: silentLog });
       expect(r.errors).to.be.greaterThan(0);
     });
   });
 
+  // -------------------------------------------------------------------------
   describe('testnet outage tolerance', () => {
     const testnetToken = {
       symbol: 'T', name: 'T', address: '0x2222222222222222222222222222222222222222',

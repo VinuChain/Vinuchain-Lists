@@ -80,7 +80,12 @@
           },
           "codeHash": {
             "type": "string",
-            "description": "Optional identity pin: keccak256 of the deployed bytecode (eth_getCode result) for this address on its declared chainId. When present, the on-chain validator hard-errors if the live code's keccak256 differs — the real defense against a substituted-but-checksummed address. When absent, the entry is not identity-pinned and the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
+            "description": "Optional bytecode-type pin: keccak256 of the deployed runtime bytecode (eth_getCode) for this address on its declared chainId. Pins the contract TYPE — proves the expected bytecode is deployed here. A mismatch hard-errors. Note: codeHash pins type, not a unique instance; multiple contracts can share identical bytecode. When absent, the validator emits a warning. Capture/refresh with `npm run capture:codehashes`.",
+            "pattern": "^0x[a-fA-F0-9]{64}$"
+          },
+          "implCodeHash": {
+            "type": "string",
+            "description": "Optional EIP-1967 implementation pin for proxy contracts: keccak256 of the implementation contract's runtime bytecode (eth_getCode on the address found at EIP-1967 slot 0x360894...). When present, the on-chain validator reads the implementation slot via eth_getStorageAt and hard-errors if the implementation's bytecode hash differs — catches an implementation upgrade or replacement without touching the proxy shell. Capture/refresh with `npm run capture:codehashes`.",
             "pattern": "^0x[a-fA-F0-9]{64}$"
           },
           "type": {

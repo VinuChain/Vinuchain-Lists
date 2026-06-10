@@ -2,25 +2,29 @@
 
 /**
  * One-off / re-runnable helper that pins every registry entry's deployed
- * bytecode identity (addresses AUD-01 hardening).
+ * bytecode hashes (addresses AUD-01 hardening).
  *
  * For each token and contract entry it:
- *   1. resolves a chain-ID-verified RPC for the entry's declared chainId
- *      (reusing the on-chain validator's health-probe so a mis-set RPC fails
- *      fast instead of writing a bogus hash);
- *   2. calls eth_getCode(address, latest);
- *   3. writes keccak256(code) back into that entry's JSON as `codeHash`.
+ *   1. resolves a chain-ID-verified RPC for the entry's declared chainId;
+ *   2. calls eth_getCode(address, latest) and writes keccak256(code) as
+ *      `codeHash` — this pins the CONTRACT TYPE (bytecode deployed at the
+ *      address). Note: multiple entries can share a codeHash when they use
+ *      the same factory/bytecode (e.g. bridged tokens). Per-instance identity
+ *      for tokens comes from symbol()/name() checks, not from codeHash alone.
+ *   3. for contract entries with an existing or detectable EIP-1967 proxy
+ *      shape: reads the implementation slot (0x360894...) via eth_getStorageAt,
+ *      fetches the impl's code, and writes keccak256(implCode) as `implCodeHash`.
  *
- * Entries that already carry a codeHash are only rewritten if the live code's
- * hash differs and --force is passed; by default an existing pin is left as-is
- * and reported, so a re-run never silently overwrites a deliberate pin.
+ * Entries that already carry a pin are only rewritten if the live code's hash
+ * differs and --force is passed; by default an existing pin is left as-is and
+ * reported, so a re-run never silently overwrites a deliberate pin.
  *
- * Testnet (206) entries whose RPC is unreachable (the public testnet endpoint
- * reboots) are SKIPPED and reported as left-unpinned rather than failing the
- * run. Use --strict-testnet to make a 206 outage fatal.
+ * Testnet (206) entries whose RPC is unreachable are SKIPPED and reported as
+ * left-unpinned rather than failing the run. Use --strict-testnet to make a
+ * 206 outage fatal.
  *
  * Usage:
- *   npm run capture:codehashes            # pin all reachable, skip pinned
+ *   npm run capture:codehashes            # pin all reachable, skip already-pinned
  *   node scripts/capture-codehashes.js --force          # repin even if set
  *   node scripts/capture-codehashes.js --strict-testnet # 206 outage fatal
  */
@@ -33,6 +37,7 @@ const { EXIT_CODES, TESTNET_CHAIN_ID } = require('./utils/constants');
 const { safeReadJSON } = require('./utils/safe-json');
 const {
   resolveCheckedRpc,
+  EIP1967_IMPL_SLOT,
 } = require('./validators/onchain-validator');
 
 const DEFAULT_TIMEOUT_MS = Number(process.env.ONCHAIN_RPC_TIMEOUT_MS || 10_000);
@@ -41,10 +46,6 @@ const args = new Set(process.argv.slice(2));
 const FORCE = args.has('--force');
 const STRICT_TESTNET =
   args.has('--strict-testnet') || process.env.ONCHAIN_STRICT_TESTNET === '1';
-
-function getCode(url, address, fetchImpl, timeoutMs) {
-  return rawJsonRpc(url, 'eth_getCode', [address, 'latest'], fetchImpl, timeoutMs);
-}
 
 // Minimal JSON-RPC POST with an abort timeout (mirrors the validator helper;
 // kept local so this script has no extra surface in the shipped validator).
@@ -79,9 +80,51 @@ async function rawJsonRpc(url, method, params, fetchImpl, timeoutMs) {
   }
 }
 
+function getCode(url, address, fetchImpl, timeoutMs) {
+  return rawJsonRpc(url, 'eth_getCode', [address, 'latest'], fetchImpl, timeoutMs);
+}
+
+function getStorageAt(url, address, slot, fetchImpl, timeoutMs) {
+  return rawJsonRpc(url, 'eth_getStorageAt', [address, slot, 'latest'], fetchImpl, timeoutMs);
+}
+
+/**
+ * Read the EIP-1967 implementation slot for a potential proxy. Returns the
+ * implementation address (lowercase `0x`-prefixed, 42 chars) or null if the
+ * slot is zero/unset.
+ */
+async function readImplAddr(url, address, fetchImpl, timeoutMs) {
+  const raw = await getStorageAt(url, address, EIP1967_IMPL_SLOT, fetchImpl, timeoutMs);
+  if (!raw || raw === '0x' || raw === ('0x' + '0'.repeat(64))) return null;
+  return '0x' + raw.slice(-40).toLowerCase();
+}
+
+/**
+ * Apply a pin to a field on an object, honouring FORCE. Returns one of:
+ *   'pinned'    — newly written
+ *   'unchanged' — existing pin matches live value
+ *   'conflict'  — existing pin differs and FORCE not set
+ */
+function applyPin(obj, field, liveHash, label, conflicts, unchanged, pinned) {
+  const prior = obj[field];
+  if (prior && prior.toLowerCase() === liveHash.toLowerCase()) {
+    unchanged.push(`${label} [${field}]`);
+    return 'unchanged';
+  }
+  if (prior && prior.toLowerCase() !== liveHash.toLowerCase() && !FORCE) {
+    conflicts.push(
+      `${label} [${field}]: live ${liveHash} != existing pin ${prior} (kept; pass --force to overwrite)`
+    );
+    return 'conflict';
+  }
+  obj[field] = liveHash;
+  pinned.push(`${label} [${field}] -> ${liveHash}`);
+  return 'pinned';
+}
+
 /**
  * Build the flat list of pinnable targets. Each target carries the data needed
- * to fetch its code and to write the codeHash back to disk.
+ * to fetch its code, detect proxies, and write pins back to disk.
  */
 function collectTargets(tokensDir, contractsDir) {
   const targets = [];
@@ -97,10 +140,9 @@ function collectTargets(tokensDir, contractsDir) {
         label: `${json.symbol} (${json.address})`,
         chainId: json.chainId,
         address: json.address,
+        isProxy: false, // tokens are never proxies in this registry
         file,
-        // token JSON is the whole file object
-        apply: (hash) => { json.codeHash = hash; },
-        existing: () => json.codeHash,
+        obj: json,
         serialize: () => JSON.stringify(json, null, 2) + '\n',
       });
     }
@@ -113,15 +155,20 @@ function collectTargets(tokensDir, contractsDir) {
       const info = safeReadJSON(infoPath);
       if (!Array.isArray(info.contracts)) continue;
       for (const contract of info.contracts) {
+        // Treat as a proxy candidate if it already has implCodeHash pinned,
+        // or if its name suggests it is a proxy.
+        const likelyProxy =
+          typeof contract.implCodeHash === 'string' ||
+          /proxy/i.test(contract.name);
         targets.push({
           kind: 'contract',
           label: `${projectSlug}/${contract.name} (${contract.address})`,
           chainId: contract.chainId,
           address: contract.address,
+          isProxy: likelyProxy,
           file: infoPath,
-          // mutate the shared `info` object; whole file rewritten once per file
-          apply: (hash) => { contract.codeHash = hash; },
-          existing: () => contract.codeHash,
+          obj: contract,
+          // whole info.json is rewritten once per file; shared `info` ref
           serialize: () => JSON.stringify(info, null, 2) + '\n',
         });
       }
@@ -167,7 +214,7 @@ async function main() {
   }
 
   // Files we have mutated and must rewrite (dedupe contract info.json files).
-  const dirtyFiles = new Map(); // file -> serialize()
+  const dirtyFiles = new Map(); // file -> serialize fn
   const pinned = [];
   const unchanged = [];
   const conflicts = [];
@@ -179,6 +226,8 @@ async function main() {
       unpinned.push(`${target.label} [chain ${target.chainId} skipped]`);
       continue;
     }
+
+    // --- codeHash: pin the entry's own bytecode type ---
     let code;
     try {
       code = await getCode(rpcUrl, target.address, fetchImpl, DEFAULT_TIMEOUT_MS);
@@ -190,21 +239,54 @@ async function main() {
       unpinned.push(`${target.label}: no code at address on chain ${target.chainId}`);
       continue;
     }
-    const hash = keccak256(code);
-    const prior = target.existing();
-    if (prior && prior.toLowerCase() === hash.toLowerCase()) {
-      unchanged.push(target.label);
-      continue;
+    const codeHashLive = keccak256(code);
+    const codeResult = applyPin(
+      target.obj, 'codeHash', codeHashLive, target.label, conflicts, unchanged, pinned
+    );
+    if (codeResult === 'pinned') {
+      dirtyFiles.set(target.file, target.serialize);
     }
-    if (prior && prior.toLowerCase() !== hash.toLowerCase() && !FORCE) {
-      conflicts.push(
-        `${target.label}: live ${hash} != existing pin ${prior} (kept; pass --force to overwrite)`
+
+    // --- implCodeHash: for proxy entries, pin the implementation bytecode ---
+    if (target.isProxy) {
+      let implAddr;
+      try {
+        implAddr = await readImplAddr(rpcUrl, target.address, fetchImpl, DEFAULT_TIMEOUT_MS);
+      } catch (e) {
+        unpinned.push(`${target.label} [implCodeHash]: eth_getStorageAt failed: ${e.message}`);
+        continue;
+      }
+      if (!implAddr) {
+        // Not an EIP-1967 proxy at this address (impl slot is zero). Only
+        // report as unpinned if the entry currently has an implCodeHash pin,
+        // because that would be a stale pin worth investigating.
+        if (target.obj.implCodeHash) {
+          unpinned.push(
+            `${target.label} [implCodeHash]: impl slot is zero but entry has an existing ` +
+            `implCodeHash pin ${target.obj.implCodeHash} — investigate.`
+          );
+        }
+        continue;
+      }
+      let implCode;
+      try {
+        implCode = await getCode(rpcUrl, implAddr, fetchImpl, DEFAULT_TIMEOUT_MS);
+      } catch (e) {
+        unpinned.push(`${target.label} [implCodeHash]: eth_getCode(${implAddr}) failed: ${e.message}`);
+        continue;
+      }
+      if (!implCode || implCode === '0x') {
+        unpinned.push(`${target.label} [implCodeHash]: impl at ${implAddr} has no code`);
+        continue;
+      }
+      const implHashLive = keccak256(implCode);
+      const implResult = applyPin(
+        target.obj, 'implCodeHash', implHashLive, target.label, conflicts, unchanged, pinned
       );
-      continue;
+      if (implResult === 'pinned') {
+        dirtyFiles.set(target.file, target.serialize);
+      }
     }
-    target.apply(hash);
-    dirtyFiles.set(target.file, target.serialize);
-    pinned.push(`${target.label} -> ${hash}`);
   }
 
   for (const [file, serialize] of dirtyFiles) {
@@ -228,13 +310,13 @@ async function main() {
     unpinned.forEach(p => console.log(`  - ${p}`));
   }
   if (conflicts.length) {
-    console.log('\n❗ Existing-pin conflicts (NOT overwritten — investigate, these may be substituted contracts):');
+    console.log('\n❗ Existing-pin conflicts (NOT overwritten — investigate):');
     conflicts.forEach(p => console.log(`  ! ${p}`));
   }
   console.log('');
 
-  // A conflict on an entry that is supposed to be verified-correct is a loud
-  // signal: either the code legitimately changed or the address was swapped.
+  // A conflict on a verified-correct entry is a loud signal: either the code
+  // legitimately changed or the address was swapped. Exit non-zero so CI catches it.
   if (conflicts.length) {
     process.exit(EXIT_CODES.VALIDATION_ERROR);
   }

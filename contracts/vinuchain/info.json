@@ -35,7 +35,8 @@
       "type": "staking",
       "chainId": 206,
       "description": "Legacy testnet Quota/Payback EIP-1967 proxy kept for historical transactions. PaybackV2 switched active quota accounting to the non-proxy QuotaContractV2 entry on 2026-05-16.",
-      "codeHash": "0x1e71c4a5b01c61a4b1a4afa98257a085e472bfc63a362efa77be9a23e714cdc9"
+      "codeHash": "0x1e71c4a5b01c61a4b1a4afa98257a085e472bfc63a362efa77be9a23e714cdc9",
+      "implCodeHash": "0x73711ebcc33887dd6ce29edfb3e1eaa97e72e5abde5510685246083e337d3b8d"
     },
     {
       "name": "QuotaContract",

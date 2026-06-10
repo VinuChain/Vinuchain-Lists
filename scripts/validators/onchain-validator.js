@@ -13,22 +13,35 @@
  *   - the address has code (`eth_getCode !== '0x'`);
  *   - for ERC-20 tokens, `decimals()` matches the JSON decimals (hard);
  *   - for ERC-20 tokens, `symbol()` matches the JSON symbol (hard when the
- *     on-chain symbol decodes cleanly; tolerated only when `symbol()` reverts
- *     or returns an undecodable value, as some legitimate tokens do).
+ *     on-chain symbol decodes cleanly; see below for the fail-closed rule).
  *
- * Identity pinning (the real substitution defense): an entry MAY carry a
- * `codeHash` = keccak256 of the deployed bytecode (eth_getCode) for that
- * address on its declared chain. When present, the validator fetches the live
- * code, hashes it, and HARD-ERRORS on any mismatch — a swapped address yields
- * different bytecode, so this catches the AUD-01 substitution that
- * code-exists + matching-decimals cannot. When absent, the entry is flagged
- * with a WARNING that it is not identity-pinned, so the registry can ratchet
- * every entry toward a pin over time.
+ * Bytecode-type pinning with `codeHash`: an entry MAY carry a `codeHash` =
+ * keccak256 of the deployed runtime bytecode (eth_getCode result). When
+ * present, the validator fetches the live code, hashes it, and HARD-ERRORS on
+ * any mismatch — this detects a substituted address whose bytecode differs from
+ * the expected contract type.
  *
- * ERC-20 tokens additionally fail closed on identity: a token must verify at
- * least one STRONG signal — a matching codeHash OR a cleanly-decoded matching
- * symbol(). A token whose symbol() reverts AND has no codeHash is a HARD ERROR,
- * because decimals + code-existence alone are forgeable.
+ * IMPORTANT SCOPE OF `codeHash`: keccak256(runtime bytecode) pins the
+ * contract's *type* (i.e. "this is the right bytecode"), not a unique
+ * *instance*. Multiple distinct token contracts can share the same runtime
+ * bytecode (e.g. BTC@VinuChain, USDT@VinuChain, ETH@VinuChain are all
+ * deployed from the same bridged-token factory and share one codeHash).
+ * A codeHash match therefore proves "the expected contract bytecode is
+ * deployed here" but cannot by itself distinguish which of several
+ * identically-bytecoded instances is present.
+ *
+ * Because of this, ERC-20 tokens ALWAYS require a cleanly-decoded symbol()
+ * match (or name() match as fallback) to establish per-instance identity —
+ * codeHash alone is not sufficient for tokens. Specifically: if symbol() does
+ * not cleanly decode to the expected symbol AND name() does not cleanly decode
+ * to the expected name, that is a HARD ERROR even when a codeHash matches.
+ * decimals() remains a hard check throughout.
+ *
+ * For proxy contracts: when a contract entry carries an `implCodeHash`, the
+ * validator reads the EIP-1967 implementation slot (0x360894...) via
+ * eth_getStorageAt and verifies that the implementation address's bytecode
+ * keccak256 matches the pinned value. This adds per-instance depth for
+ * contracts that have no symbol/name but delegate to a unique implementation.
  *
  * It reuses the chain-ID-guard + RPC-health-probe pattern from
  * scripts/update-vns-oracle.js: an endpoint is only trusted after its
@@ -50,9 +63,16 @@ const {
 } = require('../utils/constants');
 
 // ERC-20 read selectors (computed once; avoids pulling a full ABI/ethers
-// Interface just for three constant 4-byte selectors).
+// Interface just for the constant 4-byte selectors).
 const SELECTOR_DECIMALS = '0x313ce567'; // decimals()
-const SELECTOR_SYMBOL = '0x95d89b41'; // symbol()
+const SELECTOR_SYMBOL = '0x95d89b41';   // symbol()
+const SELECTOR_NAME = '0x06fdde03';     // name()
+
+// EIP-1967 transparent/UUPS proxy implementation slot. When an entry carries
+// an `implCodeHash`, this slot is read via eth_getStorageAt to locate the
+// implementation address, then that address's bytecode is hashed and compared.
+const EIP1967_IMPL_SLOT =
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
 
 const DEFAULT_TIMEOUT_MS = Number(process.env.ONCHAIN_RPC_TIMEOUT_MS || 10_000);
 
@@ -201,9 +221,36 @@ async function ethCall(url, to, data, fetchImpl, timeoutMs) {
   return rawJsonRpc(url, 'eth_call', [{ to, data }, 'latest'], fetchImpl, timeoutMs);
 }
 
+async function getStorageAt(url, address, slot, fetchImpl, timeoutMs) {
+  return rawJsonRpc(url, 'eth_getStorageAt', [address, slot, 'latest'], fetchImpl, timeoutMs);
+}
+
 /**
- * Check a single token against its chain. Returns
- * { errors: [], warnings: [] }.
+ * Given a contract address that may be an EIP-1967 transparent/UUPS proxy,
+ * read the implementation slot and return the implementation address (lowercase
+ * `0x`-prefixed, 42 chars), or null if the slot is zero / unset.
+ */
+async function readEip1967Impl(url, address, fetchImpl, timeoutMs) {
+  const raw = await getStorageAt(url, address, EIP1967_IMPL_SLOT, fetchImpl, timeoutMs);
+  // Storage value is a 32-byte hex; the address occupies the low 20 bytes.
+  if (!raw || raw === '0x' || raw === ('0x' + '0'.repeat(64))) return null;
+  return '0x' + raw.slice(-40).toLowerCase();
+}
+
+/**
+ * Check a single token against its chain. Returns { errors: [], warnings: [] }.
+ *
+ * Per-instance identity rule (fail-closed):
+ *   Because multiple token contracts can share the same runtime bytecode (e.g.
+ *   bridged tokens deployed from the same factory), codeHash alone cannot
+ *   distinguish instances. Per-instance identity for ERC-20 tokens therefore
+ *   requires at least one cleanly-decoded matching on-chain string: symbol()
+ *   is tried first; if it reverts, name() is tried as a fallback. Both
+ *   mismatching is a HARD ERROR. Both reverting is also a HARD ERROR — there
+ *   is no instance-level signal and decimals+code alone are forgeable.
+ *
+ *   codeHash (when present) verifies bytecode type and hard-errors on a type
+ *   mismatch, but does NOT count as the per-instance identity signal for tokens.
  */
 async function checkToken(url, token, fetchImpl, timeoutMs) {
   const errors = [];
@@ -216,28 +263,27 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
     return { errors, warnings };
   }
 
-  // codeHash identity pin — the strongest signal. A matching pin is by itself a
-  // sufficient identity proof; a mismatch is the substitution this validator
-  // exists to catch and is always a hard error.
-  let codeHashVerified = false;
+  // codeHash bytecode-type pin — verifies that the expected contract bytecode
+  // is deployed here (pins type, not instance). A mismatch means the address
+  // hosts a different contract type and is always a hard error. A match does
+  // NOT by itself prove per-instance identity for tokens — instance identity
+  // comes from symbol()/name() below.
   if (token.codeHash) {
     const onChainHash = keccak256(code);
     if (onChainHash.toLowerCase() !== String(token.codeHash).toLowerCase()) {
       errors.push(
         `${label}: on-chain code keccak256 ${onChainHash} != pinned codeHash ${token.codeHash} ` +
-        `(substituted contract or stale pin)`
+        `(wrong contract type or stale pin)`
       );
-    } else {
-      codeHashVerified = true;
     }
   } else {
     warnings.push(
-      `${label}: no codeHash pin — entry is not identity-pinned. ` +
-      `Capture one with \`npm run capture:codehashes\` to harden against address substitution.`
+      `${label}: no codeHash pin — bytecode type is not pinned. ` +
+      `Capture one with \`npm run capture:codehashes\` to detect contract-type substitution.`
     );
   }
 
-  // decimals() — hard check
+  // decimals() — hard check always
   try {
     const decRaw = await ethCall(url, token.address, SELECTOR_DECIMALS, fetchImpl, timeoutMs);
     const onChainDecimals = parseHexInt(decRaw);
@@ -250,10 +296,14 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
     errors.push(`${label}: decimals() call failed: ${e.message}`);
   }
 
-  // symbol() — hard when it decodes cleanly: a readable on-chain symbol that
-  // disagrees with the registry is exactly the phishing-substitution vector
-  // this validator exists to block.
-  let symbolDecoded = false; // cleanly decoded to *something* (match or not)
+  // Per-instance identity: symbol() then name() as fallback.
+  // A cleanly-decoded value that MISMATCHES is always a hard error.
+  // If symbol() does not decode cleanly, name() is attempted.
+  // If neither decodes cleanly, that is a hard error — codeHash alone cannot
+  // distinguish instances of identical-bytecode tokens.
+  let instanceVerified = false;
+
+  let symbolDecoded = false;
   try {
     const symRaw = await ethCall(url, token.address, SELECTOR_SYMBOL, fetchImpl, timeoutMs);
     const onChainSymbol = decodeAbiString(symRaw);
@@ -263,26 +313,46 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
         errors.push(
           `${label}: on-chain symbol "${onChainSymbol}" != declared "${token.symbol}"`
         );
+        // Mismatched symbol — don't fall through to name(); the symbol disagrees.
+        return { errors, warnings };
       }
+      instanceVerified = true;
     }
   } catch (e) {
-    // symbol() reverted or the endpoint errored — undecodable symbol is the
-    // only tolerated case, and only when some OTHER strong identity signal
-    // (codeHash) holds. Handled by the fail-closed check below.
-    warnings.push(`${label}: symbol() call failed: ${e.message}`);
+    warnings.push(`${label}: symbol() call failed (trying name() fallback): ${e.message}`);
   }
 
-  // Token identity fail-closed: an ERC-20 entry must verify at least ONE strong
-  // identity signal — a matching codeHash OR a cleanly-decoded matching
-  // symbol(). decimals + code-existence alone are forgeable. A cleanly-decoded
-  // MISMATCHING symbol already hard-errored above, so we only add the
-  // fail-closed error when symbol() did not decode at all (revert/bytes32) AND
-  // no codeHash verified — that is the previously-tolerated-but-forgeable case.
-  if (!codeHashVerified && !symbolDecoded) {
+  // nameDecoded: true if name() returned any decodable string (match or not).
+  let nameDecoded = false;
+  if (!symbolDecoded) {
+    // symbol() returned nothing decodable — try name() as a fallback instance signal.
+    try {
+      const nameRaw = await ethCall(url, token.address, SELECTOR_NAME, fetchImpl, timeoutMs);
+      const onChainName = decodeAbiString(nameRaw);
+      if (onChainName) {
+        nameDecoded = true;
+        if (onChainName !== token.name) {
+          errors.push(
+            `${label}: on-chain name "${onChainName}" != declared "${token.name}" ` +
+            `(and symbol() did not decode — no instance identity)`
+          );
+        } else {
+          instanceVerified = true;
+        }
+      }
+    } catch (e) {
+      warnings.push(`${label}: name() call also failed: ${e.message}`);
+    }
+  }
+
+  // Fail-closed only when NEITHER string decoded to anything at all (both
+  // reverted or returned empty). A decoded-but-mismatching string already
+  // pushed a hard error above; adding a second error here would be redundant.
+  if (!instanceVerified && !symbolDecoded && !nameDecoded) {
     errors.push(
-      `${label}: no strong identity signal — symbol() did not cleanly decode to "${token.symbol}" ` +
-      `and there is no matching codeHash pin. decimals+code alone are forgeable; ` +
-      `add a codeHash pin (\`npm run capture:codehashes\`) to harden this entry.`
+      `${label}: no per-instance identity — neither symbol() nor name() decoded to any ` +
+      `value. decimals+codeHash alone cannot distinguish instances of ` +
+      `identical-bytecode tokens. Fix the registry entry or investigate the address.`
     );
   }
 
@@ -290,10 +360,19 @@ async function checkToken(url, token, fetchImpl, timeoutMs) {
 }
 
 /**
- * Check a single contract entry: code must exist on its declared chain, and —
- * when a codeHash is pinned — the live bytecode's keccak256 must match it
- * (hard). An entry without a codeHash passes on code-existence but is flagged
- * with a warning that it is not identity-pinned.
+ * Check a single contract entry: code must exist on its declared chain.
+ *
+ * codeHash (when present): verifies bytecode type — keccak256(runtime bytecode)
+ * pins "the expected contract type is deployed here." A mismatch is a hard
+ * error; absent → warning that bytecode type is not pinned. Note: for
+ * non-token contracts there is no symbol/name cross-check, so codeHash is the
+ * primary type check, but it pins type, not a unique instance.
+ *
+ * implCodeHash (when present): for EIP-1967 proxy contracts, reads the
+ * implementation slot (0x360894...) via eth_getStorageAt to locate the
+ * implementation address, then verifies that address's bytecode keccak256
+ * matches the pinned value. This adds depth for proxies where codeHash only
+ * pins the proxy shell bytecode.
  *
  * Returns { errors: string[], warnings: string[] }.
  */
@@ -307,19 +386,54 @@ async function checkContractCode(url, contract, projectSlug, fetchImpl, timeoutM
     return { errors, warnings };
   }
 
+  // Bytecode-type pin (proxy shell or non-proxy contract).
   if (contract.codeHash) {
     const onChainHash = keccak256(code);
     if (onChainHash.toLowerCase() !== String(contract.codeHash).toLowerCase()) {
       errors.push(
         `${label}: on-chain code keccak256 ${onChainHash} != pinned codeHash ${contract.codeHash} ` +
-        `(substituted contract or stale pin)`
+        `(wrong contract type or stale pin)`
       );
     }
   } else {
     warnings.push(
-      `${label}: no codeHash pin — entry is not identity-pinned. ` +
-      `Capture one with \`npm run capture:codehashes\` to harden against address substitution.`
+      `${label}: no codeHash pin — bytecode type is not pinned. ` +
+      `Capture one with \`npm run capture:codehashes\` to detect contract-type substitution.`
     );
+  }
+
+  // EIP-1967 implementation pin: when implCodeHash is present, read the proxy
+  // implementation slot and verify the implementation's bytecode hash. This
+  // catches an attacker who replaces the proxy's implementation while leaving
+  // the proxy shell bytecode unchanged.
+  if (contract.implCodeHash) {
+    try {
+      const implAddr = await readEip1967Impl(url, contract.address, fetchImpl, timeoutMs);
+      if (!implAddr) {
+        errors.push(
+          `${label}: implCodeHash is pinned but EIP-1967 implementation slot is zero ` +
+          `(not a proxy or implementation not set)`
+        );
+      } else {
+        const implCode = await getCode(url, implAddr, fetchImpl, timeoutMs);
+        if (!implCode || implCode === '0x') {
+          errors.push(
+            `${label}: implementation at ${implAddr} has no code`
+          );
+        } else {
+          const implHash = keccak256(implCode);
+          if (implHash.toLowerCase() !== String(contract.implCodeHash).toLowerCase()) {
+            errors.push(
+              `${label}: implementation ${implAddr} code keccak256 ${implHash} ` +
+              `!= pinned implCodeHash ${contract.implCodeHash} ` +
+              `(implementation was upgraded or replaced)`
+            );
+          }
+        }
+      }
+    } catch (e) {
+      errors.push(`${label}: implCodeHash check failed: ${e.message}`);
+    }
   }
 
   return { errors, warnings };
@@ -436,4 +550,7 @@ module.exports = {
   rpcUrlsForChain,
   SELECTOR_DECIMALS,
   SELECTOR_SYMBOL,
+  SELECTOR_NAME,
+  EIP1967_IMPL_SLOT,
+  readEip1967Impl,
 };

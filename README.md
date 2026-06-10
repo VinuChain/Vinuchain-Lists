@@ -51,32 +51,45 @@ VinuChain Name Service (VNS) deployment and the legacy/active quota contracts;
 these are tagged `"chainId": 206` and the CI on-chain check verifies them
 against the testnet RPC (tolerating its periodic reboots).
 
-### Identity pinning with `codeHash`
+### Bytecode pinning with `codeHash` and `implCodeHash`
 
 A correctly-checksummed address proves the address is *well-formed*, not that it
-hosts the contract the entry claims. A substituted-but-checksummed address of an
-attacker's own contract — one that even returns a matching `decimals()` — passes
-checksum and "code exists" checks. The defense is **`codeHash`**: an optional
-field on every token and contract entry holding the **keccak256 of the deployed
-bytecode** (`eth_getCode`) for that address on its declared `chainId`.
+hosts the contract the entry claims. The `codeHash` and `implCodeHash` fields add
+on-chain pinning to close that gap.
 
-- When an entry **has** a `codeHash`, `npm run validate:onchain` fetches the live
-  code, hashes it, and **hard-errors** on any mismatch. A swapped address yields
-  different bytecode, so this is the real substitution defense.
-- When an entry **lacks** a `codeHash`, the older checks still run but the entry
-  is flagged with a **warning** that it is not identity-pinned, so coverage can be
-  ratcheted to 100%.
-- ERC-20 tokens additionally **fail closed**: a token must verify at least one
-  strong identity signal — a matching `codeHash` **or** a cleanly-decoded matching
-  `symbol()`. A token whose `symbol()` reverts **and** has no `codeHash` is now a
-  hard error, because `decimals()` + code-existence alone are forgeable.
+**`codeHash`** holds the keccak256 of the deployed runtime bytecode (`eth_getCode`)
+for the entry's address on its declared `chainId`. When present,
+`npm run validate:onchain` fetches the live code, hashes it, and hard-errors on any
+mismatch — this detects a substituted address whose bytecode differs from the
+expected contract type.
 
-Capture or refresh pins with `npm run capture:codehashes`, which fetches
-`eth_getCode` for every registry entry on its declared chain and writes the
-keccak256 back as `codeHash`. It never overwrites an existing pin that disagrees
-with the live code (pass `--force` to do so) — a disagreement is surfaced loudly
-because it may indicate a substituted contract. Testnet-206 entries unreachable
-during a reboot are skipped and reported as left-unpinned.
+**Scope of `codeHash`:** it pins the contract's *type* (bytecode), not a unique
+*instance*. Multiple contracts can legitimately share identical runtime bytecode —
+for example BTC@VinuChain, USDT@VinuChain, and ETH@VinuChain are all deployed from
+the same bridged-token factory and share one `codeHash`. A `codeHash` match therefore
+proves "the expected contract bytecode is deployed here" but cannot by itself
+distinguish which of several identically-bytecoded instances is present.
+
+**ERC-20 tokens fail closed on per-instance identity:** because `codeHash` alone
+cannot distinguish instances, token entries always require at least one cleanly-decoded
+matching on-chain string — `symbol()` is checked first; `name()` is tried as a
+fallback if `symbol()` reverts. If neither decodes to the declared value that is a
+hard error, regardless of whether `codeHash` matches. `decimals()` is always a hard
+check too. A cleanly-decoded but mismatching `symbol()` or `name()` is also a hard
+error — that is the phishing-substitution signal this validator exists to catch.
+
+**`implCodeHash`** (contract entries only) adds depth for EIP-1967 transparent/UUPS
+proxy contracts. When present, the validator reads the implementation slot
+(`0x360894…`) via `eth_getStorageAt` and hard-errors if the implementation address's
+bytecode keccak256 differs from the pinned value — catching an implementation upgrade
+or replacement that leaves the proxy shell's `codeHash` unchanged.
+
+Capture or refresh all pins with `npm run capture:codehashes`, which fetches
+`eth_getCode` (and for proxy-shaped entries also `eth_getStorageAt`) for every
+registry entry and writes the keccak256 values back. It never overwrites an existing
+pin that disagrees with the live value without `--force` — a disagreement is surfaced
+loudly because it may signal a substituted or upgraded contract. Testnet-206 entries
+unreachable during a reboot are skipped and reported as left-unpinned.
 
 ---
 
@@ -246,7 +259,7 @@ Each token submission requires **two files** in `tokens/{address}/`:
 ```json
 {
   "description": "Brief description of the token and its purpose (10-500 chars)",
-  "codeHash": "0x...",            // keccak256 of deployed bytecode (identity pin, see below)
+  "codeHash": "0x...",            // keccak256 of deployed bytecode (pins type, not instance — see above)
   "project": "project-slug",      // Reference to contracts/{project-slug}/
   "logoURI": "https://...",       // HTTPS URL to logo (200x200px PNG recommended)
   "website": "https://...",       // Official website
@@ -320,7 +333,8 @@ contracts/{project-slug}/
       "name": "Factory",                                    // PascalCase only
       "address": "0xd74dEe1C78D5C58FbdDe619b707fcFbAE50c3EEe", // EIP-55 checksummed
       "type": "factory",                                    // See contract types below
-      "codeHash": "0x...",                                  // Optional identity pin (see Network Information)
+      "codeHash": "0x...",                                  // Optional bytecode-type pin (see above)
+      "implCodeHash": "0x...",                              // Optional EIP-1967 impl pin (proxy contracts only)
       "description": "Factory contract description"
     }
   ],
