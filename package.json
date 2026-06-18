@@ -27,9 +27,11 @@
     "test:unit": "mocha 'tests/unit/**/*.test.js' --ignore 'tests/**/*.hh.test.js' && npm run test:hardhat",
     "test:integration": "mocha tests/integration/**/*.test.js",
     "test:security": "mocha tests/security/**/*.test.js",
-    "test:all": "npm run validate && npm test",
+    "test:all": "npm run validate && npm run validate:marketplace && npm test",
     "test:verbose": "mocha 'tests/**/*.test.js' --ignore 'tests/**/*.hh.test.js' --reporter spec && npm run test:hardhat",
-    "test:watch": "mocha 'tests/**/*.test.js' --ignore 'tests/**/*.hh.test.js' --watch"
+    "test:watch": "mocha 'tests/**/*.test.js' --ignore 'tests/**/*.hh.test.js' --watch",
+    "build:marketplace": "node scripts/build-marketplace.js --out dist",
+    "validate:marketplace": "node scripts/validate-marketplace.js"
   },
   "repository": {
     "type": "git",

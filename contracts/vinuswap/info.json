@@ -59,5 +59,21 @@
     "twitter": "https://x.com/vinu_swap",
     "telegram": "https://t.me/vinuchain",
     "discord": "https://discord.gg/vinu"
+  },
+  "marketplace": {
+    "id": "vinuswap",
+    "title": "VinuSwap",
+    "url": "https://vinuchain.vinuswap.org",
+    "logo": "https://mainnet.vinuexplorer.org/images/vinuswap.svg",
+    "shortDescription": "Concentrated-liquidity DEX on VinuChain, powered by Uniswap v3.",
+    "description": "VinuSwap is a concentrated-liquidity decentralized exchange on VinuChain built on Uniswap v3. It features tiered VINU-balance fee discounts, protocol fee splitting via an on-chain Controller, and NFT-represented liquidity positions.",
+    "categories": ["DEX"],
+    "author": "VinuChain",
+    "external": true,
+    "networks": [206, 207],
+    "twitter": "https://x.com/vinu_swap",
+    "telegram": "https://t.me/vinuchain",
+    "discord": "https://discord.gg/vinu",
+    "github": "https://github.com/VinuChain"
   }
 }

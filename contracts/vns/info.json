@@ -216,5 +216,21 @@
     "twitter": "https://x.com/vinuchain",
     "telegram": "https://t.me/vinuchain",
     "discord": "https://discord.gg/vinu"
+  },
+  "marketplace": {
+    "id": "vns",
+    "title": "VinuChain Name Service (VNS)",
+    "url": "https://testnet.vinuexplorer.org/name-services/domains",
+    "logo": "https://mainnet.vinuexplorer.org/images/vinuchain.svg",
+    "shortDescription": "Register and manage .vinu names on the VinuChain testnet.",
+    "description": "VinuChain Name Service (VNS) lets you register human-readable .vinu domain names on the VinuChain testnet. VNS is an ENS-compatible name system that maps wallet addresses, smart contracts, and metadata to memorable .vinu names.",
+    "categories": ["Other"],
+    "author": "VinuChain",
+    "external": true,
+    "networks": [206],
+    "twitter": "https://x.com/vinuchain",
+    "telegram": "https://t.me/vinuchain",
+    "discord": "https://discord.gg/vinu",
+    "github": "https://github.com/VinuChain"
   }
 }
