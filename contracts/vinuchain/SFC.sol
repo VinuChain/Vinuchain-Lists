@@ -1547,6 +1547,26 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         require(amount > 0, "zero amount");
         require(block.timestamp <= 2**96 - 1, "timestamp overflow for uint96");
 
+        // Initialize the reward cursor for a never-before-seen delegation BEFORE
+        // stashing. Without this, stashedRewardsUntilEpoch starts at 0 and the
+        // cursor can only advance MAX_CORRUPTION_CHECK_EPOCHS per _stashRewards
+        // call. For a delegator who joins after genesis, that strands the cursor
+        // in the all-zero-accumulatedRewardPerToken dead zone below the
+        // validator's createdEpoch: claimRewards/restakeRewards revert
+        // "zero rewards" while pendingRewards() (a view) integrates the full
+        // range and over-reports. Seeding the cursor at currentSealedEpoch makes
+        // the first delegation start accruing from the current sealed epoch, the
+        // same point _stashRewards would (correctly) settle a delegation that
+        // already had history. The getStake==0 && cursor==0 guard ensures we only
+        // seed a genuine first delegation and never clobber a re-delegation that
+        // already carries a non-zero cursor.
+        if (
+            getStake[delegator][toValidatorID] == 0 &&
+            stashedRewardsUntilEpoch[delegator][toValidatorID] == 0
+        ) {
+            stashedRewardsUntilEpoch[delegator][toValidatorID] = currentSealedEpoch;
+        }
+
         _stashRewards(delegator, toValidatorID);
 
         uint256 stakePos = stakePosition[delegator][toValidatorID];
