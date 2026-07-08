@@ -3477,12 +3477,15 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         require(getSelfStake(validatorID) >= minSelfStake(), "insufficient self-stake");
         require(_checkDelegatedStakeLimit(validatorID), "validator's delegations limit is exceeded");
 
-        // Capture the pre-gap reward rate R (flat-carried at the deactivation epoch, see
-        // _sealEpoch_rewards deactivated-branch) BEFORE clearing deactivatedEpoch, so the reward
-        // index can be healed across the offline gap. R==0 => no rewards accrued pre-gap => no
-        // inversion => heal records stay 0 and the read-through is inert.
+        // Capture the pre-gap reward rate R BEFORE clearing deactivatedEpoch, so the reward index
+        // can be healed across the offline gap. R==0 => no rewards accrued pre-gap => no inversion
+        // => heal records stay 0 and the read-through is inert. Use the EFFECTIVE rate (which honors
+        // any owner correction of the deactivation epoch), NOT the raw snapshot: if deactEpoch was
+        // corrected upward, a raw floor would leave the gap epochs clamped below the corrected
+        // deactEpoch rate, re-inverting at the deactEpoch->gap boundary and freezing delegators —
+        // defeating self-service for corrected validators.
         uint256 deactEpoch = getValidator[validatorID].deactivatedEpoch;
-        reactivationHealFloor[validatorID] = getEpochSnapshot[deactEpoch].accumulatedRewardPerToken[validatorID];
+        reactivationHealFloor[validatorID] = _getEffectiveRewardRate(deactEpoch, validatorID);
         reactivationHealFrom[validatorID] = deactEpoch.add(1);
 
         totalActiveStake = totalActiveStake.add(getValidator[validatorID].receivedStake);
