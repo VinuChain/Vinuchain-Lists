@@ -1167,6 +1167,9 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         return getEpochSnapshot[epoch].receivedStake[validatorID];
     }
 
+    // Returns the RAW per-epoch accumulator. Across a reactivation-healed offline gap this reads 0
+    // for gap epochs; use getEffectiveRewardRate(epoch, validatorID) for the heal-aware value that
+    // on-chain reward math uses when reconstructing delegator rewards.
     function getEpochAccumulatedRewardPerToken(
         uint256 epoch,
         uint256 validatorID
@@ -2153,7 +2156,47 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         if (isEpochCorrected[epoch][validatorID]) {
             return correctedEpochRewardRate[epoch][validatorID];
         }
-        return getEpochSnapshot[epoch].accumulatedRewardPerToken[validatorID];
+        uint256 raw = getEpochSnapshot[epoch].accumulatedRewardPerToken[validatorID];
+        // Heal reactivation gaps: across a validator's offline gap the raw rate is 0, which would
+        // invert the monotonic index. Carry the captured pre-gap rate R forward for gap epochs so
+        // the cursor scan (_safeCursorPosition) and reward math (_newRewardsOf) see a non-decreasing
+        // stream. Applies ONLY where a floor is set AND epoch >= reactivationHealFrom AND raw < floor,
+        // so post-re-entry epochs (raw >= R) and pre-gap/unrelated epochs are untouched. Limitation:
+        // because records are never cleared, a hypothetical post-re-entry corruption that dropped the
+        // raw rate BELOW the old floor R would be clamped up to R (masked toward the last-known-good
+        // pre-gap value); inversions at or above R are unaffected. isEpochCorrected takes precedence.
+        uint256 floorRate = reactivationHealFloor[validatorID];
+        if (floorRate != 0 && epoch >= reactivationHealFrom[validatorID] && raw < floorRate) {
+            return floorRate;
+        }
+        return raw;
+    }
+
+    // Reseed base for a validator's re-entry epoch in _sealEpoch_rewards. Normally the raw
+    // prevSnapshot accumulator; but if the validator is re-entering after a healed offline gap
+    // (prevSnapshot is a gap epoch holding 0 while a heal floor R is set), build from R instead
+    // so the monotonic index never dips below its pre-gap value. Kept as a separate frame so the
+    // seal loop stays within the EVM stack limit. Mirrors the read-side floor in
+    // _getEffectiveRewardRate; does NOT route through isEpochCorrected (reseed semantics unchanged
+    // for all non-heal validators, for whom reactivationHealFloor is 0 and rawBase is returned).
+    // Interaction note: rawBase is the raw prevSnapshot value, so if the owner correction pipeline
+    // had corrected the re-entry base (gap) epoch to some C != R, the reseed would still build from
+    // R, not C. That requires a conflicting owner action on a gap epoch the source-heal already
+    // makes monotonic and is not expected in practice; documented for completeness.
+    function _healedReseedBase(uint256 validatorID, uint256 rawBase)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 reseedFloor = reactivationHealFloor[validatorID];
+        if (
+            reseedFloor != 0 &&
+            currentSealedEpoch >= reactivationHealFrom[validatorID] &&
+            rawBase < reseedFloor
+        ) {
+            return reseedFloor;
+        }
+        return rawBase;
     }
 
     function _pendingRewards(address delegator, uint256 toValidatorID)
@@ -2205,11 +2248,13 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         }
         for (uint256 epoch = loopStart; epoch < endEpoch; epoch++) {
             uint256 nextEpoch = epoch.add(1);
-            uint256 currentRate = getEpochSnapshot[nextEpoch].accumulatedRewardPerToken[toValidatorID];
-            // Use effective rate as baseline so that corrections applied to earlier epochs
-            // are reflected when checking subsequent ones. Without this, a partial recovery
-            // in raw rates (epoch N+1 raw > epoch N raw, but epoch N+1 raw < corrected epoch N)
-            // would go undetected, creating an irresolvable correction deadlock.
+            // Both sides use the effective rate so that (a) corrections applied to earlier epochs
+            // are reflected when checking subsequent ones (without this a partial raw recovery —
+            // epoch N+1 raw > epoch N raw but < corrected epoch N — would go undetected, deadlocking
+            // corrections), and (b) a reactivation-healed gap (raw 0 but the effective rate carried
+            // forward to the pre-gap R) is not flagged as a false-positive corruption after every
+            // self-reactivation.
+            uint256 currentRate = _getEffectiveRewardRate(nextEpoch, toValidatorID);
             uint256 prevRate = _getEffectiveRewardRate(epoch, toValidatorID);
 
             if (currentRate < prevRate) {
@@ -3060,10 +3105,18 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
             if (receivedStake != 0) {
                 rewardPerToken = delegatorsReward.mul(Decimal.unit()).div(receivedStake);
             }
+            // If this validator is re-entering after a healed offline gap, prevSnapshot (a gap
+            // epoch) holds 0; _healedReseedBase builds from the carried pre-gap rate R instead so
+            // the monotonic index never dips. Extracted to a helper to keep this loop body within
+            // the EVM 16-local stack limit (solc 0.5.17). Works for any re-entry epoch, absorbing
+            // the Opera two-phase validator-set activation lag.
             snapshot.accumulatedRewardPerToken[validatorID] =
-                prevSnapshot.accumulatedRewardPerToken[validatorID].add(
-                    rewardPerToken
-                );
+                _healedReseedBase(validatorID, prevSnapshot.accumulatedRewardPerToken[validatorID])
+                    .add(rewardPerToken);
+            // The accumulatedOriginatedTxsFee / accumulatedUptime writes below are intentionally
+            // unchanged by the reactivation heal: they do not feed _newRewardsOf, and the tx-fee
+            // delta at re-entry is computed against prevSnapshot's fee (0 for a gap epoch) with
+            // the node re-add semantics verified separately.
             snapshot.accumulatedOriginatedTxsFee[
                 validatorID
             ] = accumulatedOriginatedTxsFee[i];
@@ -3396,31 +3449,43 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         return penalty;
     }
 
-    function reactivateValidator(uint256 validatorID) external onlyOwner {
+    function reactivateValidator(uint256 validatorID) external nonReentrant {
         require(_validatorExists(validatorID), "validator doesn't exist");
+
+        // Owner retains full (looser) power; any other caller must be the validator's own
+        // (immutable, non-rotatable) auth key, may reactivate ONLY from a pure-OFFLINE status,
+        // and only after an anti-flap cooldown. Doublesign/withdrawn/unknown bits fail closed.
+        bool byOwner = isOwner();
+        if (!byOwner) {
+            require(msg.sender == getValidator[validatorID].auth, "not authorized to reactivate");
+            require(
+                (getValidator[validatorID].status & ~OFFLINE_BIT) == 0,
+                "self-reactivation allowed only from offline status"
+            );
+            require(
+                _now() >= getValidator[validatorID].deactivatedTime.add(offlinePenaltyThresholdTime),
+                "reactivation cooldown not elapsed"
+            );
+        }
+
         require(getValidator[validatorID].status != OK_STATUS, "already active");
-        require(
-            getValidator[validatorID].deactivatedEpoch != 0,
-            "validator was never activated"
-        );
+        require(getValidator[validatorID].deactivatedEpoch != 0, "validator was never activated");
         require(
             (getValidator[validatorID].status & CHEATER_MASK) == 0,
             "cheaters cannot be reactivated"
         );
-        require(
-            getSelfStake(validatorID) >= minSelfStake(),
-            "insufficient self-stake"
-        );
+        require(getSelfStake(validatorID) >= minSelfStake(), "insufficient self-stake");
+        require(_checkDelegatedStakeLimit(validatorID), "validator's delegations limit is exceeded");
 
-        // Perform delegations limit check before writing status/totalActiveStake to
-        // ensure all pre-conditions pass before any state is committed.
-        require(
-            _checkDelegatedStakeLimit(validatorID),
-            "validator's delegations limit is exceeded"
-        );
-        totalActiveStake = totalActiveStake.add(
-            getValidator[validatorID].receivedStake
-        );
+        // Capture the pre-gap reward rate R (flat-carried at the deactivation epoch, see
+        // _sealEpoch_rewards deactivated-branch) BEFORE clearing deactivatedEpoch, so the reward
+        // index can be healed across the offline gap. R==0 => no rewards accrued pre-gap => no
+        // inversion => heal records stay 0 and the read-through is inert.
+        uint256 deactEpoch = getValidator[validatorID].deactivatedEpoch;
+        reactivationHealFloor[validatorID] = getEpochSnapshot[deactEpoch].accumulatedRewardPerToken[validatorID];
+        reactivationHealFrom[validatorID] = deactEpoch.add(1);
+
+        totalActiveStake = totalActiveStake.add(getValidator[validatorID].receivedStake);
         getValidator[validatorID].status = OK_STATUS;
         // Clear deactivated state so _highestPayableEpoch returns currentSealedEpoch again,
         // allowing delegators to claim rewards up to the current epoch going forward.
@@ -3478,8 +3543,29 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         _reentrancyGuardCounter = 1;
     }
 
+    // --- Self-service reactivation reward-gap healing (proxy-safe: appended before __gap) ---
+    // When a validator is reactivated after an OFFLINE gap, its per-epoch
+    // accumulatedRewardPerToken is absent (default 0) for every gap epoch, inverting the
+    // monotonic reward index and freezing delegators (see _safeCursorPosition). These records
+    // let _getEffectiveRewardRate carry the pre-gap rate R forward across the gap window, and
+    // let _sealEpoch_rewards reseed the re-entry epoch from R — so no inversion is ever created
+    // and no owner correction is needed. Scoped strictly to epoch >= reactivationHealFrom with a
+    // set floor, so a genuine inversion outside a reactivation gap is never masked. Records are
+    // NOT cleared (a delegator may claim across the gap arbitrarily far in the future).
+    //
+    // KNOWN EDGE CASE (documented, non-blocking): a repeated deactivate->reactivate before a
+    // delegator stashes overwrites this single {floor,from} pair with the 2nd reactivation's
+    // (higher R2, later from), so a 1st-gap delegator could be re-stranded on gap1. A delegator
+    // who claims/delegates/undelegates (all of which stash) between the two gaps is unaffected; a
+    // FULLY PASSIVE delegator who does none of those relies on the backstop — the retained
+    // owner-correction pipeline and the sfc_patch8 Go backfill — NOT on the anti-flap cooldown
+    // alone (the cooldown only widens the window in which a stash can land; it does not itself heal).
+    mapping(uint256 => uint256) public reactivationHealFloor; // validatorID => pre-gap flat rate R (0 = none)
+    mapping(uint256 => uint256) public reactivationHealFrom;  // validatorID => first gap epoch (deactivatedEpoch+1)
+
     // Reserve storage slots for future upgrades without breaking storage layout
     // New gap (original SFC had no gap). Reserves space for future proxy-safe upgrades.
-    // 48 slots available after isGenesisValidator (1) + _reentrancyGuardCounter (1).
-    uint256[48] private __gap;
+    // 46 slots available after isGenesisValidator (1) + _reentrancyGuardCounter (1)
+    // + reactivationHealFloor (1) + reactivationHealFrom (1).
+    uint256[46] private __gap;
 }
