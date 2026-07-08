@@ -1550,27 +1550,40 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         require(amount > 0, "zero amount");
         require(block.timestamp <= 2**96 - 1, "timestamp overflow for uint96");
 
-        // Initialize the reward cursor for a never-before-seen delegation BEFORE
-        // stashing. Without this, stashedRewardsUntilEpoch starts at 0 and the
-        // cursor can only advance MAX_CORRUPTION_CHECK_EPOCHS per _stashRewards
-        // call. For a delegator who joins after genesis, that strands the cursor
-        // in the all-zero-accumulatedRewardPerToken dead zone below the
-        // validator's createdEpoch: claimRewards/restakeRewards revert
-        // "zero rewards" while pendingRewards() (a view) integrates the full
-        // range and over-reports. Seeding the cursor at currentSealedEpoch makes
-        // the first delegation start accruing from the current sealed epoch, the
-        // same point _stashRewards would (correctly) settle a delegation that
-        // already had history. The getStake==0 && cursor==0 guard ensures we only
-        // seed a genuine first delegation and never clobber a re-delegation that
-        // already carries a non-zero cursor.
-        if (
-            getStake[delegator][toValidatorID] == 0 &&
-            stashedRewardsUntilEpoch[delegator][toValidatorID] == 0
-        ) {
-            stashedRewardsUntilEpoch[delegator][toValidatorID] = currentSealedEpoch;
+        // Initialize the reward cursor for any ZERO-STAKE delegation (a genuine first delegation OR
+        // a returning delegator who fully exited and re-delegates). Without this, the cursor either
+        // stays at 0 and can only advance MAX_CORRUPTION_CHECK_EPOCHS per _stashRewards call (a
+        // post-genesis first delegation is stranded in the all-zero-accumulatedRewardPerToken dead
+        // zone below createdEpoch — claimRewards reverts "zero rewards" while pendingRewards
+        // over-reports), or (returning delegator) carries a stale cursor that lets _stashRewards
+        // settle it at the payable epoch E, over-minting the E->E+1 delta.
+        //
+        // The cursor is seeded to currentSealedEpoch+1 — the first epoch whose reward snapshot can
+        // include this newly-added stake. Seeding to E (=currentSealedEpoch) would let the new stake
+        // claim the E->E+1 accumulator delta, whose per-token denominator (_epochEndReceivedStake[E],
+        // captured at the seal of E) EXCLUDES this stake (added during the open epoch E+1) —
+        // over-minting one epoch. The stake is first counted in _epochEndReceivedStake[E+1] (the
+        // E+1->E+2 delta), exactly what a cursor at E+1 earns from. Because getStake==0 here, jumping
+        // the cursor forward to E+1 loses nothing: over any prior interval the delegator held zero
+        // stake so _newRewardsOf is 0, and any previously-settled _rewardsStash is untouched.
+        //
+        // _stashRewards is SKIPPED for a zero-stake delegation: there is nothing to settle, and it
+        // would pull the freshly-seeded cursor back to E via _safeCursorPosition's payable-epoch
+        // clamp, reopening the over-mint. The paired monotonic-cursor guard in _stashRewards (only
+        // write a strictly-greater cursor) additionally protects the +1 against a same-epoch
+        // undelegate/lock/unlock/second-delegate before E+1 seals.
+        //
+        // RESIDUAL (not fixable with a single per-(delegator,validator) cursor): ADDING stake to an
+        // existing non-zero position during E+1 still lets the whole position earn the E->E+1 delta
+        // whose denominator excluded the added amount (a one-epoch over-mint proportional to the
+        // added stake). Representing "old stake earns delta_{E+1}, new stake does not" needs
+        // per-tranche accounting; left as a documented residual biased toward the pre-existing
+        // behavior rather than under-paying the old stake.
+        if (getStake[delegator][toValidatorID] == 0) {
+            stashedRewardsUntilEpoch[delegator][toValidatorID] = currentSealedEpoch.add(1);
+        } else {
+            _stashRewards(delegator, toValidatorID);
         }
-
-        _stashRewards(delegator, toValidatorID);
 
         uint256 stakePos = stakePosition[delegator][toValidatorID];
         if (stakePos == 0) {
@@ -2222,6 +2235,14 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
 
     uint256 internal constant MAX_CORRUPTION_CHECK_EPOCHS = 100;
 
+    // Upper bound on the per-reactivation prior-gap physical backfill loop (repeated-reactivation
+    // safety). Each iteration is ~25k gas (one cold 0->nonzero SSTORE + two cold SLOADs), so 300
+    // caps the loop at ~7.5M gas — safely under the 20.5M MaxBlockGas even with the rest of
+    // reactivateValidator, so a long prior gap can never make reactivation itself un-callable.
+    // 300 epochs is ~50 days of continuous offline at the 4h MaxEpochDuration cap, far beyond any
+    // realistic single gap; a longer gap's tail falls back to the owner-correction backstop.
+    uint256 internal constant MAX_REACTIVATION_BACKFILL = 300;
+
     function checkAndLogEpochCorruption(uint256 toValidatorID, uint256 fromEpoch, uint256 toEpoch) external onlyOwner {
         require(_validatorExists(toValidatorID), "validator doesn't exist");
         _checkAndLogEpochCorruptionRange(toValidatorID, fromEpoch, toEpoch);
@@ -2284,8 +2305,15 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         uint256 safeCursor = _safeCursorPosition(delegator, toValidatorID, payableEpoch);
 
         Rewards memory nonStashedReward = _newRewardsUpTo(delegator, toValidatorID, safeCursor);
-        // Only write cursor to storage if it has advanced, avoiding unnecessary gas on no-op calls.
-        if (safeCursor != stashedRewardsUntilEpoch[delegator][toValidatorID]) {
+        // Advance the cursor ONLY forward (monotonic). Using strictly-greater rather than !=
+        // prevents the payable-epoch clamp in _safeCursorPosition (which returns payableEpoch when
+        // the cursor already sits above it) from dragging a freshly-seeded first-delegation cursor
+        // (currentSealedEpoch+1) back to currentSealedEpoch before that epoch seals — which would
+        // reopen the one-epoch over-mint. When safeCursor < cursor the reward above is 0 anyway
+        // (_newRewardsUpTo short-circuits on from >= to), so skipping the write settles nothing and
+        // is safe; corruption-blocking is unaffected because safeCursor >= payableEpoch still holds
+        // whenever a claim is actually payable.
+        if (safeCursor > stashedRewardsUntilEpoch[delegator][toValidatorID]) {
             stashedRewardsUntilEpoch[delegator][toValidatorID] = safeCursor;
         }
         _rewardsStash[delegator][toValidatorID] = sumRewards(
@@ -3485,6 +3513,34 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         // deactEpoch rate, re-inverting at the deactEpoch->gap boundary and freezing delegators —
         // defeating self-service for corrected validators.
         uint256 deactEpoch = getValidator[validatorID].deactivatedEpoch;
+
+        // Repeated-reactivation safety: the single {floor,from} record below is about to be
+        // overwritten by this (later) gap. If a PRIOR gap's record is still live, a fully passive
+        // delegator who never stashed across it would be re-stranded once the read-through window
+        // moves forward. Before overwriting, PHYSICALLY heal the prior gap: write its floor into each
+        // of its snapshot rates (raw 0 while the validator was absent) so those epochs stay monotone
+        // in storage without depending on the (now-moved) read-through. The loop STOPS at the first
+        // non-zero (re-entry) epoch AND at the first owner-corrected epoch (writing a fixed prior
+        // floor past a correction whose value exceeds it would itself create an inversion; the
+        // corrected value already wins via isEpochCorrected precedence, and the remaining tail falls
+        // to the owner-correction backstop). It is also capped at MAX_REACTIVATION_BACKFILL to bound
+        // gas; a prior gap longer than the cap likewise defers its tail to the backstop.
+        uint256 priorFloor = reactivationHealFloor[validatorID];
+        if (priorFloor != 0) {
+            uint256 e = reactivationHealFrom[validatorID];
+            uint256 healed = 0;
+            while (
+                e < deactEpoch &&
+                healed < MAX_REACTIVATION_BACKFILL &&
+                getEpochSnapshot[e].accumulatedRewardPerToken[validatorID] == 0 &&
+                !isEpochCorrected[e][validatorID]
+            ) {
+                getEpochSnapshot[e].accumulatedRewardPerToken[validatorID] = priorFloor;
+                e = e.add(1);
+                healed = healed.add(1);
+            }
+        }
+
         reactivationHealFloor[validatorID] = _getEffectiveRewardRate(deactEpoch, validatorID);
         reactivationHealFrom[validatorID] = deactEpoch.add(1);
 
