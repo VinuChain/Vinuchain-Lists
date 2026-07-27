@@ -42,7 +42,7 @@ programmatically — an address without a chainId is half an address.
 |----------|---------|---------|
 | **Chain Name** | VinuChain | VinuChain Testnet |
 | **Chain ID** (`chainId`) | `207` | `206` |
-| **RPC Endpoint** | https://vinuchain-rpc.com | https://vinufoundation-rpc.com |
+| **RPC Endpoint** | https://rpc.vinuchain.org | https://vinufoundation-rpc.com |
 | **Block Explorer** | [VinuExplorer](https://vinuexplorer.org/) | — |
 | **Native Token** | VC | VC |
 
