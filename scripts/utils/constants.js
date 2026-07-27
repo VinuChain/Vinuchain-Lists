@@ -42,7 +42,7 @@ module.exports = {
   // validator. Overridable via env (VINUCHAIN_MAINNET_RPC_URL /
   // VINUCHAIN_TESTNET_RPC_URL) to point at private/archive nodes in CI.
   RPC_URLS_BY_CHAIN_ID: {
-    207: 'https://vinuchain-rpc.com',
+    207: 'https://rpc.vinuchain.org',
     206: 'https://vinufoundation-rpc.com',
   },
 

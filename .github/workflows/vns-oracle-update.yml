@@ -58,7 +58,7 @@ jobs:
       # so operators can add a temporary chain-206 fallback without a code
       # deploy when the official testnet ELB is unavailable.
       VNS_ORACLE_RPC_URLS: ${{ vars.VNS_ORACLE_RPC_URLS || vars.VNS_ORACLE_RPC_URL || 'https://vinufoundation-rpc.com' }}
-      VNS_PRICE_RPC_URLS: ${{ vars.VNS_PRICE_RPC_URLS || vars.VNS_PRICE_RPC_URL || 'https://vinuchain-rpc.com' }}
+      VNS_PRICE_RPC_URLS: ${{ vars.VNS_PRICE_RPC_URLS || vars.VNS_PRICE_RPC_URL || 'https://rpc.vinuchain.org' }}
       # Testnet posture: the VinuSwap V3 TWAP cross-check is ADVISORY here (thin
       # liquidity makes it lag/freeze vs the real VC price). The scheduled cron
       # therefore allows CoinGecko-only / deviation-fallback so a lagging pool

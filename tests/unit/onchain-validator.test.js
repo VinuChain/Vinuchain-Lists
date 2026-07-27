@@ -14,6 +14,7 @@ const {
   SELECTOR_NAME,
   EIP1967_IMPL_SLOT,
 } = require('../../scripts/validators/onchain-validator');
+const { RPC_URLS_BY_CHAIN_ID } = require('../../scripts/utils/constants');
 
 // keccak256 of a piece of deployed bytecode — the value a real codeHash pin holds.
 function hashOf(code) {
@@ -117,6 +118,10 @@ const silentLog = { error() {}, warn() {}, info() {}, success() {}, log() {} };
 
 // ---------------------------------------------------------------------------
 describe('on-chain validator', () => {
+  it('uses the supported mainnet RPC endpoint by default', () => {
+    expect(RPC_URLS_BY_CHAIN_ID[207]).to.equal('https://rpc.vinuchain.org');
+  });
+
   describe('decodeAbiString', () => {
     it('decodes a dynamic string', () => {
       expect(decodeAbiString(encodeAbiString('USDT'))).to.equal('USDT');

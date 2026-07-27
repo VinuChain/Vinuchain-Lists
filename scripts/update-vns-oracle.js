@@ -40,7 +40,7 @@ const TARGET_RPC_URLS = rpcUrlsWithFallback(
 );
 const EXPECTED_TARGET_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206);
 const PRICE_RPC_URLS = rpcUrlsWithFallback(
-  'https://vinuchain-rpc.com',
+  'https://rpc.vinuchain.org',
   process.env.VNS_PRICE_RPC_URLS,
   process.env.VNS_PRICE_RPC_URL,
 );
