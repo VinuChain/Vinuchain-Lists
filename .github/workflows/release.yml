@@ -313,7 +313,9 @@ jobs:
       # their commit while this run uploaded artifacts built from a different
       # one (GitHub ignores target_commitish for an existing tag). `git push`
       # of a new ref is atomic and rejected if the name is taken, so losing the
-      # race fails this run instead of publishing a mismatched release.
+      # race fails this run instead of publishing a mismatched release. Each
+      # run creates a unique annotated tag object so an up-to-date no-op can
+      # never masquerade as successful ownership of somebody else's ref.
       - name: Reserve release tag
         id: reserve
         if: steps.gate.outputs.proceed == 'true' && steps.version.outputs.create_tag == 'true'
@@ -322,29 +324,48 @@ jobs:
           CANDIDATE="${TAG}"
 
           for attempt in $(seq 1 5); do
-            git tag "${CANDIDATE}" "${COMMIT_SHA}"
+            git tag -a "${CANDIDATE}" "${COMMIT_SHA}" \
+              -m "Automated registry release reservation for run ${GITHUB_RUN_ID}"
+            LOCAL_TAG_OBJECT="$(git rev-parse "refs/tags/${CANDIDATE}")"
             CLAIMED=false
             OWNED=false
-            if git push origin "refs/tags/${CANDIDATE}"; then
+            OWNED_OBJECT=""
+            if git push \
+              --force-with-lease="refs/tags/${CANDIDATE}:" \
+              origin \
+              "refs/tags/${CANDIDATE}:refs/tags/${CANDIDATE}"; then
               CLAIMED=true
               OWNED=true
+              OWNED_OBJECT="${LOCAL_TAG_OBJECT}"
             else
               # A failed client response is ambiguous: the server may have
               # created the tag before the connection dropped. Prove remote
               # state before renumbering or failing an explicit version.
-              REMOTE_SHA="$(git ls-remote origin "refs/tags/${CANDIDATE}" | cut -f1)"
-              if [ "${REMOTE_SHA}" = "${COMMIT_SHA}" ]; then
-                echo "Push response was ambiguous, but ${CANDIDATE} exists at ${COMMIT_SHA}; proceeding without claiming cleanup ownership."
+              REMOTE_OBJECT="$(
+                git ls-remote --refs origin "refs/tags/${CANDIDATE}" | cut -f1
+              )"
+              REMOTE_PEELED="$(
+                git ls-remote origin "refs/tags/${CANDIDATE}^{}" | cut -f1
+              )"
+              REMOTE_COMMIT="${REMOTE_PEELED:-${REMOTE_OBJECT}}"
+              if [ "${REMOTE_OBJECT}" = "${LOCAL_TAG_OBJECT}" ]; then
+                echo "Push response was ambiguous, but this run's unique tag object exists remotely."
+                CLAIMED=true
+                OWNED=true
+                OWNED_OBJECT="${LOCAL_TAG_OBJECT}"
+              elif [ "${REMOTE_COMMIT}" = "${COMMIT_SHA}" ]; then
+                echo "Tag ${CANDIDATE} already names ${COMMIT_SHA} through another object; proceeding without claiming cleanup ownership."
                 CLAIMED=true
               fi
             fi
 
             if [ "${CLAIMED}" = "true" ]; then
               # Record the tag before any replacement-artifact rebuild. Only a
-              # positively successful push grants cleanup ownership; a matching
-              # ref after an ambiguous failure may belong to a competing run
-              # and must never be deleted by this one.
+              # successful push or an exact unique-object match grants cleanup
+              # ownership. The same commit through another object may belong
+              # to a competing run and must never be deleted by this one.
               echo "reserved=${OWNED}" >> "$GITHUB_OUTPUT"
+              echo "tag_object=${OWNED_OBJECT}" >> "$GITHUB_OUTPUT"
               echo "tag=${CANDIDATE}" >> "$GITHUB_OUTPUT"
               break
             fi
@@ -406,6 +427,8 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           COMMIT_SHA: ${{ github.sha }}
           INPUT_VERSION: ${{ inputs.version }}
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
       - name: Verify final release is unused
         if: steps.gate.outputs.proceed == 'true'
@@ -621,6 +644,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           RELEASE_ID: ${{ steps.draft.outputs.release_id }}
           RESERVED: ${{ steps.reserve.outputs.reserved }}
+          TAG_OBJECT: ${{ steps.reserve.outputs.tag_object }}
           DRAFT_OUTCOME: ${{ steps.draft.outcome }}
           RUN_MARKER: Automated registry release from ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -727,15 +751,23 @@ jobs:
             exit 0
           fi
 
-          REMOTE_SHA="$(git ls-remote origin "refs/tags/${TAG}" | cut -f1)"
-          if [ -z "${REMOTE_SHA}" ]; then
+          if [[ ! "${TAG_OBJECT}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::warning::Owned tag object is unavailable; leaving tag ${TAG} intact."
+            exit 0
+          fi
+
+          REMOTE_OBJECT="$(
+            git ls-remote --refs origin "refs/tags/${TAG}" | cut -f1
+          )"
+          if [ -z "${REMOTE_OBJECT}" ]; then
             echo "Reserved tag ${TAG} is already absent."
             exit 0
           fi
 
-          # Never delete a tag someone else legitimately moved meanwhile.
-          if [ "${REMOTE_SHA}" != "${COMMIT_SHA}" ]; then
-            echo "Tag ${TAG} points at ${REMOTE_SHA}, not ${COMMIT_SHA}; leaving it alone."
+          # Never delete a tag somebody else replaced, even with an object that
+          # peels to the same commit.
+          if [ "${REMOTE_OBJECT}" != "${TAG_OBJECT}" ]; then
+            echo "Tag ${TAG} now uses object ${REMOTE_OBJECT}, not this run's ${TAG_OBJECT}; leaving it alone."
             exit 0
           fi
 
@@ -768,6 +800,6 @@ jobs:
               ;;
           esac
 
-          git push --force-with-lease="refs/tags/${TAG}:${COMMIT_SHA}" \
+          git push --force-with-lease="refs/tags/${TAG}:${TAG_OBJECT}" \
             origin ":refs/tags/${TAG}"
           echo "Removed unused tag ${TAG}."

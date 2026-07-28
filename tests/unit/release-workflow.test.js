@@ -31,7 +31,9 @@ describe('release workflow safety', () => {
   });
 
   it('records an owned or ambiguously successful tag before rebuilding', () => {
-    const remoteProof = workflow.indexOf('if [ "${REMOTE_SHA}" = "${COMMIT_SHA}" ]');
+    const remoteProof = workflow.indexOf(
+      'if [ "${REMOTE_OBJECT}" = "${LOCAL_TAG_OBJECT}" ]',
+    );
     const ownership = workflow.indexOf('echo "reserved=${OWNED}" >> "$GITHUB_OUTPUT"');
     const rebuild = workflow.indexOf('if [ "${CANDIDATE}" != "${TAG}" ]');
 
@@ -39,6 +41,18 @@ describe('release workflow safety', () => {
     expect(ownership).to.be.greaterThan(remoteProof);
     expect(rebuild).to.be.greaterThan(ownership);
     expect(workflow).to.include('proceeding without claiming cleanup ownership');
+    expect(workflow).to.include(
+      '--force-with-lease="refs/tags/${CANDIDATE}:"',
+    );
+    expect(workflow).to.include('git tag -a "${CANDIDATE}" "${COMMIT_SHA}"');
+    expect(workflow).to.include('echo "tag_object=${OWNED_OBJECT}"');
+    expect(workflow).to.include('GIT_COMMITTER_NAME: github-actions[bot]');
+    expect(workflow).to.include(
+      'GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com',
+    );
+    expect(workflow).to.include(
+      'git ls-remote --refs origin "refs/tags/${CANDIDATE}"',
+    );
   });
 
   it('uploads every asset while draft and only then publishes', () => {
@@ -60,7 +74,13 @@ describe('release workflow safety', () => {
 
   it('deletes an owned failed tag with an atomic lease', () => {
     expect(workflow).to.include(
-      'git push --force-with-lease="refs/tags/${TAG}:${COMMIT_SHA}"',
+      'git push --force-with-lease="refs/tags/${TAG}:${TAG_OBJECT}"',
+    );
+    expect(workflow).to.include(
+      'if [ "${REMOTE_OBJECT}" != "${TAG_OBJECT}" ]',
+    );
+    expect(workflow).to.include(
+      'git ls-remote --refs origin "refs/tags/${TAG}"',
     );
   });
 });
