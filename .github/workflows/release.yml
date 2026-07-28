@@ -45,7 +45,11 @@ permissions:
 
 # Never let two releases race to claim the same version number.
 concurrency:
-  group: release
+  # Main pushes supersede older pending main pushes (the newest commit contains
+  # their registry changes), but a tag/manual run must never evict that pending
+  # freshness release. Deliberate runs get unique groups; atomic tag reservation
+  # below serializes the version namespace across groups.
+  group: release-${{ github.event_name == 'push' && github.ref_type == 'branch' && 'main' || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -73,6 +77,15 @@ jobs:
         id: gate
         run: |
           set -euo pipefail
+
+          # A push event is also emitted when a tag is deleted. Never turn that
+          # deletion into a release run: checkout then points at the default
+          # branch and could recreate an old version with today's bytes.
+          if [ "${DELETED}" = "true" ]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Ref deletion; not a release."
+            exit 0
+          fi
 
           if [ "${GITHUB_EVENT_NAME}" != "push" ] || [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             echo "proceed=true" >> "$GITHUB_OUTPUT"
@@ -117,6 +130,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF_TYPE: ${{ github.ref_type }}
           BEFORE_SHA: ${{ github.event.before }}
+          DELETED: ${{ github.event.deleted }}
 
       - name: Resolve release version
         id: version
@@ -128,13 +142,30 @@ jobs:
             # Hand-cut release: the tag already exists and names the version.
             TAG="${GITHUB_REF_NAME}"
             CREATE_TAG=false
+
+            if ! git show-ref --verify --quiet "refs/tags/${TAG}"; then
+              echo "::error::Tag event ${TAG} is absent from the checkout."
+              exit 1
+            fi
+
+            TAG_COMMIT="$(git rev-parse "${TAG}^{commit}")"
+            HEAD_COMMIT="$(git rev-parse HEAD)"
+            if [ "${TAG_COMMIT}" != "${HEAD_COMMIT}" ]; then
+              echo "::error::Tag ${TAG} resolves to ${TAG_COMMIT}, but checkout is ${HEAD_COMMIT}."
+              exit 1
+            fi
           elif [ -n "${INPUT_VERSION}" ]; then
             TAG="${INPUT_VERSION}"
             CREATE_TAG=true
           else
             # Bump the patch of the highest existing v-tag. `--sort=-v:refname`
             # orders numerically, so v1.10.0 correctly outranks v1.9.0.
-            LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            LATEST="$(
+              git tag -l 'v*' --sort=-v:refname \
+                | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+                | head -n1 \
+                || true
+            )"
             if [ -z "${LATEST}" ]; then
               TAG="v1.0.0"
             else
@@ -149,7 +180,7 @@ jobs:
 
           # A malformed tag would propagate into the artifact version, the
           # archive filename and the pinned logo URLs, so reject it up front.
-          if ! echo "${TAG}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+          if ! echo "${TAG}" | grep -qE '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
             echo "::error::Version '${TAG}' is not of the form vMAJOR.MINOR.PATCH."
             exit 1
           fi
@@ -161,6 +192,37 @@ jobs:
             exit 1
           fi
 
+          # A release version is immutable even if somebody force-moves or
+          # re-pushes its tag. softprops updates existing releases and replaces
+          # same-named assets by default, so reject a pre-existing release
+          # before any build or upload.
+          RELEASE_BODY="$(mktemp)"
+          set +e
+          RELEASE_HTTP="$(curl -sS -o "${RELEASE_BODY}" -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          RELEASE_CURL_STATUS=$?
+          set -e
+
+          if [ "${RELEASE_CURL_STATUS}" != "0" ]; then
+            echo "::error::Unable to prove whether release ${TAG} exists; refusing to publish."
+            exit 1
+          fi
+
+          case "${RELEASE_HTTP}" in
+            404) ;;
+            200)
+              echo "::error::Release ${TAG} already exists; immutable versions cannot be republished."
+              exit 1
+              ;;
+            *)
+              echo "::error::GitHub returned HTTP ${RELEASE_HTTP} while checking release ${TAG}; refusing to publish."
+              exit 1
+              ;;
+          esac
+
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "create_tag=${CREATE_TAG}" >> "$GITHUB_OUTPUT"
           echo "Releasing ${TAG} (create_tag=${CREATE_TAG})"
@@ -168,6 +230,8 @@ jobs:
           GITHUB_REF_TYPE: ${{ github.ref_type }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           INPUT_VERSION: ${{ inputs.version }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install dependencies
         if: steps.gate.outputs.proceed == 'true'
@@ -232,18 +296,110 @@ jobs:
         if: steps.gate.outputs.proceed == 'true' && steps.version.outputs.create_tag == 'true'
         run: |
           set -euo pipefail
-          git tag "${TAG}" "${COMMIT_SHA}"
-          if ! git push origin "refs/tags/${TAG}"; then
-            echo "::error::Could not claim tag ${TAG} — it was created concurrently. Re-run to pick the next version."
+          CANDIDATE="${TAG}"
+
+          for attempt in $(seq 1 5); do
+            git tag "${CANDIDATE}" "${COMMIT_SHA}"
+            if git push origin "refs/tags/${CANDIDATE}"; then
+              break
+            fi
+
+            git tag -d "${CANDIDATE}"
+
+            # An explicit requested version is immutable: never silently
+            # renumber it. Automatic patch releases can safely choose the next
+            # version after losing an atomic tag race.
+            if [ -n "${INPUT_VERSION}" ]; then
+              echo "::error::Could not claim explicit version ${CANDIDATE}."
+              exit 1
+            fi
+
+            git fetch --force --tags origin
+            LATEST="$(
+              git tag -l 'v*' --sort=-v:refname \
+                | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+                | head -n1 \
+                || true
+            )"
+            VER="${LATEST#v}"
+            MAJOR="$(echo "${VER}" | cut -d. -f1)"
+            MINOR="$(echo "${VER}" | cut -d. -f2)"
+            PATCH="$(echo "${VER}" | cut -d. -f3)"
+            CANDIDATE="v${MAJOR}.${MINOR}.$((10#${PATCH} + 1))"
+          done
+
+          if ! git show-ref --verify --quiet "refs/tags/${CANDIDATE}"; then
+            echo "::error::Could not reserve a release version after 5 attempts."
             exit 1
           fi
+
+          # The build ran before the atomic claim to avoid holding a version
+          # while validation was in progress. If a competing run won that
+          # version, rebuild every version-bearing artifact for the replacement
+          # tag before publishing it.
+          if [ "${CANDIDATE}" != "${TAG}" ]; then
+            rm -rf dist
+            mkdir -p dist
+            export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct HEAD)"
+            node scripts/build-tokenlist.js \
+              --out dist/vinuchain.tokenlist.json \
+              --ref "${CANDIDATE}"
+            tar --sort=name \
+                --mtime="@${SOURCE_DATE_EPOCH}" \
+                --owner=0 --group=0 --numeric-owner \
+                -cf - tokens contracts schemas \
+              | gzip -n > "dist/vinuchain-lists-registry-${CANDIDATE}.tar.gz"
+            (
+              cd dist
+              sha256sum vinuchain.tokenlist.json \
+                "vinuchain-lists-registry-${CANDIDATE}.tar.gz" > SHA256SUMS
+            )
+          fi
+
           # Recorded only after the push succeeds. Cleanup keys off this, so a
           # run that lost the race never deletes the winner's tag.
           echo "reserved=true" >> "$GITHUB_OUTPUT"
-          echo "Claimed ${TAG} at ${COMMIT_SHA}."
+          echo "tag=${CANDIDATE}" >> "$GITHUB_OUTPUT"
+          echo "Claimed ${CANDIDATE} at ${COMMIT_SHA}."
         env:
           TAG: ${{ steps.version.outputs.tag }}
           COMMIT_SHA: ${{ github.sha }}
+          INPUT_VERSION: ${{ inputs.version }}
+
+      - name: Verify final release is unused
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          set -euo pipefail
+          BODY="$(mktemp)"
+          set +e
+          HTTP_STATUS="$(curl -sS -o "${BODY}" -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          CURL_STATUS=$?
+          set -e
+
+          if [ "${CURL_STATUS}" != "0" ]; then
+            echo "::error::Unable to prove whether final release ${TAG} exists; refusing to publish."
+            exit 1
+          fi
+
+          case "${HTTP_STATUS}" in
+            404) ;;
+            200)
+              echo "::error::Final release ${TAG} already exists; immutable versions cannot be republished."
+              exit 1
+              ;;
+            *)
+              echo "::error::GitHub returned HTTP ${HTTP_STATUS} while checking final release ${TAG}; refusing to publish."
+              exit 1
+              ;;
+          esac
+        env:
+          TAG: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Create GitHub Release
         if: steps.gate.outputs.proceed == 'true'
@@ -252,7 +408,7 @@ jobs:
         # at the released commit when it does not already exist.
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           files: |
             dist/vinuchain.tokenlist.json
@@ -260,6 +416,7 @@ jobs:
             dist/SHA256SUMS
           generate_release_notes: true
           fail_on_unmatched_files: true
+          overwrite_files: false
 
       # If publishing failed after the tag was claimed, free the name again so
       # the version is not burned by a run that shipped nothing. Gated on this
@@ -269,9 +426,10 @@ jobs:
       - name: Release unused tag on failure
         if: failure() && steps.reserve.outputs.reserved == 'true'
         env:
-          TAG: ${{ steps.version.outputs.tag }}
+          TAG: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
           COMMIT_SHA: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -288,13 +446,35 @@ jobs:
           fi
 
           # The release is created before its assets are uploaded, so a failure
-          # can leave a real (possibly asset-less) release behind. Deleting the
-          # tag would orphan it and break the tag/release relationship consumers
-          # are told to pin, so hand it to a human instead.
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "::warning::Release ${TAG} already exists but this run failed; it may be missing assets. Leaving tag and release intact for manual review."
+          # can leave a real (possibly asset-less) release behind. Delete the
+          # tag only after an authoritative 404. Any timeout, auth problem, or
+          # 5xx is uncertainty and therefore leaves the tag intact.
+          RELEASE_BODY="$(mktemp)"
+          set +e
+          RELEASE_HTTP="$(curl -sS -o "${RELEASE_BODY}" -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          RELEASE_CURL_STATUS=$?
+          set -e
+
+          if [ "${RELEASE_CURL_STATUS}" != "0" ]; then
+            echo "::warning::Could not prove release ${TAG} is absent; leaving its tag intact."
             exit 0
           fi
+
+          case "${RELEASE_HTTP}" in
+            200)
+              echo "::warning::Release ${TAG} exists but this run failed; leaving tag and release intact for manual review."
+              exit 0
+              ;;
+            404) ;;
+            *)
+              echo "::warning::GitHub returned HTTP ${RELEASE_HTTP}; leaving tag ${TAG} intact."
+              exit 0
+              ;;
+          esac
 
           git push origin ":refs/tags/${TAG}"
           echo "Removed unused tag ${TAG}."
