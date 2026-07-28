@@ -401,7 +401,69 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
 
+      # Create the draft in a separate successful step so its exact API id is
+      # durable even when the uploader fails halfway through. The release
+      # action below discovers this draft, uploads into it, and publishes only
+      # after every asset succeeds.
+      - name: Create owned draft release
+        id: draft
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          set -euo pipefail
+          PAYLOAD="$(mktemp)"
+          RESPONSE="$(mktemp)"
+          jq -n \
+            --arg tag "${TAG}" \
+            --arg sha "${COMMIT_SHA}" \
+            --arg marker "${RUN_MARKER}" \
+            '{
+              tag_name: $tag,
+              target_commitish: $sha,
+              name: $tag,
+              body: $marker,
+              draft: true,
+              prerelease: false,
+              generate_release_notes: true
+            }' > "${PAYLOAD}"
+
+          set +e
+          HTTP_STATUS="$(curl -sS -o "${RESPONSE}" -w '%{http_code}' \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
+            --data-binary "@${PAYLOAD}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases")"
+          CURL_STATUS=$?
+          set -e
+
+          if [ "${CURL_STATUS}" != "0" ] || [ "${HTTP_STATUS}" != "201" ]; then
+            echo "::error::Unable to create an owned draft for ${TAG}; refusing to upload."
+            exit 1
+          fi
+
+          RELEASE_ID="$(jq -r '.id // empty' "${RESPONSE}")"
+          RELEASE_TAG="$(jq -r '.tag_name // empty' "${RESPONSE}")"
+          RELEASE_DRAFT="$(jq -r '.draft // empty' "${RESPONSE}")"
+          if ! echo "${RELEASE_ID}" | grep -qE '^[1-9][0-9]*$' \
+            || [ "${RELEASE_TAG}" != "${TAG}" ] \
+            || [ "${RELEASE_DRAFT}" != "true" ]; then
+            echo "::error::GitHub returned an invalid draft-release identity; refusing to upload."
+            exit 1
+          fi
+
+          echo "release_id=${RELEASE_ID}" >> "$GITHUB_OUTPUT"
+          echo "Created owned draft release ${RELEASE_ID} for ${TAG}."
+        env:
+          TAG: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_MARKER: Automated registry release from ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Create GitHub Release
+        id: publish
         if: steps.gate.outputs.proceed == 'true'
         # softprops/action-gh-release@v2.0.8 — pinned by commit SHA.
         # `tag_name` + `target_commitish` make the action create the tag itself
@@ -410,6 +472,7 @@ jobs:
         with:
           tag_name: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
+          body: Automated registry release from ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           files: |
             dist/vinuchain.tokenlist.json
             dist/vinuchain-lists-registry-*.tar.gz
@@ -418,37 +481,121 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: false
 
-      # If publishing failed after the tag was claimed, free the name again so
-      # the version is not burned by a run that shipped nothing. Gated on this
-      # run's own successful reserve: matching SHAs alone would not prove
-      # ownership, and a run that lost the race to a hand-cut tag at the same
-      # commit would otherwise delete that maintainer's tag.
-      - name: Release unused tag on failure
-        if: failure() && steps.reserve.outputs.reserved == 'true'
+      # If publishing fails, delete only this run's owned draft/release. An
+      # automatically reserved tag can then be freed too; a hand-cut tag is
+      # always preserved.
+      - name: Clean up failed owned release
+        if: always() && steps.gate.outputs.proceed == 'true' && steps.publish.outcome != 'success' && (steps.draft.outcome != 'skipped' || steps.reserve.outputs.reserved == 'true')
         env:
           TAG: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
           COMMIT_SHA: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          RELEASE_ID: ${{ steps.draft.outputs.release_id }}
+          RESERVED: ${{ steps.reserve.outputs.reserved }}
+          DRAFT_OUTCOME: ${{ steps.draft.outcome }}
+          RUN_MARKER: Automated registry release from ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
-          REMOTE_SHA="$(git ls-remote origin "refs/tags/${TAG}" | cut -f1)"
-          if [ -z "${REMOTE_SHA}" ]; then
-            echo "Tag ${TAG} was never created; nothing to clean up."
+          # Delete only the exact release id created by this run, after proving
+          # its tag and run marker still match. This makes an interrupted upload
+          # recoverable without risking another maintainer's release.
+          OWNED_RELEASE_ID="${RELEASE_ID}"
+          if [ -z "${OWNED_RELEASE_ID}" ] && [ "${DRAFT_OUTCOME}" != "skipped" ]; then
+            # The POST can succeed server-side while curl loses its response.
+            # Recover only an entity carrying this exact run marker and tag.
+            RELEASES_BODY="$(mktemp)"
+            set +e
+            RELEASES_HTTP="$(curl -sS -o "${RELEASES_BODY}" -w '%{http_code}' \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")"
+            RELEASES_CURL_STATUS=$?
+            set -e
+
+            if [ "${RELEASES_CURL_STATUS}" != "0" ] || [ "${RELEASES_HTTP}" != "200" ]; then
+              echo "::warning::Could not search for an ambiguously created release; leaving all state intact."
+              exit 0
+            fi
+
+            MATCH_COUNT="$(
+              jq --arg tag "${TAG}" --arg marker "${RUN_MARKER}" \
+                '[.[] | select(.tag_name == $tag and ((.body // "") | contains($marker)))] | length' \
+                "${RELEASES_BODY}"
+            )"
+            if [ "${MATCH_COUNT}" = "1" ]; then
+              OWNED_RELEASE_ID="$(
+                jq -r --arg tag "${TAG}" --arg marker "${RUN_MARKER}" \
+                  '.[] | select(.tag_name == $tag and ((.body // "") | contains($marker))) | .id' \
+                  "${RELEASES_BODY}"
+              )"
+            elif [ "${MATCH_COUNT}" != "0" ]; then
+              echo "::warning::Found ${MATCH_COUNT} run-marked releases for ${TAG}; leaving all state intact."
+              exit 0
+            fi
+          fi
+
+          if [ -n "${OWNED_RELEASE_ID}" ]; then
+            OWNED_BODY="$(mktemp)"
+            set +e
+            OWNED_HTTP="$(curl -sS -o "${OWNED_BODY}" -w '%{http_code}' \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${OWNED_RELEASE_ID}")"
+            OWNED_CURL_STATUS=$?
+            set -e
+
+            if [ "${OWNED_CURL_STATUS}" != "0" ] || [ "${OWNED_HTTP}" != "200" ]; then
+              echo "::warning::Could not verify owned release ${OWNED_RELEASE_ID}; leaving release and tag intact."
+              exit 0
+            fi
+
+            OWNED_TAG="$(jq -r '.tag_name // empty' "${OWNED_BODY}")"
+            OWNED_MARKER="$(jq -r '.body // empty' "${OWNED_BODY}")"
+            if [ "${OWNED_TAG}" != "${TAG}" ] || [[ "${OWNED_MARKER}" != *"${RUN_MARKER}"* ]]; then
+              echo "::warning::Release ${OWNED_RELEASE_ID} no longer matches this run; leaving it and tag ${TAG} intact."
+              exit 0
+            fi
+
+            set +e
+            DELETE_HTTP="$(curl -sS -o /dev/null -w '%{http_code}' \
+              -X DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${OWNED_RELEASE_ID}")"
+            DELETE_CURL_STATUS=$?
+            set -e
+
+            if [ "${DELETE_CURL_STATUS}" != "0" ] || [ "${DELETE_HTTP}" != "204" ]; then
+              echo "::warning::Could not delete owned release ${OWNED_RELEASE_ID}; leaving tag ${TAG} intact."
+              exit 0
+            fi
+            echo "Removed owned failed release ${OWNED_RELEASE_ID}."
+          fi
+
+          if [ "${RESERVED}" != "true" ]; then
+            echo "Preserving hand-cut tag ${TAG}."
             exit 0
           fi
 
-          # Never delete a tag someone else legitimately created meanwhile.
+          REMOTE_SHA="$(git ls-remote origin "refs/tags/${TAG}" | cut -f1)"
+          if [ -z "${REMOTE_SHA}" ]; then
+            echo "Reserved tag ${TAG} is already absent."
+            exit 0
+          fi
+
+          # Never delete a tag someone else legitimately moved meanwhile.
           if [ "${REMOTE_SHA}" != "${COMMIT_SHA}" ]; then
             echo "Tag ${TAG} points at ${REMOTE_SHA}, not ${COMMIT_SHA}; leaving it alone."
             exit 0
           fi
 
-          # The release is created before its assets are uploaded, so a failure
-          # can leave a real (possibly asset-less) release behind. Delete the
-          # tag only after an authoritative 404. Any timeout, auth problem, or
-          # 5xx is uncertainty and therefore leaves the tag intact.
+          # Delete the tag only after an authoritative 404 proves no release
+          # remains. Any timeout, auth problem, or 5xx leaves it intact.
           RELEASE_BODY="$(mktemp)"
           set +e
           RELEASE_HTTP="$(curl -sS -o "${RELEASE_BODY}" -w '%{http_code}' \
@@ -466,7 +613,7 @@ jobs:
 
           case "${RELEASE_HTTP}" in
             200)
-              echo "::warning::Release ${TAG} exists but this run failed; leaving tag and release intact for manual review."
+              echo "::warning::A release for ${TAG} still exists; leaving its tag intact for manual review."
               exit 0
               ;;
             404) ;;
