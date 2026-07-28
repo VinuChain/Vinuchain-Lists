@@ -1,19 +1,52 @@
 name: Release
 
-# On a v* tag push, build an immutable, versioned distribution artifact so
-# consumers can PIN a release instead of reading a moving `main` (AUD-07).
-# Produces:
+# Builds an immutable, versioned distribution artifact so consumers can PIN a
+# release instead of reading a moving `main` (AUD-07). Produces:
 #   - vinuchain.tokenlist.json  (Uniswap-tokenlist format, logoURIs pinned to the tag)
 #   - vinuchain-lists-registry-<tag>.tar.gz  (tokens/ + contracts/ + schemas/)
 #   - SHA256SUMS  (checksums of both artifacts)
 # all attached to a GitHub Release.
+#
+# Three ways in:
+#   1. push of a v* tag        — an explicit, hand-cut release (the original path)
+#   2. push to main touching   — auto-cut a patch release, so the published
+#      registry data              artifact never falls behind `main`. Without this
+#                                 the artifact silently rots: v1.2.0 sat for seven
+#                                 weeks still serving a logo URL whose host had
+#                                 gone dead, while `main` had the fix.
+#   3. workflow_dispatch       — manual re-run, optionally at a chosen version
+#
+# The release is published directly rather than by pushing a tag and letting
+# case 1 pick it up: a tag pushed with GITHUB_TOKEN does not trigger another
+# workflow run, so that indirection would silently never release. For cases 2
+# and 3 the tag is created by this run, immediately before publishing, and
+# removed again if publishing fails.
+#
+# Note on filtering: "only release when registry data changed" is enforced by a
+# step inside the job, not by an `on.push.paths` filter. A single push trigger
+# applies its paths filter to tags as well as branches, which would make a
+# hand-cut v* tag fail to release unless that tag's commit happened to touch
+# registry data. The in-job check keeps the two paths independent.
 on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. v1.3.0). Leave blank to bump the patch.'
+        required: false
+        type: string
 
 permissions:
   contents: write
+
+# Never let two releases race to claim the same version number.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -23,40 +56,153 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          # Full history + tags: the version bump reads the existing tag list,
+          # and a shallow clone would see none of it.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: '24'
 
+      # Only registry *data* warrants a new artifact. Edits to scripts, tests or
+      # docs do not change what consumers read, so they must not cut a release.
+      # Tag pushes and manual runs are always honoured — they are deliberate.
+      - name: Decide whether to release
+        id: gate
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" != "push" ] || [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "Deliberate release (${GITHUB_EVENT_NAME}/${GITHUB_REF_TYPE}); proceeding."
+            exit 0
+          fi
+
+          # On a branch push, compare against the previous tip. The base can be
+          # genuinely unusable: a branch creation reports an all-zero SHA, and
+          # after a force push the old tip may be unreachable and so absent from
+          # even a full clone. Probe for the object rather than letting `git
+          # diff` fail, because a failed diff is indistinguishable from an empty
+          # one and would silently skip a real registry change.
+          #
+          # When the base is unusable, release unconditionally. Narrowing to
+          # HEAD~1 would be wrong: such a push can carry many commits, and
+          # judging the whole push by its last commit skips the release whenever
+          # that one happens to be docs-only. A redundant patch release is
+          # cheap; a missed one leaves the published artifact stale, which is
+          # the exact failure this automation exists to prevent.
+          if [ -z "${BEFORE_SHA}" ] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            echo "Base ${BEFORE_SHA:-<none>} unavailable; releasing without a change check."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED="$(git diff --name-only "${BEFORE_SHA}" HEAD)"
+
+          # Registry data is the obvious trigger, but the tokenlist builder and
+          # the JSON reader it depends on also determine the published artifact's
+          # contents — a builder-only fix must not sit unreleased until some
+          # unrelated data change happens along. Extend this list if the builder
+          # gains another local dependency.
+          if echo "${CHANGED}" | grep -qE '^(tokens|contracts|schemas)/|^scripts/build-tokenlist\.js$|^scripts/utils/safe-json\.js$'; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "Release-relevant files changed; cutting a release."
+          else
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing release-relevant changed; skipping release."
+          fi
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
+          BEFORE_SHA: ${{ github.event.before }}
+
+      - name: Resolve release version
+        id: version
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            # Hand-cut release: the tag already exists and names the version.
+            TAG="${GITHUB_REF_NAME}"
+            CREATE_TAG=false
+          elif [ -n "${INPUT_VERSION}" ]; then
+            TAG="${INPUT_VERSION}"
+            CREATE_TAG=true
+          else
+            # Bump the patch of the highest existing v-tag. `--sort=-v:refname`
+            # orders numerically, so v1.10.0 correctly outranks v1.9.0.
+            LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            if [ -z "${LATEST}" ]; then
+              TAG="v1.0.0"
+            else
+              VER="${LATEST#v}"
+              MAJOR="$(echo "${VER}" | cut -d. -f1)"
+              MINOR="$(echo "${VER}" | cut -d. -f2)"
+              PATCH="$(echo "${VER}" | cut -d. -f3)"
+              TAG="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+            fi
+            CREATE_TAG=true
+          fi
+
+          # A malformed tag would propagate into the artifact version, the
+          # archive filename and the pinned logo URLs, so reject it up front.
+          if ! echo "${TAG}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Version '${TAG}' is not of the form vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
+          # Refuse to overwrite an existing release rather than silently
+          # republishing different bytes under a version consumers have pinned.
+          if [ "${CREATE_TAG}" = "true" ] && git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::Tag ${TAG} already exists; refusing to overwrite a published release."
+            exit 1
+          fi
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "create_tag=${CREATE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Releasing ${TAG} (create_tag=${CREATE_TAG})"
+        env:
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+
       - name: Install dependencies
+        if: steps.gate.outputs.proceed == 'true'
         run: npm ci
 
-      # Gate the release on validation passing, so a tag never ships a broken
-      # registry.
+      # Gate the release on validation passing, so a release never ships a
+      # broken registry. This matters more on the auto path than the manual
+      # one: nobody is watching a release that cuts itself.
       - name: Validate registry
+        if: steps.gate.outputs.proceed == 'true'
         run: npm run validate
 
       # The on-chain cross-check is the AUD-01 defense (substituted-but-
       # checksummed addresses); a release artifact must never ship without it.
       - name: On-chain cross-check
+        if: steps.gate.outputs.proceed == 'true'
         run: npm run validate:onchain
 
       - name: Build pinned tokenlist
+        if: steps.gate.outputs.proceed == 'true'
         env:
-          REF: ${{ github.ref_name }}
+          REF: ${{ steps.version.outputs.tag }}
         run: |
           mkdir -p dist
-          # Pin the artifact timestamp to the tagged commit's time so the same
+          # Pin the artifact timestamp to the released commit's time so the same
           # tag always rebuilds byte-identically (reproducible releases).
           export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct HEAD)"
           node scripts/build-tokenlist.js --out dist/vinuchain.tokenlist.json --ref "$REF"
 
       - name: Bundle registry data
+        if: steps.gate.outputs.proceed == 'true'
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          # Pin the archive timestamp to the tagged commit's time so the same
+          # Pin the archive timestamp to the released commit's time so the same
           # tag always rebuilds byte-identically. --sort=name gives a stable
           # traversal order; --owner/--group/--numeric-owner strip UID/GID
           # metadata; gzip -n suppresses the embedded filename+mtime header.
@@ -68,18 +214,87 @@ jobs:
             | gzip -n > "dist/vinuchain-lists-registry-${TAG}.tar.gz"
 
       - name: Generate checksums
+        if: steps.gate.outputs.proceed == 'true'
         run: |
           cd dist
           sha256sum * > SHA256SUMS
           cat SHA256SUMS
 
+      # Claim the version immediately before publishing, not when it was
+      # resolved: validation and the build take minutes, and a maintainer
+      # pushing the same tag in that window would leave the tag pointing at
+      # their commit while this run uploaded artifacts built from a different
+      # one (GitHub ignores target_commitish for an existing tag). `git push`
+      # of a new ref is atomic and rejected if the name is taken, so losing the
+      # race fails this run instead of publishing a mismatched release.
+      - name: Reserve release tag
+        id: reserve
+        if: steps.gate.outputs.proceed == 'true' && steps.version.outputs.create_tag == 'true'
+        run: |
+          set -euo pipefail
+          git tag "${TAG}" "${COMMIT_SHA}"
+          if ! git push origin "refs/tags/${TAG}"; then
+            echo "::error::Could not claim tag ${TAG} — it was created concurrently. Re-run to pick the next version."
+            exit 1
+          fi
+          # Recorded only after the push succeeds. Cleanup keys off this, so a
+          # run that lost the race never deletes the winner's tag.
+          echo "reserved=true" >> "$GITHUB_OUTPUT"
+          echo "Claimed ${TAG} at ${COMMIT_SHA}."
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          COMMIT_SHA: ${{ github.sha }}
+
       - name: Create GitHub Release
+        if: steps.gate.outputs.proceed == 'true'
         # softprops/action-gh-release@v2.0.8 — pinned by commit SHA.
+        # `tag_name` + `target_commitish` make the action create the tag itself
+        # at the released commit when it does not already exist.
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: |
             dist/vinuchain.tokenlist.json
             dist/vinuchain-lists-registry-*.tar.gz
             dist/SHA256SUMS
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+      # If publishing failed after the tag was claimed, free the name again so
+      # the version is not burned by a run that shipped nothing. Gated on this
+      # run's own successful reserve: matching SHAs alone would not prove
+      # ownership, and a run that lost the race to a hand-cut tag at the same
+      # commit would otherwise delete that maintainer's tag.
+      - name: Release unused tag on failure
+        if: failure() && steps.reserve.outputs.reserved == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          COMMIT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          REMOTE_SHA="$(git ls-remote origin "refs/tags/${TAG}" | cut -f1)"
+          if [ -z "${REMOTE_SHA}" ]; then
+            echo "Tag ${TAG} was never created; nothing to clean up."
+            exit 0
+          fi
+
+          # Never delete a tag someone else legitimately created meanwhile.
+          if [ "${REMOTE_SHA}" != "${COMMIT_SHA}" ]; then
+            echo "Tag ${TAG} points at ${REMOTE_SHA}, not ${COMMIT_SHA}; leaving it alone."
+            exit 0
+          fi
+
+          # The release is created before its assets are uploaded, so a failure
+          # can leave a real (possibly asset-less) release behind. Deleting the
+          # tag would orphan it and break the tag/release relationship consumers
+          # are told to pin, so hand it to a human instead.
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "::warning::Release ${TAG} already exists but this run failed; it may be missing assets. Leaving tag and release intact for manual review."
+            exit 0
+          fi
+
+          git push origin ":refs/tags/${TAG}"
+          echo "Removed unused tag ${TAG}."
