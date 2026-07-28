@@ -114,14 +114,27 @@ jobs:
             exit 0
           fi
 
-          RELEASE_TAG="$(jq -r '.tag_name // empty' "${RELEASE_BODY}")"
-          if [ -z "${RELEASE_TAG}" ] || ! git cat-file -e "${RELEASE_TAG}^{commit}" 2>/dev/null; then
-            echo "Latest release tag ${RELEASE_TAG:-<none>} is unavailable; releasing without a change check."
+          # Use the commit recorded in this workflow's release metadata, not
+          # its tag: a maintainer can force-move the tag without changing the
+          # published assets. The target_commitish fallback bootstraps releases
+          # created before the explicit marker was introduced; it is accepted
+          # only when GitHub persisted an exact commit SHA.
+          RELEASE_COMMIT="$(
+            jq -r \
+              '(.body // "") | capture("(?m)^Registry commit: (?<sha>[0-9a-fA-F]{40})$").sha // empty' \
+              "${RELEASE_BODY}"
+          )"
+          if [ -z "${RELEASE_COMMIT}" ]; then
+            RELEASE_COMMIT="$(jq -r '.target_commitish // empty' "${RELEASE_BODY}")"
+          fi
+          if [[ ! "${RELEASE_COMMIT}" =~ ^[0-9a-fA-F]{40}$ ]] \
+            || ! git cat-file -e "${RELEASE_COMMIT}^{commit}" 2>/dev/null; then
+            echo "Latest release commit ${RELEASE_COMMIT:-<none>} is unavailable; releasing without a change check."
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          CHANGED="$(git diff --name-only "${RELEASE_TAG}^{commit}" HEAD)"
+          CHANGED="$(git diff --name-only "${RELEASE_COMMIT}^{commit}" HEAD)"
 
           # Registry data is the obvious trigger, but the tokenlist builder and
           # the JSON reader it depends on also determine the published artifact's
@@ -448,7 +461,7 @@ jobs:
               tag_name: $tag,
               target_commitish: $sha,
               name: $tag,
-              body: $marker,
+              body: ($marker + "\nRegistry commit: " + $sha),
               draft: true,
               prerelease: false,
               generate_release_notes: true
@@ -588,7 +601,7 @@ jobs:
             "vinuchain-lists-registry-${TAG}.tar.gz" | sort)"
           ACTUAL_ASSETS="$(jq -r '.assets[]?.name' "${PUBLISHED_BODY}" | sort)"
           if [ "$(jq -r '.tag_name // empty' "${PUBLISHED_BODY}")" != "${TAG}" ] \
-            || [ "$(jq -r '.draft // true' "${PUBLISHED_BODY}")" != "false" ] \
+            || [ "$(jq -r '.draft' "${PUBLISHED_BODY}")" != "false" ] \
             || [ -z "$(jq -r '.published_at // empty' "${PUBLISHED_BODY}")" ] \
             || [ "${ACTUAL_ASSETS}" != "${EXPECTED_ASSETS}" ]; then
             echo "::error::Release ${RELEASE_ID} is not a complete published ${TAG}."
@@ -676,11 +689,20 @@ jobs:
             fi
 
             # A lost PATCH response may leave the fully uploaded release public.
-            # Published releases are terminal success and must never be rolled
-            # back by failure cleanup.
-            if [ "$(jq -r '.draft // true' "${OWNED_BODY}")" = "false" ]; then
-              echo "Owned release ${OWNED_RELEASE_ID} is already published; preserving it and tag ${TAG}."
-              exit 0
+            # Preserve it only after independently proving that publication is
+            # complete; a public release with a bad asset set must be removed.
+            if [ "$(jq -r '.draft' "${OWNED_BODY}")" = "false" ]; then
+              EXPECTED_ASSETS="$(printf '%s\n' \
+                SHA256SUMS \
+                vinuchain.tokenlist.json \
+                "vinuchain-lists-registry-${TAG}.tar.gz" | sort)"
+              OWNED_ASSETS="$(jq -r '.assets[]?.name' "${OWNED_BODY}" | sort)"
+              if [ -n "$(jq -r '.published_at // empty' "${OWNED_BODY}")" ] \
+                && [ "${OWNED_ASSETS}" = "${EXPECTED_ASSETS}" ]; then
+                echo "Owned release ${OWNED_RELEASE_ID} is already published and complete; preserving it and tag ${TAG}."
+                exit 0
+              fi
+              echo "::warning::Owned release ${OWNED_RELEASE_ID} is public but incomplete; removing it."
             fi
 
             set +e

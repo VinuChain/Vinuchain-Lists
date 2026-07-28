@@ -10,7 +10,17 @@ const workflow = fs.readFileSync(
 describe('release workflow safety', () => {
   it('checks unreleased changes from the latest published release', () => {
     expect(workflow).to.include('/releases/latest');
-    expect(workflow).to.include('git diff --name-only "${RELEASE_TAG}^{commit}" HEAD');
+    expect(workflow).to.include('Registry commit: ');
+    expect(workflow).to.include(
+      'capture("(?m)^Registry commit: (?<sha>[0-9a-fA-F]{40})$")',
+    );
+    expect(workflow).to.include('.target_commitish // empty');
+    expect(workflow).to.include(
+      'git diff --name-only "${RELEASE_COMMIT}^{commit}" HEAD',
+    );
+    expect(workflow).to.not.include(
+      'git diff --name-only "${RELEASE_TAG}^{commit}" HEAD',
+    );
     expect(workflow).to.not.include('git diff --name-only "${BEFORE_SHA}" HEAD');
   });
 
@@ -41,7 +51,11 @@ describe('release workflow safety', () => {
     expect(publish).to.be.greaterThan(upload);
     expect(workflow).to.not.include('softprops/action-gh-release');
     expect(workflow).to.include('--data-binary \'{"draft":false}\'');
-    expect(workflow).to.include('is already published; preserving it and tag');
+    expect(workflow).to.include(
+      'is already published and complete; preserving it and tag',
+    );
+    expect(workflow).to.include('is public but incomplete; removing it');
+    expect(workflow).to.not.include('.draft // true');
   });
 
   it('deletes an owned failed tag with an atomic lease', () => {
