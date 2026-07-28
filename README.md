@@ -265,7 +265,9 @@ Each token submission requires **two files** in `tokens/{address}/`:
   "description": "Brief description of the token and its purpose (10-500 chars)",
   "codeHash": "0x...",            // keccak256 of deployed bytecode (pins type, not instance — see above)
   "project": "project-slug",      // Reference to contracts/{project-slug}/
-  "logoURI": "https://...",       // HTTPS URL to logo (200x200px PNG recommended)
+  "logoURI": "https://...",       // HTTPS URL to logo (200x200px PNG recommended).
+                                  // Prefer this repo's own copy of your logo file
+                                  // (see "Logo hosting" below) over a third-party host.
   "website": "https://...",       // Official website
   "support": "email@domain.com",  // Support email (no disposable domains)
   "github": "https://github.com/org/repo",
@@ -389,9 +391,9 @@ LOG_FORMAT=json npm run validate
 ### Pin a release, don't track `main` (recommended)
 
 `main` is a moving target: every merged PR is instantly live with no rollback
-point. For production use, **pin a tagged release** instead. Each `v*` tag
-publishes a [GitHub Release](https://github.com/VinuChain/Vinuchain-Lists/releases)
-with:
+point. For production use, **pin a tagged release** instead. A
+[GitHub Release](https://github.com/VinuChain/Vinuchain-Lists/releases) is
+published with:
 
 - `vinuchain.tokenlist.json` — a [Uniswap-tokenlist](https://tokenlists.org/)
   format file (one entry per token, with `chainId`, `address`, `symbol`,
@@ -400,6 +402,21 @@ with:
 - `vinuchain-lists-registry-<tag>.tar.gz` — the full `tokens/`, `contracts/`,
   and `schemas/` tree;
 - `SHA256SUMS` — checksums for both artifacts.
+
+Releases are cut **automatically**: any push to `main` that changes `tokens/`,
+`contracts/`, or `schemas/` publishes a new patch version, gated on `npm run
+validate` and the on-chain cross-check. A release therefore never lags `main` by
+more than one CI run — which matters, because a pinned artifact that silently
+rots is worse than no artifact at all: it keeps serving data (a logo URL, an
+address) long after `main` has corrected it. Pushing a `v*` tag by hand still
+cuts that exact version, and the workflow can also be run manually from the
+Actions tab with an explicit version.
+
+Note that `logoURI` values pointing at this repository are rewritten to the
+released tag inside the artifact, so a pinned release keeps rendering the logos
+it shipped with. Entries whose `logoURI` points at a third-party host cannot be
+pinned this way and remain subject to that host's uptime — prefer committing the
+logo to the token's directory and pointing `logoURI` at this repo.
 
 ```javascript
 // Pin the tokenlist at a specific release tag (immutable — replace the tag
@@ -495,6 +512,24 @@ allTokens.forEach(token => {
 - `github`, `twitter`, `telegram`, `discord` - Social links (HTTPS only)
 - `coingecko`, `coinmarketcap` - Listing URLs
 - `redFlags` - Structured security warnings with evidence
+
+#### Logo hosting
+
+A physical logo file in the token's directory is always required. `logoURI` is
+optional and may point anywhere, but **point it at this repository's copy**:
+
+```
+https://raw.githubusercontent.com/VinuChain/vinuchain-lists/main/tokens/{ADDRESS}/{ADDRESS}.png
+```
+
+A third-party host is a dependency the registry cannot repair. When one goes
+away, every wallet and explorer reading this list renders a broken image, and
+fixing it needs a PR per consumer rather than a one-line change here. Self-hosted
+logos also get rewritten to the release tag inside release artifacts, so pinned
+consumers keep rendering the logo that shipped with the version they vetted.
+
+To change a logo, replace the PNG in the token's directory (and update `logoURI`
+if it points elsewhere). Consumers that read `main` pick it up automatically.
 
 ### Contract Requirements
 
