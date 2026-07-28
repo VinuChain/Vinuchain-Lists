@@ -93,33 +93,42 @@ jobs:
             exit 0
           fi
 
-          # On a branch push, compare against the previous tip. The base can be
-          # genuinely unusable: a branch creation reports an all-zero SHA, and
-          # after a force push the old tip may be unreachable and so absent from
-          # even a full clone. Probe for the object rather than letting `git
-          # diff` fail, because a failed diff is indistinguishable from an empty
-          # one and would silently skip a real registry change.
-          #
-          # When the base is unusable, release unconditionally. Narrowing to
-          # HEAD~1 would be wrong: such a push can carry many commits, and
-          # judging the whole push by its last commit skips the release whenever
-          # that one happens to be docs-only. A redundant patch release is
-          # cheap; a missed one leaves the published artifact stale, which is
-          # the exact failure this automation exists to prevent.
-          if [ -z "${BEFORE_SHA}" ] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
-            echo "Base ${BEFORE_SHA:-<none>} unavailable; releasing without a change check."
+          # Compare the current tree with the commit represented by the latest
+          # successfully published release, not merely the immediately previous
+          # push. GitHub keeps only one pending run per concurrency group: a
+          # docs-only push can replace a pending registry-changing push, and a
+          # BEFORE_SHA comparison would then lose the unreleased data change.
+          RELEASE_BODY="$(mktemp)"
+          set +e
+          RELEASE_HTTP="$(curl -sS -o "${RELEASE_BODY}" -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest")"
+          RELEASE_CURL_STATUS=$?
+          set -e
+
+          if [ "${RELEASE_CURL_STATUS}" != "0" ] || [ "${RELEASE_HTTP}" != "200" ]; then
+            echo "Latest successful release is not authoritative (curl=${RELEASE_CURL_STATUS}, HTTP=${RELEASE_HTTP}); releasing without a change check."
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          CHANGED="$(git diff --name-only "${BEFORE_SHA}" HEAD)"
+          RELEASE_TAG="$(jq -r '.tag_name // empty' "${RELEASE_BODY}")"
+          if [ -z "${RELEASE_TAG}" ] || ! git cat-file -e "${RELEASE_TAG}^{commit}" 2>/dev/null; then
+            echo "Latest release tag ${RELEASE_TAG:-<none>} is unavailable; releasing without a change check."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED="$(git diff --name-only "${RELEASE_TAG}^{commit}" HEAD)"
 
           # Registry data is the obvious trigger, but the tokenlist builder and
           # the JSON reader it depends on also determine the published artifact's
           # contents — a builder-only fix must not sit unreleased until some
           # unrelated data change happens along. Extend this list if the builder
           # gains another local dependency.
-          if echo "${CHANGED}" | grep -qE '^(tokens|contracts|schemas)/|^scripts/build-tokenlist\.js$|^scripts/utils/safe-json\.js$'; then
+          if grep -qE '^(tokens|contracts|schemas)/|^scripts/build-tokenlist\.js$|^scripts/utils/safe-json\.js$' <<< "${CHANGED}"; then
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             echo "Release-relevant files changed; cutting a release."
           else
@@ -129,8 +138,9 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF_TYPE: ${{ github.ref_type }}
-          BEFORE_SHA: ${{ github.event.before }}
           DELETED: ${{ github.event.deleted }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Resolve release version
         id: version
@@ -300,7 +310,29 @@ jobs:
 
           for attempt in $(seq 1 5); do
             git tag "${CANDIDATE}" "${COMMIT_SHA}"
+            CLAIMED=false
+            OWNED=false
             if git push origin "refs/tags/${CANDIDATE}"; then
+              CLAIMED=true
+              OWNED=true
+            else
+              # A failed client response is ambiguous: the server may have
+              # created the tag before the connection dropped. Prove remote
+              # state before renumbering or failing an explicit version.
+              REMOTE_SHA="$(git ls-remote origin "refs/tags/${CANDIDATE}" | cut -f1)"
+              if [ "${REMOTE_SHA}" = "${COMMIT_SHA}" ]; then
+                echo "Push response was ambiguous, but ${CANDIDATE} exists at ${COMMIT_SHA}; proceeding without claiming cleanup ownership."
+                CLAIMED=true
+              fi
+            fi
+
+            if [ "${CLAIMED}" = "true" ]; then
+              # Record the tag before any replacement-artifact rebuild. Only a
+              # positively successful push grants cleanup ownership; a matching
+              # ref after an ambiguous failure may belong to a competing run
+              # and must never be deleted by this one.
+              echo "reserved=${OWNED}" >> "$GITHUB_OUTPUT"
+              echo "tag=${CANDIDATE}" >> "$GITHUB_OUTPUT"
               break
             fi
 
@@ -356,10 +388,6 @@ jobs:
             )
           fi
 
-          # Recorded only after the push succeeds. Cleanup keys off this, so a
-          # run that lost the race never deletes the winner's tag.
-          echo "reserved=true" >> "$GITHUB_OUTPUT"
-          echo "tag=${CANDIDATE}" >> "$GITHUB_OUTPUT"
           echo "Claimed ${CANDIDATE} at ${COMMIT_SHA}."
         env:
           TAG: ${{ steps.version.outputs.tag }}
@@ -462,24 +490,111 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Create GitHub Release
-        id: publish
+      - name: Upload assets to owned draft
+        id: upload
         if: steps.gate.outputs.proceed == 'true'
-        # softprops/action-gh-release@v2.0.8 — pinned by commit SHA.
-        # `tag_name` + `target_commitish` make the action create the tag itself
-        # at the released commit when it does not already exist.
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
-        with:
-          tag_name: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          body: Automated registry release from ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          files: |
+        env:
+          RELEASE_ID: ${{ steps.draft.outputs.release_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          ASSETS=(
             dist/vinuchain.tokenlist.json
             dist/vinuchain-lists-registry-*.tar.gz
             dist/SHA256SUMS
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-          overwrite_files: false
+          )
+          if [ "${#ASSETS[@]}" != "3" ]; then
+            echo "::error::Expected exactly three release assets, found ${#ASSETS[@]}."
+            exit 1
+          fi
+
+          for ASSET in "${ASSETS[@]}"; do
+            ASSET_NAME="$(basename "${ASSET}")"
+            case "${ASSET_NAME}" in
+              *.json) CONTENT_TYPE="application/json" ;;
+              *.tar.gz) CONTENT_TYPE="application/gzip" ;;
+              *) CONTENT_TYPE="text/plain" ;;
+            esac
+
+            RESPONSE="$(mktemp)"
+            set +e
+            HTTP_STATUS="$(curl -sS -o "${RESPONSE}" -w '%{http_code}' \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -H "Content-Type: ${CONTENT_TYPE}" \
+              --data-binary "@${ASSET}" \
+              "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=${ASSET_NAME}")"
+            CURL_STATUS=$?
+            set -e
+
+            if [ "${CURL_STATUS}" != "0" ] || [ "${HTTP_STATUS}" != "201" ] \
+              || [ "$(jq -r '.name // empty' "${RESPONSE}")" != "${ASSET_NAME}" ]; then
+              echo "::error::Failed to upload ${ASSET_NAME} to draft ${RELEASE_ID} (curl=${CURL_STATUS}, HTTP=${HTTP_STATUS})."
+              exit 1
+            fi
+            echo "Uploaded ${ASSET_NAME} to draft ${RELEASE_ID}."
+          done
+
+      # Publishing is a separate final transition. Consumers can never observe
+      # a latest release whose asset set is still uploading or incomplete.
+      - name: Publish complete owned draft
+        id: publish
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          TAG: ${{ steps.reserve.outputs.tag || steps.version.outputs.tag }}
+          RELEASE_ID: ${{ steps.draft.outputs.release_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RESPONSE="$(mktemp)"
+          set +e
+          HTTP_STATUS="$(curl -sS -o "${RESPONSE}" -w '%{http_code}' \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
+            --data-binary '{"draft":false}' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}")"
+          CURL_STATUS=$?
+          set -e
+
+          # The PATCH can commit server-side while its response is lost or
+          # malformed. Always reconcile the exact owned release rather than
+          # treating the transport response as publication truth.
+          PUBLISHED_BODY="$(mktemp)"
+          set +e
+          GET_HTTP="$(curl -sS -o "${PUBLISHED_BODY}" -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}")"
+          GET_CURL_STATUS=$?
+          set -e
+          if [ "${GET_CURL_STATUS}" != "0" ] || [ "${GET_HTTP}" != "200" ]; then
+            echo "::error::Could not reconcile publish of draft ${RELEASE_ID} for ${TAG} (patch curl=${CURL_STATUS}, HTTP=${HTTP_STATUS})."
+            exit 1
+          fi
+
+          EXPECTED_ASSETS="$(printf '%s\n' \
+            SHA256SUMS \
+            vinuchain.tokenlist.json \
+            "vinuchain-lists-registry-${TAG}.tar.gz" | sort)"
+          ACTUAL_ASSETS="$(jq -r '.assets[]?.name' "${PUBLISHED_BODY}" | sort)"
+          if [ "$(jq -r '.tag_name // empty' "${PUBLISHED_BODY}")" != "${TAG}" ] \
+            || [ "$(jq -r '.draft // true' "${PUBLISHED_BODY}")" != "false" ] \
+            || [ -z "$(jq -r '.published_at // empty' "${PUBLISHED_BODY}")" ] \
+            || [ "${ACTUAL_ASSETS}" != "${EXPECTED_ASSETS}" ]; then
+            echo "::error::Release ${RELEASE_ID} is not a complete published ${TAG}."
+            exit 1
+          fi
+          echo "Published complete release ${TAG} from draft ${RELEASE_ID}."
 
       # If publishing fails, delete only this run's owned draft/release. An
       # automatically reserved tag can then be freed too; a hand-cut tag is
@@ -560,6 +675,14 @@ jobs:
               exit 0
             fi
 
+            # A lost PATCH response may leave the fully uploaded release public.
+            # Published releases are terminal success and must never be rolled
+            # back by failure cleanup.
+            if [ "$(jq -r '.draft // true' "${OWNED_BODY}")" = "false" ]; then
+              echo "Owned release ${OWNED_RELEASE_ID} is already published; preserving it and tag ${TAG}."
+              exit 0
+            fi
+
             set +e
             DELETE_HTTP="$(curl -sS -o /dev/null -w '%{http_code}' \
               -X DELETE \
@@ -578,7 +701,7 @@ jobs:
           fi
 
           if [ "${RESERVED}" != "true" ]; then
-            echo "Preserving hand-cut tag ${TAG}."
+            echo "Preserving unowned or hand-cut tag ${TAG}."
             exit 0
           fi
 
@@ -623,5 +746,6 @@ jobs:
               ;;
           esac
 
-          git push origin ":refs/tags/${TAG}"
+          git push --force-with-lease="refs/tags/${TAG}:${COMMIT_SHA}" \
+            origin ":refs/tags/${TAG}"
           echo "Removed unused tag ${TAG}."
