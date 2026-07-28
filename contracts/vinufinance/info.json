@@ -67,22 +67,5 @@
     "twitter": "https://x.com/vinuchain",
     "telegram": "https://t.me/vinuchain",
     "discord": "https://discord.gg/vinu"
-  },
-  "marketplace": {
-    "id": "vinufinance",
-    "title": "VinuFinance",
-    "url": "https://vinufinance.app",
-    "site": "https://vinufinance.app",
-    "logo": "https://mainnet.vinuexplorer.org/images/vinufinance.svg",
-    "shortDescription": "Peer-to-pool fixed-rate, fixed-tenor lending protocol on VinuChain.",
-    "description": "VinuFinance is a peer-to-pool lending protocol on VinuChain offering fixed-rate, fixed-tenor loans collateralized by ERC-20 tokens. Liquidity providers earn LP rewards and participate in on-chain governance.",
-    "categories": ["Lending"],
-    "author": "VinuChain",
-    "external": true,
-    "networks": [206, 207],
-    "twitter": "https://x.com/vinuchain",
-    "telegram": "https://t.me/vinuchain",
-    "discord": "https://discord.gg/vinu",
-    "github": "https://github.com/VinuChain"
   }
 }

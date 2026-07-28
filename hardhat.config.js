@@ -22,7 +22,12 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: 31337,
-      allowUnlimitedContractSize: false,
+      // Test-only EVM. The SFC reward-cursor harness
+      // (tests/contracts/SFCCursorTestHarness.sol) inherits the full SFC plus
+      // test hooks and exceeds the 24KB EIP-170 limit; it is never deployed to
+      // a real chain, so lifting the cap here is safe and only affects the
+      // in-process EDR network used by *.hh.test.js.
+      allowUnlimitedContractSize: true,
     },
   },
   paths: {

@@ -12,7 +12,7 @@
 [Quick Start](#quick-start) • [Installation](#installation) • [Validation Commands](#validation-commands)
 
 **Submit:**
-[Submit Token](#token-submission-guide) • [Submit Contract](#contract-project-submission) • [Submit dApp](#dapp-marketplace-directory) • [Submission Guidelines](#submission-guidelines)
+[Submit Token](#token-submission-guide) • [Submit Contract](#contract-project-submission) • [Submission Guidelines](#submission-guidelines)
 
 **Documentation:**
 [Validation Rules](#validation-rules) • [Architecture](#architecture)
@@ -28,7 +28,6 @@ VinuChain Lists is a **community-maintained registry** providing:
 
 - **Token Registry**: Verified ERC-20 tokens with metadata for wallet and DEX integration
 - **Contract Registry**: Smart contract projects with source code, ABIs, and comprehensive validation
-- **dApp Marketplace**: Source of truth for the [VinuExplorer](https://mainnet.vinuexplorer.org) marketplace directory — generated from `contracts/{slug}/info.json` entries that carry a `marketplace` block
 
 ---
 
@@ -704,62 +703,6 @@ VinuChain Lists uses a **modular architecture** for maintainability and testabil
 
 ---
 
-## dApp Marketplace Directory
-
-This repository is the **source of truth** for the [VinuExplorer](https://mainnet.vinuexplorer.org) dApp marketplace.  The marketplace JSON consumed by VinuExplorer-Backend is generated from `contracts/{slug}/info.json` entries that carry an optional `marketplace` block.
-
-### How it works
-
-1. Each project's `info.json` may include a top-level `"marketplace"` object.
-2. Running `npm run build:marketplace` reads every `contracts/{slug}/info.json`, selects entries with a `marketplace` block, and writes two output files:
-   - `dist/mainnet-marketplace.json` — entries where `marketplace.networks` includes `207`
-   - `dist/testnet-marketplace.json` — entries where `marketplace.networks` includes `206`
-3. VinuExplorer-Backend copies these files into its assets at deploy time.
-
-### `marketplace` schema
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string | yes | Lowercase slug, unique per network (e.g. `"vinuswap"`) |
-| `title` | string | yes | Display name shown in the marketplace |
-| `url` | string (https) | yes | Primary dApp URL |
-| `logo` | string (https) | yes | Logo image URL (SVG or PNG) |
-| `shortDescription` | string | yes | One-line summary (max 160 chars) |
-| `description` | string | yes | Full description shown on the detail page |
-| `categories` | array | yes | One or more of the values below |
-| `author` | string | yes | Team or organisation name |
-| `external` | boolean | yes | `true` when the dApp is hosted outside the explorer |
-| `networks` | integer[] | yes | Chain IDs to appear on: `207` = mainnet, `206` = testnet |
-| `site` | string (https) | no | Optional secondary site URL (some Blockscout builds) |
-| `twitter` | string | no | Twitter/X profile URL |
-| `telegram` | string | no | Telegram group or channel URL |
-| `discord` | string | no | Discord server invite URL |
-| `github` | string | no | GitHub organisation or repository URL |
-
-### Category whitelist
-
-`DEX` · `Lending` · `NFT` · `Bridge` · `Governance` · `Staking` · `Tools` · `Other`
-
-### Submit a dApp
-
-To list your dApp in the VinuExplorer marketplace, open an issue using the submission form:
-
-**[Submit your dApp](https://github.com/VinuChain/Vinuchain-Lists/issues/new?template=dapp-submission.yml)**
-
-Approved submissions are added to this repository and automatically appear in the next VinuExplorer deploy.
-
-### Build commands
-
-```bash
-# Generate dist/mainnet-marketplace.json and dist/testnet-marketplace.json
-npm run build:marketplace
-
-# Validate all marketplace blocks in contracts/{slug}/info.json
-npm run validate:marketplace
-```
-
----
-
 ## Community
 
 ### Get Involved
@@ -768,7 +711,6 @@ npm run validate:marketplace
 - **Discussions:** [GitHub Discussions](../../discussions)
 - **Submit Tokens:** [Token Submission Form](../../issues/new?template=token-submission.yml)
 - **Submit Contracts:** [Contract Submission Form](../../issues/new?template=contract-submission.yml)
-- **Submit dApp:** [dApp Submission Form](../../issues/new?template=dapp-submission.yml)
 
 ### Code of Conduct
 
