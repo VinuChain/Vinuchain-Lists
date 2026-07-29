@@ -344,18 +344,13 @@ jobs:
               REMOTE_OBJECT="$(
                 git ls-remote --refs origin "refs/tags/${CANDIDATE}" | cut -f1
               )"
-              REMOTE_PEELED="$(
-                git ls-remote origin "refs/tags/${CANDIDATE}^{}" | cut -f1
-              )"
-              REMOTE_COMMIT="${REMOTE_PEELED:-${REMOTE_OBJECT}}"
               if [ "${REMOTE_OBJECT}" = "${LOCAL_TAG_OBJECT}" ]; then
                 echo "Push response was ambiguous, but this run's unique tag object exists remotely."
                 CLAIMED=true
                 OWNED=true
                 OWNED_OBJECT="${LOCAL_TAG_OBJECT}"
-              elif [ "${REMOTE_COMMIT}" = "${COMMIT_SHA}" ]; then
-                echo "Tag ${CANDIDATE} already names ${COMMIT_SHA} through another object; proceeding without claiming cleanup ownership."
-                CLAIMED=true
+              elif [ -n "${REMOTE_OBJECT}" ]; then
+                echo "Tag ${CANDIDATE} is reserved by another run; selecting a new version."
               fi
             fi
 
