@@ -1,8 +1,12 @@
-const { expect } = require('chai');
-const fs = require('fs');
-const path = require('path');
-const { ethers } = require('hardhat');
-const { time } = require('@nomicfoundation/hardhat-network-helpers');
+import { expect } from 'chai';
+import fs from 'node:fs';
+import path from 'node:path';
+import { network } from 'hardhat';
+
+// Hardhat 3 scopes ethers and the network helpers to a network connection
+// rather than exporting them as module-level singletons.
+const { ethers, networkHelpers } = await network.getOrCreate();
+const { time } = networkHelpers;
 
 // Behavioural unit tests for VinuUsdOracle. These deploy the canonical
 // pre-compiled artifact at contracts/vns/source/artifacts/... against the
@@ -11,7 +15,7 @@ const { time } = require('@nomicfoundation/hardhat-network-helpers');
 // vns-pricing-oracle.test.js cannot cover.
 
 const ARTIFACT_PATH = path.join(
-  __dirname,
+  import.meta.dirname,
   '..',
   '..',
   'contracts',
@@ -257,7 +261,7 @@ describe('VinuUsdOracle (behavioural)', () => {
     it('accepts exactly the 32-byte source boundary', async () => {
       const { oracle } = await deployOracle();
       const exactly32 = 'x'.repeat(32);
-      await expect(oracle.setLatestAnswer(50_000_001n, exactly32)).to.not.be.reverted;
+      await expect(oracle.setLatestAnswer(50_000_001n, exactly32)).to.not.revert(ethers);
       expect(await oracle.source()).to.equal(exactly32);
     });
 
@@ -277,9 +281,9 @@ describe('VinuUsdOracle (behavioural)', () => {
         initialAnswer: 50_000_000n,
         initialMaxChangeBps: 2000n,
       });
-      await expect(oracle.setLatestAnswer(60_000_000n, 'coingecko')).to.not.be.reverted;
+      await expect(oracle.setLatestAnswer(60_000_000n, 'coingecko')).to.not.revert(ethers);
       // Step further; now previous is 60M and 20% is 12M, so 72M is still allowed.
-      await expect(oracle.setLatestAnswer(72_000_000n, 'coingecko')).to.not.be.reverted;
+      await expect(oracle.setLatestAnswer(72_000_000n, 'coingecko')).to.not.revert(ethers);
     });
 
     it('updates updatedAt to block.timestamp on successful set', async () => {
@@ -313,7 +317,7 @@ describe('VinuUsdOracle (behavioural)', () => {
 
     it('accepts bounded widened bounds that still contain the current answer', async () => {
       const { oracle } = await deployOracle({ initialAnswer: 50_000_000n });
-      await expect(oracle.setBounds(1_000n, 1_999_999_000n)).to.not.be.reverted;
+      await expect(oracle.setBounds(1_000n, 1_999_999_000n)).to.not.revert(ethers);
       expect(await oracle.minAnswer()).to.equal(1_000n);
       expect(await oracle.maxAnswer()).to.equal(1_999_999_000n);
     });
@@ -358,8 +362,8 @@ describe('VinuUsdOracle (behavioural)', () => {
 
     it('accepts boundary values 1 hour and 12 hours', async () => {
       const { oracle } = await deployOracle();
-      await expect(oracle.setMaxAge(ONE_HOUR)).to.not.be.reverted;
-      await expect(oracle.setMaxAge(TWELVE_HOURS)).to.not.be.reverted;
+      await expect(oracle.setMaxAge(ONE_HOUR)).to.not.revert(ethers);
+      await expect(oracle.setMaxAge(TWELVE_HOURS)).to.not.revert(ethers);
     });
 
     it('emits MaxAgeUpdated', async () => {
@@ -388,8 +392,8 @@ describe('VinuUsdOracle (behavioural)', () => {
 
     it('accepts 1 (0.01% per update) and the 20% ceiling', async () => {
       const { oracle } = await deployOracle();
-      await expect(oracle.setMaxChangeBps(1n)).to.not.be.reverted;
-      await expect(oracle.setMaxChangeBps(2000n)).to.not.be.reverted;
+      await expect(oracle.setMaxChangeBps(1n)).to.not.revert(ethers);
+      await expect(oracle.setMaxChangeBps(2000n)).to.not.revert(ethers);
     });
 
     it('emits MaxChangeBpsUpdated', async () => {
