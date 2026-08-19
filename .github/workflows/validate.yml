@@ -120,11 +120,12 @@ jobs:
     steps:
       - name: Comment success
         if: success()
-        # actions/github-script — pinned by commit SHA (AUD-09). This SHA is
-        # NOT a release tag: it is the untagged "prepare release for v9"
-        # merge, sitting between v8.0.0 and v9.0.0. A SHA pin still blocks a
-        # moved tag, but pinning an untagged mid-branch commit means nobody
-        # can tell which release is running — re-pin to a tagged release.
+        # actions/github-script@v9.0.0 — pinned by commit SHA (AUD-09).
+        # 3a2844b IS the v9.0.0 release commit: refs/tags/v9.0.0 is an annotated
+        # tag, and both it and the floating `v9` peel to this commit. Resolve
+        # annotated tags with `^{}` or the commits API before re-pinning — a tag
+        # object's own SHA is not a commit, so pinning that would break this
+        # AUD-09 invariant and stop dependabot matching the pin to a release.
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
