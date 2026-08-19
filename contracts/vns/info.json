@@ -220,7 +220,7 @@
   "marketplace": {
     "id": "vns",
     "title": "VinuChain Name Service (VNS)",
-    "url": "https://testnet.vinuexplorer.org/name-services/domains",
+    "url": "https://testnet.vinuexplorer.org/name-services",
     "logo": "https://mainnet.vinuexplorer.org/images/vinuchain.svg",
     "shortDescription": "Register and manage .vinu names on the VinuChain testnet.",
     "description": "VinuChain Name Service (VNS) lets you register human-readable .vinu domain names on the VinuChain testnet. VNS is an ENS-compatible name system that maps wallet addresses, smart contracts, and metadata to memorable .vinu names.",
