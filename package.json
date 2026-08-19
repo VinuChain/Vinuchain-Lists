@@ -4,7 +4,7 @@
   "description": "VinuChain Lists - Comprehensive registry of tokens and smart contracts on VinuChain",
   "main": "scripts/validate.js",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.13.0",
     "npm": ">=9.0.0"
   },
   "files": [
@@ -23,7 +23,7 @@
     "vns:oracle:update": "node scripts/update-vns-oracle.js --send",
     "test": "npm run test:mocha && npm run test:hardhat",
     "test:mocha": "mocha 'tests/**/*.test.js' --ignore 'tests/**/*.hh.test.js'",
-    "test:hardhat": "hardhat test tests/**/*.hh.test.js",
+    "test:hardhat": "hardhat test --config tests/hardhat/hardhat.config.js --no-compile",
     "test:unit": "mocha 'tests/unit/**/*.test.js' --ignore 'tests/**/*.hh.test.js' && npm run test:hardhat",
     "test:integration": "mocha tests/integration/**/*.test.js",
     "test:security": "mocha tests/security/**/*.test.js",
@@ -56,14 +56,15 @@
   },
   "homepage": "https://github.com/VinuChain/vinuchain-lists#readme",
   "devDependencies": {
-    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
-    "@nomicfoundation/hardhat-ethers": "^3.1.3",
-    "@nomicfoundation/hardhat-network-helpers": "^1.1.2",
+    "@nomicfoundation/hardhat-ethers": "^4.0.15",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "^3.0.11",
+    "@nomicfoundation/hardhat-mocha": "^3.1.0",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.11",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "chai": "^4.5.0",
+    "chai": "^5.3.3",
     "ethers": "^6.17.0",
     "hardhat": "^3.13.0",
-    "mocha": "^11.7.6"
+    "mocha": "^11.8.0"
   }
 }
