@@ -829,21 +829,28 @@ We are committed to providing a welcoming and inclusive environment. Please read
 
 ## Requirements
 
-- **Node.js:** >= 18.0.0
+- **Node.js:** >= 22.13.0 — the floor hardhat 3 enforces at startup
 - **npm:** >= 9.0.0
 
 ## Dependencies
 
 **Production Dependencies:** None (data repository)
 
-**Development Dependencies:**
-- `ajv` ^8.17.1 - JSON Schema validation
-- `ajv-formats` ^3.0.1 - Format validators (email, URI)
-- `ethers` ^6.13.0 - EIP-55 checksum validation
-- `mocha` ^11.7.5 - Test framework
-- `chai` ^4.5.0 - Assertion library
+**Development Dependencies:** see `devDependencies` in `package.json`, which is
+the only copy worth trusting — schema validation (`ajv`, `ajv-formats`),
+checksum/RPC work (`ethers`), the test runner (`mocha`, `chai`), and the
+hardhat 3 stack behind the behavioural oracle tests (`hardhat` plus its
+ethers, chai-matchers, mocha and network-helpers plugins). Pinned versions are
+deliberately not repeated here: the previous list duplicated package.json,
+fell silently behind it, and ended up naming a `chai` major the repo no longer
+used.
 
-**Dependency Status:** ✅ All secure (0 vulnerabilities)
+**Dependency Status:** run `npm audit`. As of 2026-08-19 it reports three
+advisories (`diff`, `serialize-javascript`), all dev-only and all reached
+through mocha's own dependency tree at its latest release. None is reachable
+from the published artifact, which ships data and scripts with no runtime
+dependencies, and npm's suggested remediation is a mocha *downgrade* — so they
+stand until mocha ships a patched tree.
 
 ---
 
