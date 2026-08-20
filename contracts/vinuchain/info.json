@@ -54,6 +54,15 @@
       "chainId": 206,
       "description": "Active testnet PaybackV2 non-proxy contract. stakeFor(address) credits receiver refunds; funding wallet owns/withdraws stake via unstakeFor(address,uint256). Deployed 2026-05-16.",
       "codeHash": "0x77c89af1920577cf6cd79da4281b20ac94cd1e262c1b53ccb1f968d77442e95e"
+    },
+    {
+      "name": "QuotaContractV2",
+      "artifact": "QuotaContractV2",
+      "address": "0x5D989A2d65d049e2198D91d8ddc31C918f2544AB",
+      "type": "staking",
+      "chainId": 207,
+      "description": "Mainnet PaybackV2 non-proxy contract, deployed 2026-08-21. Replaces the Quota proxy 0x1c4269fb...0acda6 (ProxyAdmin key lost). Params mirror V1. Load-bearing only after the ELEMONT seal rebinds.",
+      "codeHash": "0x6e8935d60f28814c2feff1b076d8225cde134bfd2ed7ac467b31e9a69838c649"
     }
   ],
   "social": {
