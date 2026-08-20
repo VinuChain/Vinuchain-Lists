@@ -17,7 +17,6 @@ const KNOWN_VINUCHAIN_CHAIN_IDS = new Set([205, 206, 207]);
 // pool hard-fail, so a CoinGecko reading is never pushed on-chain without the
 // V3 TWAP corroborating it. Backstops the workflow's event-based relaxation if
 // this updater is ever pointed at mainnet.
-const MAINNET_CHAIN_ID = 207;
 
 function parseRpcUrls(...values) {
   return values
@@ -181,6 +180,7 @@ const V3_POOL_ABI = [
   'function token1() view returns (address)',
   'function liquidity() view returns (uint128)',
   'function observe(uint32[] secondsAgos) view returns (int56[] tickCumulatives, uint160[] secondsPerLiquidityCumulativeX128s)',
+  'function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
 ];
 const ORACLE_ABI = [
   'function setLatestAnswer(int256 newAnswer, string newSource) external',
@@ -439,14 +439,29 @@ function tokenMeta(pool, address) {
 
 async function readPoolTwap(provider, pool) {
   const contract = new Contract(pool.poolAddress, V3_POOL_ABI, provider);
-  const [token0Address, token1Address, liquidity] = await Promise.all([
+  const [token0Address, token1Address, liquidity, slot0] = await Promise.all([
     contract.token0(),
     contract.token1(),
     contract.liquidity(),
+    contract.slot0(),
   ]);
   if (liquidity < MIN_POOL_LIQUIDITY) {
     throw new Error(`${pool.label} liquidity below minimum`);
   }
+
+  // A Uniswap V3 pool only keeps a price history if its observation ring
+  // buffer has been grown past the single slot it is created with. At
+  // cardinality 1 there is nothing to average: both observe() endpoints
+  // extrapolate from the same stored observation at the CURRENT tick, so
+  // avgTick === slot0.tick and every window returns an identical value. What
+  // comes back is spot wearing a TWAP's clothes — trivially moved, and useless
+  // as corroboration. Report it rather than silently treating it as a TWAP.
+  //
+  // All three VinuChain pools read cardinality 1 as of 2026-08-21 and
+  // increaseObservationCardinalityNext has never been called on any of them.
+  // If someone later grows a buffer, this flips back to a real TWAP on its own.
+  const observationCardinality = Number(slot0.observationCardinality ?? slot0[3]);
+  const isRealTwap = observationCardinality > 1;
 
   let observed = null;
   let windowSeconds = null;
@@ -486,6 +501,8 @@ async function readPoolTwap(provider, pool) {
     token1PerToken0,
     liquidity: liquidity.toString(),
     windowSeconds,
+    observationCardinality,
+    isRealTwap,
   };
 }
 
@@ -539,13 +556,19 @@ async function fetchPoolPrice() {
     );
   }
 
+  // If ANY leg lacks an observation buffer, the composed quote is spot, not a
+  // TWAP, and must not be allowed to veto the canonical CoinGecko price.
+  const pools = [vcUsdt, vinuVc, vinuUsdt];
+  const isRealTwap = pools.every((entry) => entry.isRealTwap);
+
   return {
     usd: direct,
-    source: 'v3-twap',
+    source: isRealTwap ? 'v3-twap' : 'v3-spot',
     priceChainId,
     priceRpcEndpoint: describeRpcUrl(rpcUrl),
     deviationBps: Math.round(deviation),
-    pools: [vcUsdt, vinuVc, vinuUsdt],
+    isRealTwap,
+    pools,
   };
 }
 
@@ -586,18 +609,35 @@ function reconcileVnsPrice({
   targetChainId,
 }) {
   // "Strict" means both sources must corroborate: the pool is REQUIRED and we
-  // are not permitted to fall back to a single source. This is the mainnet /
-  // `--send` default. When it is false the pool is advisory (testnet posture),
-  // so a missing OR disagreeing pool degrades gracefully to CoinGecko rather
-  // than failing the run.
-  // On mainnet the automated updater must never push a price the pool cannot
-  // corroborate — neither on a source DISAGREEMENT nor on a MISSING pool. Force
-  // strict there regardless of flags; a deliberate emergency single-source
-  // mainnet update must be done out-of-band, never via this auto-relaxing path.
-  // Off-mainnet (testnet/staging) the pool is advisory: degrade to CoinGecko.
-  const strict =
-    targetChainId === MAINNET_CHAIN_ID ||
-    (requirePoolGuard && !allowSingleSource);
+  // are not permitted to fall back to a single source. When it is false the
+  // pool is advisory, so a missing OR disagreeing pool degrades gracefully to
+  // CoinGecko rather than failing the run.
+  //
+  // The pool can only veto a price if it actually corroborates one. A pool
+  // whose observation buffer was never grown reports spot, not a TWAP (see
+  // readPoolTwap) — it can be moved for pocket change and it drifts freely from
+  // real price whenever nobody trades. Letting that veto CoinGecko does not buy
+  // safety; it buys an outage, because a failed guard means no update, and 12
+  // hours later latestAnswer() reverts StaleAnswer and rentPrice() with it.
+  // Registration and renewal stop chain-wide.
+  //
+  // So: no TWAP, no veto. The manipulation defence people believe this guard
+  // provides already exists on-chain and is strictly stronger — maxChangeBps
+  // caps any single update at +/-20% and minAnswer/maxAnswer are absolute
+  // clamps, so a poisoned CoinGecko read cannot move price far or push it
+  // outside the configured band. Note also that the pool was never the price
+  // SOURCE: every non-error path below pushes the CoinGecko value.
+  //
+  // Mainnet no longer force-enables strict for the same reason. When a pool
+  // buffer is grown (increaseObservationCardinalityNext), isRealTwap flips true
+  // and the guard becomes load-bearing again with no code change.
+  // Distinguish "pool absent" from "pool present but not a TWAP". A missing
+  // pool is an infrastructure failure and still hard-fails under the guard —
+  // the operator asked for corroboration and the read did not happen. A pool
+  // that is present but reports spot is a different thing: it answered, and its
+  // answer is worthless, so it must not be allowed to veto.
+  const poolCanCorroborate = pool ? Boolean(pool.isRealTwap) : true;
+  const strict = poolCanCorroborate && requirePoolGuard && !allowSingleSource;
 
   if (coingecko && pool) {
     const deviation = deviationBps(coingecko.usd, pool.usd);
@@ -633,7 +673,11 @@ function reconcileVnsPrice({
     }
     return {
       usd: coingecko.usd,
-      source: 'coingecko+v3-twap',
+      // Report what the pool actually is. This string is written on-chain as the
+      // oracle's source tag, so labelling a cardinality-1 spot read "v3-twap"
+      // would put a false provenance claim into the permanent record — the same
+      // error, one layer down, that made the pool look like a price feed.
+      source: pool.isRealTwap === false ? 'coingecko+v3-spot' : 'coingecko+v3-twap',
       updatedAt: coingecko.updatedAt,
       priceChainId: pool.priceChainId,
       deviationBps: Math.round(deviation),

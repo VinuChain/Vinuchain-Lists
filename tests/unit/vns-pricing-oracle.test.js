@@ -88,11 +88,23 @@ describe('VNS pricing oracle registry', () => {
     expect(updater).to.include("await rawJsonRpc(url, 'eth_chainId')");
     expect(updater).to.include("'function observe(uint32[] secondsAgos) view returns");
     expect(updater).to.not.include('balanceOf(poolAddress)');
-    // mainnet strict gate is keyed on the verified connected chain id, wired
-    // from main()'s resolveCheckedProvider result into the price resolver.
     expect(updater).to.include('const price = await resolveVnsOraclePrice(targetChainId);');
-    expect(updater).to.include('targetChainId === MAINNET_CHAIN_ID');
-    expect(updater).to.include('const MAINNET_CHAIN_ID = 207;');
+
+    // The strict gate is no longer keyed on chain id. It used to force strict on
+    // mainnet, on the assumption that the pool corroborated the price. It does
+    // not: all three VinuChain pools have observationCardinality 1, so observe()
+    // returns spot rather than a TWAP. Forcing strict against a spot quote
+    // guarantees an outage (guard fails -> no update -> StaleAnswer ->
+    // rentPrice() reverts) while defending nothing, since the pool was never the
+    // price source. The gate now keys on whether a real TWAP exists, so growing
+    // a pool's observation buffer re-arms it with no code change.
+    expect(updater).to.include('const observationCardinality = Number(');
+    expect(updater).to.include('const isRealTwap = observationCardinality > 1;');
+    expect(updater).to.include('const poolCanCorroborate = pool ? Boolean(pool.isRealTwap) : true;');
+    expect(updater).to.include(
+      'poolCanCorroborate && requirePoolGuard && !allowSingleSource',
+    );
+    expect(updater).to.not.include('targetChainId === MAINNET_CHAIN_ID');
   });
 
   it('keeps oracle maxAge defaults consistent across deploy, update, and workflow paths', () => {
@@ -178,8 +190,12 @@ describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
   const { reconcileVnsPrice, toOracleSourceTag } = require('../../scripts/update-vns-oracle');
   const cg = { usd: 0.0003, source: 'coingecko', updatedAt: 1234567890 };
   // ~1% apart (within cap) and ~21% apart (over the 500 bps cap)
-  const poolClose = { usd: 0.000303, source: 'v3-twap', priceChainId: 207, deviationBps: 10, pools: [] };
-  const poolFar = { usd: 0.00037, source: 'v3-twap', priceChainId: 207, deviationBps: 10, pools: [] };
+  // isRealTwap distinguishes a pool with a grown observation buffer (a genuine
+  // TWAP, allowed to veto) from one at cardinality 1 (spot in disguise, not
+  // allowed to veto). All three live VinuChain pools are the latter today.
+  const poolClose = { usd: 0.000303, source: 'v3-twap', priceChainId: 207, deviationBps: 10, isRealTwap: true, pools: [] };
+  const poolFar = { usd: 0.00037, source: 'v3-twap', priceChainId: 207, deviationBps: 10, isRealTwap: true, pools: [] };
+  const poolFarSpotOnly = { ...poolFar, source: 'v3-spot', isRealTwap: false };
 
   it('returns coingecko+v3-twap when both sources agree within the cap', () => {
     const r = reconcileVnsPrice({
@@ -210,24 +226,48 @@ describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
     expect(r.deviationBps).to.be.greaterThan(500);
   });
 
-  it('NEVER advisory-falls-back on mainnet (207): a deviation hard-fails even with flags relaxed', () => {
-    expect(() => reconcileVnsPrice({
-      coingecko: cg, pool: poolFar,
-      requirePoolGuard: true, allowSingleSource: true, maxDeviationBps: 500,
-      targetChainId: 207,
-    })).to.throw(/deviation .* exceeds 500/);
-    // and with the guard fully off, too
-    expect(() => reconcileVnsPrice({
-      coingecko: cg, pool: poolFar,
-      requirePoolGuard: false, allowSingleSource: true, maxDeviationBps: 500,
-      targetChainId: 207,
-    })).to.throw(/deviation .* exceeds 500/);
+  it('still hard-fails a deviation against a REAL TWAP under the guard, on any chain', () => {
+    for (const targetChainId of [206, 207]) {
+      expect(() => reconcileVnsPrice({
+        coingecko: cg, pool: poolFar,
+        requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+        targetChainId,
+      })).to.throw(/deviation .* exceeds 500/);
+    }
   });
 
-  it('requires the pool on mainnet (207) even with single-source allowed (missing pool hard-fails)', () => {
+  it('labels the on-chain source spot, not twap, when the pool has no buffer', () => {
+    const poolCloseSpotOnly = { ...poolClose, source: 'v3-spot', isRealTwap: false };
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: poolCloseSpotOnly,
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+    });
+    expect(r.source).to.equal('coingecko+v3-spot');
+    expect(r.usd).to.equal(cg.usd);
+  });
+
+  it('does NOT let a cardinality-1 pool veto CoinGecko, including on mainnet', () => {
+    // This is the reversal. A pool at cardinality 1 returns spot, not a TWAP, so
+    // it corroborates nothing — and letting it veto causes the outage it looks
+    // like it prevents: no update, then StaleAnswer, then rentPrice() reverts and
+    // registration stops chain-wide. The on-chain maxChangeBps/minAnswer/maxAnswer
+    // clamps remain the real manipulation defence.
+    const r = reconcileVnsPrice({
+      coingecko: cg, pool: poolFarSpotOnly,
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
+      targetChainId: 207,
+    });
+    expect(r.usd).to.equal(cg.usd);
+    expect(r.source).to.match(/pool advisory/);
+  });
+
+  it('still requires the pool on mainnet when the read fails outright', () => {
+    // A MISSING pool is an infrastructure failure, not a useless answer: the
+    // operator asked for corroboration and the read never happened. That keeps
+    // failing under the guard.
     expect(() => reconcileVnsPrice({
       coingecko: cg, pool: null, poolError: 'OLD',
-      requirePoolGuard: false, allowSingleSource: true, maxDeviationBps: 500,
+      requirePoolGuard: true, allowSingleSource: false, maxDeviationBps: 500,
       targetChainId: 207,
     })).to.throw(/V3 TWAP guard failed/);
   });
@@ -247,6 +287,10 @@ describe('reconcileVnsPrice deviation / pool-advisory policy', () => {
     expect(tag).to.equal('coingecko-pool-advisory');
     expect(Buffer.byteLength(tag, 'utf8')).to.be.at.most(32);
     expect(toOracleSourceTag('coingecko+v3-twap')).to.equal('coingecko+v3-twap');
+    // a cardinality-1 pool is reported as spot, and that tag must survive to
+    // the chain unchanged and within the 32-byte limit
+    expect(toOracleSourceTag('coingecko+v3-spot')).to.equal('coingecko+v3-spot');
+    expect(Buffer.byteLength('coingecko+v3-spot', 'utf8')).to.be.at.most(32);
     expect(() => toOracleSourceTag('x'.repeat(33))).to.throw(/max is 32/);
   });
 
