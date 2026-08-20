@@ -2315,6 +2315,15 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         // whenever a claim is actually payable.
         if (safeCursor > stashedRewardsUntilEpoch[delegator][toValidatorID]) {
             stashedRewardsUntilEpoch[delegator][toValidatorID] = safeCursor;
+            // Cycle-165: cursor movement counts as progress. Without this, a
+            // 100-epoch window containing zero rewards made the external
+            // stashRewards revert "nothing to stash" — rolling back the very
+            // cursor advance the call performed — so settlement could strand
+            // behind an empty window with claimRewards ("zero rewards") and
+            // stashRewards both reverting. Since the relock/restake gates
+            // prescribe stashRewards as the settle path, it must make
+            // progress through empty windows.
+            updated = true;
         }
         _rewardsStash[delegator][toValidatorID] = sumRewards(
             _rewardsStash[delegator][toValidatorID],
@@ -2328,11 +2337,29 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
         getStashedLockupRewards[delegator][toValidatorID].lockupBaseReward =
             getStashedLockupRewards[delegator][toValidatorID].lockupBaseReward
             .add(nonStashedReward.lockupBaseReward);
-        if (!isLockedUp(delegator, toValidatorID)) {
+        // Cycle-165: delete the lockup record only once the reward cursor has
+        // fully settled every payable epoch. The previous wall-clock-only
+        // condition destroyed lockup-scaled rewards under chunked settlement:
+        // _safeCursorPosition advances at most MAX_CORRUPTION_CHECK_EPOCHS per
+        // call, so the first partial claim after expiry deleted the record and
+        // every later chunk was scaled at the unlocked rate (measured on live
+        // mainnet state: ~394k VC across 42 delegations, worst case 48% of the
+        // owed amount). Retaining the record until safeCursor reaches
+        // payableEpoch reproduces V1's single-sweep accounting exactly:
+        // _newRewardsUpTo caps lockup scaling at _highestLockupEpoch, so a
+        // retained expired record never over-pays post-lock epochs, and every
+        // current-state read (isLockedUp, getLockedStake, getUnlockedStake,
+        // unlockStake, snapshot lockedSelfStake) is wall-clock guarded, so a
+        // retained record is invisible to them.
+        if (
+            !isLockedUp(delegator, toValidatorID) &&
+            safeCursor >= payableEpoch
+        ) {
             delete getLockupInfo[delegator][toValidatorID];
             delete getStashedLockupRewards[delegator][toValidatorID];
         }
         return
+            updated ||
             nonStashedReward.lockupBaseReward != 0 ||
             nonStashedReward.lockupExtraReward != 0 ||
             nonStashedReward.unlockedReward != 0;
@@ -2422,6 +2449,14 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
             require(
                 getLockupInfo[delegator][toValidatorID].endTime.sub(_now()) >= minLockupDuration(),
                 "remaining lockup too short to restake"
+            );
+            // Cycle-165: restaking grows ld.lockedStake, which is a scaling
+            // input for every not-yet-swept locked epoch. Require the cursor
+            // to be current first, same as _lockStake and unlockStake.
+            uint256 payableEpoch = _highestPayableEpoch(toValidatorID);
+            require(
+                _safeCursorPosition(delegator, toValidatorID, payableEpoch) >= payableEpoch,
+                "unsettled rewards; settle via stashRewards before restaking"
             );
         }
 
@@ -3311,15 +3346,38 @@ contract SFC is Initializable, Ownable, StakersConstants, Version {
 
         _stashRewards(delegator, toValidatorID);
 
+        // Cycle-165: refuse to mutate an existing lockup record while epochs
+        // remain unsettled. Overwriting fromEpoch/duration or growing
+        // lockedStake changes the scaling inputs _newRewardsUpTo uses for the
+        // not-yet-swept locked window, silently repricing history. Under V1
+        // this hazard could not arise because the sweep above always settled
+        // everything; under chunked settlement the caller must first bring the
+        // cursor current (stashRewards / claimRewards, bounded per call).
+        // After a full sweep an EXPIRED record has just been deleted by
+        // _stashRewards above, so a fresh lock proceeds unhindered; an ACTIVE
+        // record may then be safely extended. Mirrors the corruption guard in
+        // unlockStake: a corruption-stalled cursor blocks relocking until the
+        // owner corrects the epoch, and never blocks undelegation.
+        {
+            LockedDelegation storage existing = getLockupInfo[delegator][toValidatorID];
+            if (existing.endTime != 0 || existing.lockedStake != 0) {
+                uint256 payableEpoch = _highestPayableEpoch(toValidatorID);
+                require(
+                    _safeCursorPosition(delegator, toValidatorID, payableEpoch) >= payableEpoch,
+                    "unsettled rewards; settle via stashRewards before relocking"
+                );
+            }
+        }
+
         // Compare the new absolute end-time against the existing end-time,
         // NOT the new duration against the old duration. Elapsed time must
         // count: a 340-day lock with 40 days remaining may be relocked for
         // 50 days, because the new end-time is still later than the current
         // one. Comparing durations would wrongly reject that relock.
         //
-        // After _stashRewards, expired lockups are deleted, so `ld.endTime`
-        // is 0 for first-time locks and just-expired relocks — the check
-        // passes trivially in those cases. The `lockupDuration <=
+        // After a fully-settled _stashRewards, expired lockups are deleted, so
+        // `ld.endTime` is 0 for first-time locks and settled relocks — the
+        // check passes trivially in those cases. The `lockupDuration <=
         // maxLockupDuration()` require above still caps the new lock.
         LockedDelegation storage ld = getLockupInfo[delegator][toValidatorID];
         require(
