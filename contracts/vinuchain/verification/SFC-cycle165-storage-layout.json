@@ -1,0 +1,1085 @@
+{
+  "storage": [
+    {
+      "astId": 13,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "initialized",
+      "offset": 0,
+      "slot": "0",
+      "type": "t_bool"
+    },
+    {
+      "astId": 15,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "initializing",
+      "offset": 1,
+      "slot": "0",
+      "type": "t_bool"
+    },
+    {
+      "astId": 77,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "__gap",
+      "offset": 0,
+      "slot": "1",
+      "type": "t_array(t_uint256)50_storage"
+    },
+    {
+      "astId": 270,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_owner",
+      "offset": 0,
+      "slot": "51",
+      "type": "t_address"
+    },
+    {
+      "astId": 336,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_pendingOwner",
+      "offset": 0,
+      "slot": "52",
+      "type": "t_address"
+    },
+    {
+      "astId": 338,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_pendingOwnerDeadline",
+      "offset": 0,
+      "slot": "53",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 464,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "__gap",
+      "offset": 0,
+      "slot": "54",
+      "type": "t_array(t_uint256)48_storage"
+    },
+    {
+      "astId": 1878,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "node",
+      "offset": 0,
+      "slot": "102",
+      "type": "t_contract(NodeDriverAuth)1209"
+    },
+    {
+      "astId": 1880,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "currentSealedEpoch",
+      "offset": 0,
+      "slot": "103",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1882,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_legacyGenesisValidator",
+      "offset": 0,
+      "slot": "104",
+      "type": "t_address"
+    },
+    {
+      "astId": 1886,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getValidator",
+      "offset": 0,
+      "slot": "105",
+      "type": "t_mapping(t_uint256,t_struct(Validator)1876_storage)"
+    },
+    {
+      "astId": 1890,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getValidatorID",
+      "offset": 0,
+      "slot": "106",
+      "type": "t_mapping(t_address,t_uint256)"
+    },
+    {
+      "astId": 1894,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getValidatorPubkey",
+      "offset": 0,
+      "slot": "107",
+      "type": "t_mapping(t_uint256,t_bytes_storage)"
+    },
+    {
+      "astId": 1896,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "lastValidatorID",
+      "offset": 0,
+      "slot": "108",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1898,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalStake",
+      "offset": 0,
+      "slot": "109",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1900,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalActiveStake",
+      "offset": 0,
+      "slot": "110",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1902,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalSlashedStake",
+      "offset": 0,
+      "slot": "111",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1904,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalPenalty",
+      "offset": 0,
+      "slot": "112",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 1917,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_rewardsStash",
+      "offset": 0,
+      "slot": "113",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Rewards)1911_storage))"
+    },
+    {
+      "astId": 1923,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "stashedRewardsUntilEpoch",
+      "offset": 0,
+      "slot": "114",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 1938,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getWithdrawalRequest",
+      "offset": 0,
+      "slot": "115",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage)))"
+    },
+    {
+      "astId": 1953,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getStake",
+      "offset": 0,
+      "slot": "116",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 1959,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getLockupInfo",
+      "offset": 0,
+      "slot": "117",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(LockedDelegation)1947_storage))"
+    },
+    {
+      "astId": 1965,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getStashedLockupRewards",
+      "offset": 0,
+      "slot": "118",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Rewards)1911_storage))"
+    },
+    {
+      "astId": 2021,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "baseRewardPerSecond",
+      "offset": 0,
+      "slot": "119",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2023,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalSupply",
+      "offset": 0,
+      "slot": "120",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2027,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "getEpochSnapshot",
+      "offset": 0,
+      "slot": "121",
+      "type": "t_mapping(t_uint256,t_struct(EpochSnapshot)2019_storage)"
+    },
+    {
+      "astId": 2029,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "offlinePenaltyThresholdBlocksNum",
+      "offset": 0,
+      "slot": "122",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2031,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "offlinePenaltyThresholdTime",
+      "offset": 0,
+      "slot": "123",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2035,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "slashingRefundRatio",
+      "offset": 0,
+      "slot": "124",
+      "type": "t_mapping(t_uint256,t_uint256)"
+    },
+    {
+      "astId": 2054,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "stakes",
+      "offset": 0,
+      "slot": "125",
+      "type": "t_array(t_struct(StakeWithoutAmount)2042_storage)dyn_storage"
+    },
+    {
+      "astId": 2060,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "stakePosition",
+      "offset": 0,
+      "slot": "126",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 2066,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "wrIdCount",
+      "offset": 0,
+      "slot": "127",
+      "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 2072,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "corruptedEpochs",
+      "offset": 0,
+      "slot": "128",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))"
+    },
+    {
+      "astId": 2078,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "correctedEpochRewardRate",
+      "offset": 0,
+      "slot": "129",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 2084,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "isEpochCorrected",
+      "offset": 0,
+      "slot": "130",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))"
+    },
+    {
+      "astId": 2090,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "correctionReasonHash",
+      "offset": 0,
+      "slot": "131",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bytes32))"
+    },
+    {
+      "astId": 2095,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "maxCorrectionDelta",
+      "offset": 0,
+      "slot": "132",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2108,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingCorrections",
+      "offset": 0,
+      "slot": "133",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(PendingCorrection)2102_storage))"
+    },
+    {
+      "astId": 2114,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "correctionCancelTime",
+      "offset": 0,
+      "slot": "134",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 2120,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "totalCorrectionDelta",
+      "offset": 0,
+      "slot": "135",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 2122,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingMaxCorrectionDelta",
+      "offset": 0,
+      "slot": "136",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2124,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingMaxCorrectionDeltaUnlockTime",
+      "offset": 0,
+      "slot": "137",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2126,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingBaseRewardPerSecond",
+      "offset": 0,
+      "slot": "138",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2128,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingBaseRewardPerSecondUnlockTime",
+      "offset": 0,
+      "slot": "139",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2130,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingOfflinePenaltyBlocksNum",
+      "offset": 0,
+      "slot": "140",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2132,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingOfflinePenaltyTime",
+      "offset": 0,
+      "slot": "141",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2134,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingOfflinePenaltyUnlockTime",
+      "offset": 0,
+      "slot": "142",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 2143,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "pendingSlashingRefundRatios",
+      "offset": 0,
+      "slot": "143",
+      "type": "t_mapping(t_uint256,t_struct(PendingSlashingRefund)2139_storage)"
+    },
+    {
+      "astId": 2147,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "lastSlashingRefundRatioCancelledAt",
+      "offset": 0,
+      "slot": "144",
+      "type": "t_mapping(t_uint256,t_uint256)"
+    },
+    {
+      "astId": 2151,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "usedPubkeyHash",
+      "offset": 0,
+      "slot": "145",
+      "type": "t_mapping(t_bytes32,t_bool)"
+    },
+    {
+      "astId": 9824,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "isGenesisValidator",
+      "offset": 0,
+      "slot": "146",
+      "type": "t_mapping(t_address,t_bool)"
+    },
+    {
+      "astId": 9830,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_epochEndReceivedStake",
+      "offset": 0,
+      "slot": "147",
+      "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))"
+    },
+    {
+      "astId": 9832,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "_reentrancyGuardCounter",
+      "offset": 0,
+      "slot": "148",
+      "type": "t_uint256"
+    },
+    {
+      "astId": 9855,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "reactivationHealFloor",
+      "offset": 0,
+      "slot": "149",
+      "type": "t_mapping(t_uint256,t_uint256)"
+    },
+    {
+      "astId": 9859,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "reactivationHealFrom",
+      "offset": 0,
+      "slot": "150",
+      "type": "t_mapping(t_uint256,t_uint256)"
+    },
+    {
+      "astId": 9863,
+      "contract": "contracts/vinuchain/SFC.sol:SFC",
+      "label": "__gap",
+      "offset": 0,
+      "slot": "151",
+      "type": "t_array(t_uint256)46_storage"
+    }
+  ],
+  "types": {
+    "t_address": {
+      "encoding": "inplace",
+      "label": "address",
+      "numberOfBytes": "20"
+    },
+    "t_array(t_struct(StakeWithoutAmount)2042_storage)dyn_storage": {
+      "base": "t_struct(StakeWithoutAmount)2042_storage",
+      "encoding": "dynamic_array",
+      "label": "struct SFC.StakeWithoutAmount[]",
+      "numberOfBytes": "32"
+    },
+    "t_array(t_uint256)46_storage": {
+      "base": "t_uint256",
+      "encoding": "inplace",
+      "label": "uint256[46]",
+      "numberOfBytes": "1472"
+    },
+    "t_array(t_uint256)48_storage": {
+      "base": "t_uint256",
+      "encoding": "inplace",
+      "label": "uint256[48]",
+      "numberOfBytes": "1536"
+    },
+    "t_array(t_uint256)50_storage": {
+      "base": "t_uint256",
+      "encoding": "inplace",
+      "label": "uint256[50]",
+      "numberOfBytes": "1600"
+    },
+    "t_array(t_uint256)dyn_storage": {
+      "base": "t_uint256",
+      "encoding": "dynamic_array",
+      "label": "uint256[]",
+      "numberOfBytes": "32"
+    },
+    "t_bool": {
+      "encoding": "inplace",
+      "label": "bool",
+      "numberOfBytes": "1"
+    },
+    "t_bytes32": {
+      "encoding": "inplace",
+      "label": "bytes32",
+      "numberOfBytes": "32"
+    },
+    "t_bytes_storage": {
+      "encoding": "bytes",
+      "label": "bytes",
+      "numberOfBytes": "32"
+    },
+    "t_contract(NodeDriverAuth)1209": {
+      "encoding": "inplace",
+      "label": "contract NodeDriverAuth",
+      "numberOfBytes": "20"
+    },
+    "t_mapping(t_address,t_bool)": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => bool)",
+      "numberOfBytes": "32",
+      "value": "t_bool"
+    },
+    "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage)))": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => mapping(uint256 => mapping(uint256 => struct SFC.WithdrawalRequest)))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage))"
+    },
+    "t_mapping(t_address,t_mapping(t_uint256,t_struct(LockedDelegation)1947_storage))": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => mapping(uint256 => struct SFC.LockedDelegation))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_struct(LockedDelegation)1947_storage)"
+    },
+    "t_mapping(t_address,t_mapping(t_uint256,t_struct(Rewards)1911_storage))": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => mapping(uint256 => struct SFC.Rewards))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_struct(Rewards)1911_storage)"
+    },
+    "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => mapping(uint256 => uint256))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_uint256)"
+    },
+    "t_mapping(t_address,t_uint256)": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => uint256)",
+      "numberOfBytes": "32",
+      "value": "t_uint256"
+    },
+    "t_mapping(t_bytes32,t_bool)": {
+      "encoding": "mapping",
+      "key": "t_bytes32",
+      "label": "mapping(bytes32 => bool)",
+      "numberOfBytes": "32",
+      "value": "t_bool"
+    },
+    "t_mapping(t_uint256,t_bool)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => bool)",
+      "numberOfBytes": "32",
+      "value": "t_bool"
+    },
+    "t_mapping(t_uint256,t_bytes32)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => bytes32)",
+      "numberOfBytes": "32",
+      "value": "t_bytes32"
+    },
+    "t_mapping(t_uint256,t_bytes_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => bytes)",
+      "numberOfBytes": "32",
+      "value": "t_bytes_storage"
+    },
+    "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => mapping(uint256 => bool))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_bool)"
+    },
+    "t_mapping(t_uint256,t_mapping(t_uint256,t_bytes32))": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => mapping(uint256 => bytes32))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_bytes32)"
+    },
+    "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(PendingCorrection)2102_storage))": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => mapping(uint256 => struct SFC.PendingCorrection))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_struct(PendingCorrection)2102_storage)"
+    },
+    "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage))": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => mapping(uint256 => struct SFC.WithdrawalRequest))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage)"
+    },
+    "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => mapping(uint256 => uint256))",
+      "numberOfBytes": "32",
+      "value": "t_mapping(t_uint256,t_uint256)"
+    },
+    "t_mapping(t_uint256,t_struct(EpochSnapshot)2019_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.EpochSnapshot)",
+      "numberOfBytes": "32",
+      "value": "t_struct(EpochSnapshot)2019_storage"
+    },
+    "t_mapping(t_uint256,t_struct(LockedDelegation)1947_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.LockedDelegation)",
+      "numberOfBytes": "32",
+      "value": "t_struct(LockedDelegation)1947_storage"
+    },
+    "t_mapping(t_uint256,t_struct(PendingCorrection)2102_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.PendingCorrection)",
+      "numberOfBytes": "32",
+      "value": "t_struct(PendingCorrection)2102_storage"
+    },
+    "t_mapping(t_uint256,t_struct(PendingSlashingRefund)2139_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.PendingSlashingRefund)",
+      "numberOfBytes": "32",
+      "value": "t_struct(PendingSlashingRefund)2139_storage"
+    },
+    "t_mapping(t_uint256,t_struct(Rewards)1911_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.Rewards)",
+      "numberOfBytes": "32",
+      "value": "t_struct(Rewards)1911_storage"
+    },
+    "t_mapping(t_uint256,t_struct(Validator)1876_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.Validator)",
+      "numberOfBytes": "32",
+      "value": "t_struct(Validator)1876_storage"
+    },
+    "t_mapping(t_uint256,t_struct(WithdrawalRequest)1930_storage)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => struct SFC.WithdrawalRequest)",
+      "numberOfBytes": "32",
+      "value": "t_struct(WithdrawalRequest)1930_storage"
+    },
+    "t_mapping(t_uint256,t_uint256)": {
+      "encoding": "mapping",
+      "key": "t_uint256",
+      "label": "mapping(uint256 => uint256)",
+      "numberOfBytes": "32",
+      "value": "t_uint256"
+    },
+    "t_string_storage": {
+      "encoding": "bytes",
+      "label": "string",
+      "numberOfBytes": "32"
+    },
+    "t_struct(EpochSnapshot)2019_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.EpochSnapshot",
+      "members": [
+        {
+          "astId": 1969,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "receivedStake",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1973,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "accumulatedRewardPerToken",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1977,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "accumulatedUptime",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1981,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "accumulatedOriginatedTxsFee",
+          "offset": 0,
+          "slot": "3",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1985,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "offlineTime",
+          "offset": 0,
+          "slot": "4",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1989,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "offlineBlocks",
+          "offset": 0,
+          "slot": "5",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 1992,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "validatorIDs",
+          "offset": 0,
+          "slot": "6",
+          "type": "t_array(t_uint256)dyn_storage"
+        },
+        {
+          "astId": 1994,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "endTime",
+          "offset": 0,
+          "slot": "7",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1996,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "epochFee",
+          "offset": 0,
+          "slot": "8",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1998,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "totalBaseRewardWeight",
+          "offset": 0,
+          "slot": "9",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2000,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "totalTxRewardWeight",
+          "offset": 0,
+          "slot": "10",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2002,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "baseRewardPerSecond",
+          "offset": 0,
+          "slot": "11",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2004,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "totalStake",
+          "offset": 0,
+          "slot": "12",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2006,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "totalSupply",
+          "offset": 0,
+          "slot": "13",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2010,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "selfStake",
+          "offset": 0,
+          "slot": "14",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 2014,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "lockedSelfStake",
+          "offset": 0,
+          "slot": "15",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        },
+        {
+          "astId": 2018,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "lockedSelfStakeDuration",
+          "offset": 0,
+          "slot": "16",
+          "type": "t_mapping(t_uint256,t_uint256)"
+        }
+      ],
+      "numberOfBytes": "544"
+    },
+    "t_struct(LockedDelegation)1947_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.LockedDelegation",
+      "members": [
+        {
+          "astId": 1940,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "lockedStake",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1942,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "fromEpoch",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1944,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "endTime",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1946,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "duration",
+          "offset": 0,
+          "slot": "3",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "128"
+    },
+    "t_struct(PendingCorrection)2102_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.PendingCorrection",
+      "members": [
+        {
+          "astId": 2097,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "correctedAccumulatedRewardPerToken",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2099,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "reason",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_string_storage"
+        },
+        {
+          "astId": 2101,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "unlockTime",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "96"
+    },
+    "t_struct(PendingSlashingRefund)2139_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.PendingSlashingRefund",
+      "members": [
+        {
+          "astId": 2136,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "ratio",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 2138,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "unlockTime",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "64"
+    },
+    "t_struct(Rewards)1911_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.Rewards",
+      "members": [
+        {
+          "astId": 1906,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "lockupExtraReward",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1908,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "lockupBaseReward",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1910,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "unlockedReward",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "96"
+    },
+    "t_struct(StakeWithoutAmount)2042_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.StakeWithoutAmount",
+      "members": [
+        {
+          "astId": 2037,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "delegator",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_address"
+        },
+        {
+          "astId": 2039,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "timestamp",
+          "offset": 20,
+          "slot": "0",
+          "type": "t_uint96"
+        },
+        {
+          "astId": 2041,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "validatorId",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "64"
+    },
+    "t_struct(Validator)1876_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.Validator",
+      "members": [
+        {
+          "astId": 1863,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "status",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1865,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "deactivatedTime",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1867,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "deactivatedEpoch",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1869,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "receivedStake",
+          "offset": 0,
+          "slot": "3",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1871,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "createdEpoch",
+          "offset": 0,
+          "slot": "4",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1873,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "createdTime",
+          "offset": 0,
+          "slot": "5",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1875,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "auth",
+          "offset": 0,
+          "slot": "6",
+          "type": "t_address"
+        }
+      ],
+      "numberOfBytes": "224"
+    },
+    "t_struct(WithdrawalRequest)1930_storage": {
+      "encoding": "inplace",
+      "label": "struct SFC.WithdrawalRequest",
+      "members": [
+        {
+          "astId": 1925,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "epoch",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1927,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "time",
+          "offset": 0,
+          "slot": "1",
+          "type": "t_uint256"
+        },
+        {
+          "astId": 1929,
+          "contract": "contracts/vinuchain/SFC.sol:SFC",
+          "label": "amount",
+          "offset": 0,
+          "slot": "2",
+          "type": "t_uint256"
+        }
+      ],
+      "numberOfBytes": "96"
+    },
+    "t_uint256": {
+      "encoding": "inplace",
+      "label": "uint256",
+      "numberOfBytes": "32"
+    },
+    "t_uint96": {
+      "encoding": "inplace",
+      "label": "uint96",
+      "numberOfBytes": "12"
+    }
+  }
+}
