@@ -4,7 +4,18 @@ const fs = require('fs');
 const path = require('path');
 const { Contract, JsonRpcProvider, Wallet } = require('ethers');
 
-const DEPLOYMENT_PATH = path.join(__dirname, '../contracts/vns/deployment-testnet.json');
+// The deployment record is per network. This used to be hardcoded to testnet,
+// which meant a mainnet run would read testnet's oracleStack — and the value it
+// reads is the expected maxAge, which gates every update. Pointing mainnet at
+// testnet's record would abort every mainnet cron run with a maxAge mismatch.
+// Derived from the same env var that already pins the target chain, so there is
+// one source of truth rather than two that can disagree.
+const DEPLOYMENT_FILES = { 205: 'deployment-staging.json', 206: 'deployment-testnet.json', 207: 'deployment-mainnet.json' };
+function deploymentPathFor(chainId) {
+  const file = DEPLOYMENT_FILES[chainId];
+  if (!file) throw new Error(`no deployment record configured for chain ${chainId}`);
+  return path.join(__dirname, '../contracts/vns', file);
+}
 
 // Recognised VinuChain network IDs (testnet=206, mainnet=207, staging=205).
 // The chain-ID guard refuses to talk to any RPC whose chainId is outside this
@@ -118,8 +129,9 @@ const ORACLE_SOURCE_TAGS = Object.freeze({
   'coingecko (pool advisory: deviation exceeded cap)': 'coingecko-pool-advisory',
 });
 function readRecordedOracleMaxAgeSeconds() {
-  if (!fs.existsSync(DEPLOYMENT_PATH)) return null;
-  const deployment = JSON.parse(fs.readFileSync(DEPLOYMENT_PATH, 'utf8'));
+  const deploymentPath = deploymentPathFor(EXPECTED_TARGET_CHAIN_ID);
+  if (!fs.existsSync(deploymentPath)) return null;
+  const deployment = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
   const recorded =
     deployment.oracleStack?.oracleMaxAgeSeconds ||
     deployment.oracleStack?.verification?.oracle?.maxAge;

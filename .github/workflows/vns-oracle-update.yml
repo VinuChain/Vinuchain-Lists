@@ -48,10 +48,12 @@ jobs:
       # Pool guard is OFF on testnet: the VinuSwap V3 pool used for the TWAP
       # cross-check froze at byte-identical values for >18 h on 2026-05-20
       # because testnet liquidity is too thin to keep the TWAP moving.
-      # The guard is a manipulation protection for mainnet; on testnet
-      # (chain 206), there are no real funds at risk, so the guard adds
-      # operational fragility without protecting anything. Re-enable when
-      # the VNS stack is deployed on mainnet.
+      # Originally justified as "a manipulation protection for mainnet, not
+      # needed on testnet". That reasoning no longer holds: the pool is a veto,
+      # never the price source, and at cardinality 1 it cannot corroborate
+      # anything on either network. It stays off here, and is off on mainnet
+      # too — the on-chain maxChangeBps/minAnswer/maxAnswer clamps are the real
+      # defence. Do NOT "re-enable for mainnet".
       VNS_ORACLE_REQUIRE_POOL_GUARD: '0'
       # Ordered comma/newline/space-separated RPC fallbacks. The updater
       # health-checks each endpoint with chainId + blockNumber before using it,
@@ -64,10 +66,16 @@ jobs:
       # therefore allows CoinGecko-only / deviation-fallback so a lagging pool
       # can't fail the run (it would otherwise go stale and re-open the cron
       # failure issue). Manual dispatch can still force the strict both-sources
-      # check by leaving 'allow_single_source' unchecked. Backstop: when the
-      # target chain is mainnet (207) the updater forces STRICT regardless of
-      # these flags (both a source disagreement and a missing pool hard-fail),
-      # so even a mainnet copy of this workflow cannot push an unguarded price.
+      # check by leaving 'allow_single_source' unchecked.
+      #
+      # NOTE (2026-08-21): the updater NO LONGER forces strict on mainnet. It
+      # used to, on the assumption that the pool corroborated the price; it does
+      # not, because every VinuSwap V3 pool has observationCardinality = 1 and
+      # therefore reports spot, not a TWAP. Forcing strict against that
+      # guaranteed an outage while defending nothing. The gate now keys on
+      # whether a real TWAP exists, so growing a pool's observation buffer
+      # re-arms it automatically. See vns-followups.md F1 and
+      # vns-oracle-update-mainnet.yml.
       VNS_ORACLE_ALLOW_SINGLE_SOURCE: ${{ (github.event_name == 'schedule' || inputs.allow_single_source == true) && '1' || '0' }}
       # Source-disagreement cap. Default 500 bps (5%) is the steady-state
       # operating ceiling; expose as a `vars.VNS_ORACLE_MAX_DEVIATION_BPS`

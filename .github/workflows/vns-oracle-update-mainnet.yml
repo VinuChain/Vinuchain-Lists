@@ -1,0 +1,109 @@
+name: Update VNS VC/USD Oracle (mainnet)
+
+# Mainnet counterpart of vns-oracle-update.yml.
+#
+# SAFE TO MERGE BEFORE THE MAINNET ORACLE EXISTS. Every job is gated on the
+# repo variable VNS_MAINNET_USD_ORACLE_ADDRESS being set, so until VNS is
+# deployed on chain 207 this workflow is scheduled but does nothing. That is
+# deliberate: the alternative is remembering to add a cron job during the
+# deploy, and the oracle goes stale 12h after its constructor's initial answer,
+# after which latestAnswer() reverts StaleAnswer and rentPrice() with it —
+# registration and renewal stop chain-wide.
+#
+# Cadence is 3-hourly rather than the testnet 4-hourly: against a 12h maxAge
+# that is four attempts before staleness instead of three. Offset to :43 so the
+# two networks' runs do not collide.
+
+on:
+  schedule:
+    - cron: '43 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - send
+
+concurrency:
+  group: vns-oracle-update-mainnet
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update mainnet oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # No-op until the mainnet oracle address is configured.
+    if: vars.VNS_MAINNET_USD_ORACLE_ADDRESS != ''
+    # Separate environment from testnet so the mainnet signing key is scoped to
+    # its own required-reviewers rule and cannot be reached by a testnet run.
+    environment: vns-oracle-mainnet
+    permissions:
+      contents: read
+      issues: write
+
+    env:
+      VNS_USD_ORACLE_ADDRESS: ${{ vars.VNS_MAINNET_USD_ORACLE_ADDRESS }}
+      VNS_ORACLE_CHAIN_ID: '207'
+      VNS_PRICE_CHAIN_ID: '207'
+      VNS_ORACLE_RPC_URLS: ${{ vars.VNS_MAINNET_ORACLE_RPC_URLS || 'https://rpc.vinuchain.org' }}
+      VNS_PRICE_RPC_URLS: ${{ vars.VNS_MAINNET_ORACLE_RPC_URLS || 'https://rpc.vinuchain.org' }}
+      # Pool guard OFF, deliberately, and NOT for the testnet reason.
+      #
+      # All three VinuSwap V3 pools have observationCardinality = 1, so observe()
+      # extrapolates from a single stored observation at the current tick: the
+      # "TWAP" is a spot quote against ~$1,750 of total depth, movable for under
+      # a dollar. It corroborates nothing, and letting it veto CoinGecko buys an
+      # outage rather than safety (see vns-followups.md F1).
+      #
+      # The manipulation defence lives on-chain and is stronger: maxChangeBps
+      # caps any single update at +/-20% and minAnswer/maxAnswer clamp the range
+      # absolutely, so a poisoned read cannot move price far or outside the band.
+      # If a pool's observation buffer is ever grown, the updater detects it and
+      # re-arms the guard with no change here.
+      VNS_ORACLE_REQUIRE_POOL_GUARD: '0'
+      VNS_ORACLE_ALLOW_SINGLE_SOURCE: '1'
+      VNS_ORACLE_MAX_DEVIATION_BPS: ${{ vars.VNS_MAINNET_ORACLE_MAX_DEVIATION_BPS || '500' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dry-run price resolution
+        run: npm run vns:oracle:dry-run
+
+      - name: Submit oracle update
+        if: github.event_name == 'schedule' || inputs.mode == 'send'
+        env:
+          VNS_ORACLE_PRIVATE_KEY: ${{ secrets.VNS_MAINNET_ORACLE_PRIVATE_KEY }}
+        run: npm run vns:oracle:update
+
+      - name: Report failure (deduped GH issue)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABEL='oracle-cron-failure-mainnet'
+          gh label create "$LABEL" --color B60205 --description 'VNS mainnet oracle update failed' --force >/dev/null 2>&1 || true
+          OPEN_ISSUE=$(gh issue list --state open --label "$LABEL" --limit 1 --json number --jq '.[0].number' || echo '')
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          BODY=$(printf 'MAINNET oracle update failed at %s.\n\n- Run: %s\n- Trigger: %s\n- Attempt: %s\n\nThis is real money: if updates keep failing for 12h the oracle goes stale and .vinu registration and renewal stop chain-wide.' \
+                       "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$RUN_URL" "${{ github.event_name }}" "${{ github.run_attempt }}")
+          if [ -n "$OPEN_ISSUE" ]; then
+            gh issue comment "$OPEN_ISSUE" --body "$BODY"
+          else
+            gh issue create --title 'VNS MAINNET oracle update failed' --label "$LABEL" --body "$BODY"
+          fi
