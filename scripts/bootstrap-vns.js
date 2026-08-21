@@ -29,7 +29,16 @@
  *   node scripts/bootstrap-vns.js --network testnet --send     # execute
  *   node scripts/bootstrap-vns.js --network mainnet --send     # after 2026-08-29
  *
- * Keys are read from .env (gitignored): VNS_NAMESPACE_ADMIN_KEY, VNS_ORACLE_UPDATER_KEY.
+ * Mainnet prerequisites: two FRESH funded EOAs (admin ~5 VC, updater ~1 VC),
+ * and the oracle cron wired in the same batch — the oracle goes stale 12h after
+ * the constructor's initial answer, after which rentPrice() reverts.
+ *
+ * Keys are read from .env (gitignored), and the names are PER NETWORK:
+ *   testnet -> VNS_NAMESPACE_ADMIN_KEY,         VNS_ORACLE_UPDATER_KEY
+ *   mainnet -> VNS_MAINNET_NAMESPACE_ADMIN_KEY, VNS_MAINNET_ORACLE_UPDATER_KEY
+ * Mainnet deliberately does NOT fall back to the testnet names. Reusing a key
+ * that has been used on a public testnet to own the mainnet namespace is the
+ * failure this separation exists to prevent.
  */
 'use strict';
 
@@ -41,8 +50,14 @@ const ROOT = path.join(__dirname, '..');
 const ARTIFACTS = path.join(ROOT, 'contracts/vns/source/artifacts/contracts');
 
 const NETWORKS = {
-  testnet: { chainId: 206, rpc: 'https://vinufoundation-rpc.com', state: 'deployment-testnet-bootstrap.json' },
-  mainnet: { chainId: 207, rpc: 'https://rpc.vinuchain.org', state: 'deployment-mainnet.json' },
+  testnet: {
+    chainId: 206, rpc: 'https://vinufoundation-rpc.com', state: 'deployment-testnet-bootstrap.json',
+    adminKey: 'VNS_NAMESPACE_ADMIN_KEY', updaterKey: 'VNS_ORACLE_UPDATER_KEY',
+  },
+  mainnet: {
+    chainId: 207, rpc: 'https://rpc.vinuchain.org', state: 'deployment-mainnet.json',
+    adminKey: 'VNS_MAINNET_NAMESPACE_ADMIN_KEY', updaterKey: 'VNS_MAINNET_ORACLE_UPDATER_KEY',
+  },
 };
 
 // namehash("vinu") and labelhash("vinu"). BaseRegistrar takes the NAMEhash as
@@ -135,8 +150,8 @@ async function main() {
   const chainId = Number((await provider.getNetwork()).chainId);
   if (chainId !== net.chainId) throw new Error(`RPC is chain ${chainId}, expected ${net.chainId} for ${netName}`);
 
-  const admin = new ethers.Wallet(readKey('VNS_NAMESPACE_ADMIN_KEY'), provider);
-  const updater = new ethers.Wallet(readKey('VNS_ORACLE_UPDATER_KEY'), provider);
+  const admin = new ethers.Wallet(readKey(net.adminKey), provider);
+  const updater = new ethers.Wallet(readKey(net.updaterKey), provider);
   const state = new State(path.join(ROOT, 'contracts/vns', net.state));
 
   console.log(`network        : ${netName} (chain ${chainId})`);
@@ -154,6 +169,22 @@ async function main() {
   for (const w of [admin, updater]) {
     if (w.address.toLowerCase() === FORBIDDEN) {
       throw new Error('ABORT: chain-governance EOA must not own VNS (see vns-followups F2/F6)');
+    }
+  }
+  if (admin.address.toLowerCase() === updater.address.toLowerCase()) {
+    throw new Error('ABORT: admin and updater must be different keys — the whole point of the split is that the unattended cron key cannot administer the namespace');
+  }
+  // Belt and braces on the per-network key names above: even if someone copies a
+  // testnet key into the mainnet variable, refuse it. A key that has signed on a
+  // public testnet must not own the mainnet namespace.
+  if (netName === 'mainnet') {
+    for (const [label, testnetVar] of [['admin', 'VNS_NAMESPACE_ADMIN_KEY'], ['updater', 'VNS_ORACLE_UPDATER_KEY']]) {
+      let testnetAddr = null;
+      try { testnetAddr = new ethers.Wallet(readKey(testnetVar)).address.toLowerCase(); } catch { /* absent is fine */ }
+      const live = (label === 'admin' ? admin : updater).address.toLowerCase();
+      if (testnetAddr && testnetAddr === live) {
+        throw new Error(`ABORT: mainnet ${label} key is the same as ${testnetVar} — mainnet needs a fresh EOA`);
+      }
     }
   }
 
