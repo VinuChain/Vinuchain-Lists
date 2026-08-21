@@ -1,0 +1,294 @@
+{
+  "contracts": {
+    "ENSRegistry": {
+      "address": "0x004abF1AE4344711797A13A43df29693EbA4CcE8",
+      "transactionHash": "0x858f54882f36707f6627929c8f15ce6f62423d6498b1fa37c44ce00da6ad147e",
+      "blockNumber": 1586746
+    },
+    "Root": {
+      "address": "0x6886A3ffACAf3074295DAdB88c616a21e3f8A01A",
+      "transactionHash": "0x45fe80fdfb122a8ea6e63e78eeae822404881ba1ae9dc5961fff022c5fda374d",
+      "blockNumber": 1586748
+    },
+    "ReverseRegistrar": {
+      "address": "0xeE14A4c5733eFeCf0709d67082C7b7deE5CBC7Be",
+      "transactionHash": "0xbf23bcde2c1b942a2c632487458cb60d07e19e917b0e12ba44830faba234a8bd",
+      "blockNumber": 1586751
+    },
+    "DefaultReverseRegistrar": {
+      "address": "0x2B5E54999a5064B8a3b653CAc70109FE7ff0Bb63",
+      "transactionHash": "0x02964c68d61e9ca11364c56a928dd8c1c203bf6cfdfa7f8996ceeaaac1785dc4",
+      "blockNumber": 1586752
+    },
+    "DefaultReverseResolver": {
+      "address": "0x751769646017A63Ae534A58bFB0ddAc1Ee881Fa5",
+      "transactionHash": "0xe6b979f0093b90ae8af294afb173c669b704ef9cf1b6f511120219c182759b29",
+      "blockNumber": 1586753
+    },
+    "BaseRegistrarImplementation": {
+      "address": "0x03420529DAB69C59052d19BAF8Efb1Bef9148BB5",
+      "transactionHash": "0x80a180d9970ebf9df3c22ab187d0021405a41000f63ab506c8f1e65694daf9b3",
+      "blockNumber": 1586756
+    },
+    "OwnedResolver": {
+      "address": "0xF316Fb066EF00195bCe01E358D2bFB6cCF2961de",
+      "transactionHash": "0xc161585070236313b3cf58401ee2b225282f4be0773a50014a17c7e37fd03d3d",
+      "blockNumber": 1586758
+    },
+    "VinuUsdOracle": {
+      "address": "0xB741FBB2EdED19987A239443e39D9BCaca64Da83",
+      "transactionHash": "0xaca619bbbb0cfab5bdb3322984d0b5949d14f41ff94193901fabf4a299347205",
+      "blockNumber": 1586760
+    },
+    "ExponentialPremiumPriceOracle": {
+      "address": "0xA9359e9f8012899D45dDa1a20445FD94e9bfC435",
+      "transactionHash": "0xabbab74b50b9586675b9e223662197ff5647a72d9a12874872b939aa2f8af570",
+      "blockNumber": 1586761
+    },
+    "StaticMetadataService": {
+      "address": "0x65B9F1a44064d08244aBACF9049d11c9aca73496",
+      "transactionHash": "0x490f6a588359749098d64e3560a06be65d5da2fc79f6363c0042f72c3d6299a6",
+      "blockNumber": 1586762
+    },
+    "NameWrapper": {
+      "address": "0xDbd596549727d539D6F00BB3311ddf817280D6aa",
+      "transactionHash": "0x367fd42be77b2015e0d47dc624cea10f856bf68370651b60ad0ac0690b150e31",
+      "blockNumber": 1586763
+    },
+    "ETHRegistrarController": {
+      "address": "0x7909d6e692606d132701E145019432b6d63F32df",
+      "transactionHash": "0x462606a603c8c6a7d1c78f8d3bfd69605b983b6452cc974fa9f10857565a86b1",
+      "blockNumber": 1586765
+    },
+    "StaticBulkRenewal": {
+      "address": "0xf391C2A19DA0e2ca6bA4e98c483aB898589Eecd6",
+      "transactionHash": "0xacc04ff5c5e94731a7308f9c8ecbbb68550a2a58eb14e579c95e6d8e1f192663",
+      "blockNumber": 1586770
+    },
+    "PublicResolver": {
+      "address": "0x1459604A831138E72eA543Ce5817a28b98dD68E9",
+      "transactionHash": "0xa5a469146b0d155fab52401c4636c463e95bc762364e46a8fc6d762e6960bb89",
+      "blockNumber": 1586771
+    },
+    "GatewayProvider": {
+      "address": "0x60492a1DF04AD0fA091A1fCA01e09458eAEb54FB",
+      "transactionHash": "0x538eb9252294c18e1573f8126cc3a1a8e81db59d801594ce8027e20596617945",
+      "blockNumber": 1586773
+    },
+    "UniversalResolver": {
+      "address": "0x5ad5610Ca4f731cb7B246E4e3340b3CE2197C8cc",
+      "transactionHash": "0x51eb410c821696c427585de39bc141a48cc6de23333225c474c45ecefc24152e",
+      "blockNumber": 1586774
+    }
+  },
+  "steps": {
+    "01-ENSRegistry": {
+      "at": "2026-08-21T03:28:17.134Z",
+      "action": "deploy",
+      "name": "ENSRegistry",
+      "address": "0x004abF1AE4344711797A13A43df29693EbA4CcE8",
+      "tx": "0x858f54882f36707f6627929c8f15ce6f62423d6498b1fa37c44ce00da6ad147e"
+    },
+    "02-Root": {
+      "at": "2026-08-21T03:28:23.016Z",
+      "action": "deploy",
+      "name": "Root",
+      "address": "0x6886A3ffACAf3074295DAdB88c616a21e3f8A01A",
+      "tx": "0x45fe80fdfb122a8ea6e63e78eeae822404881ba1ae9dc5961fff022c5fda374d"
+    },
+    "03-registry.setOwner(root)": {
+      "at": "2026-08-21T03:28:28.647Z",
+      "action": "setOwner",
+      "label": "registry.setOwner -> Root",
+      "to": "0x004abF1AE4344711797A13A43df29693EbA4CcE8",
+      "tx": "0x4a2de420353d9d0432c4b88b25391a97f4de0aceb003a4abac85565065687928",
+      "block": 1586749
+    },
+    "04-root.setController(admin)": {
+      "at": "2026-08-21T03:28:34.298Z",
+      "action": "setController",
+      "label": "root.setController(admin)",
+      "to": "0x6886A3ffACAf3074295DAdB88c616a21e3f8A01A",
+      "tx": "0x9e93b9902f3799e47093c3b95f35821d27dbb2e5f3bb985930fd3127ceeceb66",
+      "block": 1586750
+    },
+    "05-ReverseRegistrar": {
+      "at": "2026-08-21T03:28:40.134Z",
+      "action": "deploy",
+      "name": "ReverseRegistrar",
+      "address": "0xeE14A4c5733eFeCf0709d67082C7b7deE5CBC7Be",
+      "tx": "0xbf23bcde2c1b942a2c632487458cb60d07e19e917b0e12ba44830faba234a8bd"
+    },
+    "06-DefaultReverseRegistrar": {
+      "at": "2026-08-21T03:28:46.022Z",
+      "action": "deploy",
+      "name": "DefaultReverseRegistrar",
+      "address": "0x2B5E54999a5064B8a3b653CAc70109FE7ff0Bb63",
+      "tx": "0x02964c68d61e9ca11364c56a928dd8c1c203bf6cfdfa7f8996ceeaaac1785dc4"
+    },
+    "07-DefaultReverseResolver": {
+      "at": "2026-08-21T03:28:51.865Z",
+      "action": "deploy",
+      "name": "DefaultReverseResolver",
+      "address": "0x751769646017A63Ae534A58bFB0ddAc1Ee881Fa5",
+      "tx": "0xe6b979f0093b90ae8af294afb173c669b704ef9cf1b6f511120219c182759b29"
+    },
+    "08-root.setSubnodeOwner(reverse)": {
+      "at": "2026-08-21T03:28:57.541Z",
+      "action": "setSubnodeOwner",
+      "label": "root.setSubnodeOwner(reverse)",
+      "to": "0x6886A3ffACAf3074295DAdB88c616a21e3f8A01A",
+      "tx": "0xba46781fdf78f8496fd5b6a1333658c20894c4663b7e83dbe2b7672b08ea178a",
+      "block": 1586754
+    },
+    "09-registry.setSubnodeOwner(addr.reverse)": {
+      "at": "2026-08-21T03:29:03.164Z",
+      "action": "setSubnodeOwner",
+      "label": "registry addr.reverse",
+      "to": "0x004abF1AE4344711797A13A43df29693EbA4CcE8",
+      "tx": "0xeda7c9f70412d8a7890ecf56369dae59c2e27bd8fdb6db2c5f5e65f9c3ef0ee2",
+      "block": 1586755
+    },
+    "10-BaseRegistrar": {
+      "at": "2026-08-21T03:29:09.258Z",
+      "action": "deploy",
+      "name": "BaseRegistrarImplementation",
+      "address": "0x03420529DAB69C59052d19BAF8Efb1Bef9148BB5",
+      "tx": "0x80a180d9970ebf9df3c22ab187d0021405a41000f63ab506c8f1e65694daf9b3"
+    },
+    "11-root.setSubnodeOwner(vinu)": {
+      "at": "2026-08-21T03:29:14.907Z",
+      "action": "setSubnodeOwner",
+      "label": "root.setSubnodeOwner(vinu)",
+      "to": "0x6886A3ffACAf3074295DAdB88c616a21e3f8A01A",
+      "tx": "0x3093a8f5bbe86aa3c5d751ef950d7aa70d3ae84e1926db6ff3b3f95673c77e1a",
+      "block": 1586757
+    },
+    "12-OwnedResolver": {
+      "at": "2026-08-21T03:29:21.022Z",
+      "action": "deploy",
+      "name": "OwnedResolver",
+      "address": "0xF316Fb066EF00195bCe01E358D2bFB6cCF2961de",
+      "tx": "0xc161585070236313b3cf58401ee2b225282f4be0773a50014a17c7e37fd03d3d"
+    },
+    "13-baseRegistrar.setResolver": {
+      "at": "2026-08-21T03:29:26.644Z",
+      "action": "setResolver",
+      "label": "baseRegistrar.setResolver",
+      "to": "0x03420529DAB69C59052d19BAF8Efb1Bef9148BB5",
+      "tx": "0x715b67806eae38b0471f359aeaf6fcf975520250627a575521b9fcbf869a870e",
+      "block": 1586759
+    },
+    "14-VinuUsdOracle": {
+      "at": "2026-08-21T03:29:32.510Z",
+      "action": "deploy",
+      "name": "VinuUsdOracle",
+      "address": "0xB741FBB2EdED19987A239443e39D9BCaca64Da83",
+      "tx": "0xaca619bbbb0cfab5bdb3322984d0b5949d14f41ff94193901fabf4a299347205"
+    },
+    "15-ExponentialPremiumPriceOracle": {
+      "at": "2026-08-21T03:29:38.372Z",
+      "action": "deploy",
+      "name": "ExponentialPremiumPriceOracle",
+      "address": "0xA9359e9f8012899D45dDa1a20445FD94e9bfC435",
+      "tx": "0xabbab74b50b9586675b9e223662197ff5647a72d9a12874872b939aa2f8af570"
+    },
+    "16-StaticMetadataService": {
+      "at": "2026-08-21T03:29:44.201Z",
+      "action": "deploy",
+      "name": "StaticMetadataService",
+      "address": "0x65B9F1a44064d08244aBACF9049d11c9aca73496",
+      "tx": "0x490f6a588359749098d64e3560a06be65d5da2fc79f6363c0042f72c3d6299a6"
+    },
+    "17-NameWrapper": {
+      "at": "2026-08-21T03:29:50.565Z",
+      "action": "deploy",
+      "name": "NameWrapper",
+      "address": "0xDbd596549727d539D6F00BB3311ddf817280D6aa",
+      "tx": "0x367fd42be77b2015e0d47dc624cea10f856bf68370651b60ad0ac0690b150e31"
+    },
+    "18-baseRegistrar.addController(wrapper)": {
+      "at": "2026-08-21T03:29:56.173Z",
+      "action": "addController",
+      "label": "baseReg.addController(wrapper)",
+      "to": "0x03420529DAB69C59052d19BAF8Efb1Bef9148BB5",
+      "tx": "0x02ad64e8a09b2439a8deffdc2c495a67d056fd35d11025e7807e7cf53a87e3bf",
+      "block": 1586764
+    },
+    "19-ETHRegistrarController": {
+      "at": "2026-08-21T03:30:02.239Z",
+      "action": "deploy",
+      "name": "ETHRegistrarController",
+      "address": "0x7909d6e692606d132701E145019432b6d63F32df",
+      "tx": "0x462606a603c8c6a7d1c78f8d3bfd69605b983b6452cc974fa9f10857565a86b1"
+    },
+    "20-baseRegistrar.addController(controller)": {
+      "at": "2026-08-21T03:30:07.883Z",
+      "action": "addController",
+      "label": "baseReg.addController(ctrl)",
+      "to": "0x03420529DAB69C59052d19BAF8Efb1Bef9148BB5",
+      "tx": "0xebbb4f69caed3b44a7120ef68c0da323620d3126f6a49f97e5748bf737c02960",
+      "block": 1586766
+    },
+    "21-nameWrapper.setController": {
+      "at": "2026-08-21T03:30:13.500Z",
+      "action": "setController",
+      "label": "wrapper.setController(ctrl)",
+      "to": "0xDbd596549727d539D6F00BB3311ddf817280D6aa",
+      "tx": "0xc48383e2d633447a0ebf5b5a835f9f351d6c31a0c9ce339e9714675bc3fda57d",
+      "block": 1586767
+    },
+    "22-reverseRegistrar.setController": {
+      "at": "2026-08-21T03:30:19.121Z",
+      "action": "setController",
+      "label": "revReg.setController(ctrl)",
+      "to": "0xeE14A4c5733eFeCf0709d67082C7b7deE5CBC7Be",
+      "tx": "0xd00d081bf8c4c5bc0a3326c99364bfafd98e4ee9c21e975b912f0e27b4a35944",
+      "block": 1586768
+    },
+    "23-defaultReverseRegistrar.setController": {
+      "at": "2026-08-21T03:30:24.736Z",
+      "action": "setController",
+      "label": "defRevReg.setController(ctrl)",
+      "to": "0x2B5E54999a5064B8a3b653CAc70109FE7ff0Bb63",
+      "tx": "0xf986857fc279629cb1968dbe1e7aabf4b2d9bdb53f4cc9b8c46b7eed422b04cb",
+      "block": 1586769
+    },
+    "24-StaticBulkRenewal": {
+      "at": "2026-08-21T03:30:30.539Z",
+      "action": "deploy",
+      "name": "StaticBulkRenewal",
+      "address": "0xf391C2A19DA0e2ca6bA4e98c483aB898589Eecd6",
+      "tx": "0xacc04ff5c5e94731a7308f9c8ecbbb68550a2a58eb14e579c95e6d8e1f192663"
+    },
+    "25-PublicResolver": {
+      "at": "2026-08-21T03:30:36.602Z",
+      "action": "deploy",
+      "name": "PublicResolver",
+      "address": "0x1459604A831138E72eA543Ce5817a28b98dD68E9",
+      "tx": "0xa5a469146b0d155fab52401c4636c463e95bc762364e46a8fc6d762e6960bb89"
+    },
+    "26-reverseRegistrar.setDefaultResolver": {
+      "at": "2026-08-21T03:30:42.221Z",
+      "action": "setDefaultResolver",
+      "label": "revReg.setDefaultResolver",
+      "to": "0xeE14A4c5733eFeCf0709d67082C7b7deE5CBC7Be",
+      "tx": "0x53e1293c522cf53c4ae3f9b98846d3eb25ee9fa1ab1a6ee8017eb3028925785c",
+      "block": 1586772
+    },
+    "27-GatewayProvider": {
+      "at": "2026-08-21T03:30:48.041Z",
+      "action": "deploy",
+      "name": "GatewayProvider",
+      "address": "0x60492a1DF04AD0fA091A1fCA01e09458eAEb54FB",
+      "tx": "0x538eb9252294c18e1573f8126cc3a1a8e81db59d801594ce8027e20596617945"
+    },
+    "28-UniversalResolver": {
+      "at": "2026-08-21T03:30:54.109Z",
+      "action": "deploy",
+      "name": "UniversalResolver",
+      "address": "0x5ad5610Ca4f731cb7B246E4e3340b3CE2197C8cc",
+      "tx": "0x51eb410c821696c427585de39bc141a48cc6de23333225c474c45ecefc24152e"
+    }
+  }
+}
