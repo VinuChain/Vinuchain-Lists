@@ -108,11 +108,11 @@
     {
       "name": "VNSBulkRenewal",
       "artifact": "StaticBulkRenewal",
-      "address": "0xC3E55936B1014c41370A678ea22F986C1Ef57288",
+      "address": "0xAF71860B1f2a7702b25A1d9E6C1E2cE4008aFf5C",
       "type": "helper",
       "chainId": 206,
-      "description": "Bulk renewal helper for .vinu names that targets the active real-oracle VNS registrar controller.",
-      "codeHash": "0x418b27ed0c62b8734a782491e9f9f460b00c9b91acbfb2f1de54edca86175130"
+      "description": "Bulk renewal helper bound to the live pause-enabled registrar controller. Redeployed 2026-08-21; the prior deployment bound the controller retired in the 2026-05-21 pause swap, so renewAll() reverted.",
+      "codeHash": "0x56c7c79aab3f9bfcb58ed47c1d86e06dfd02ae52fd452bcf8a767b902a1b0a4f"
     },
     {
       "name": "VNSPublicResolver",
@@ -224,10 +224,14 @@
     "logo": "https://mainnet.vinuexplorer.org/images/vinuchain.svg",
     "shortDescription": "Register and manage .vinu names on the VinuChain testnet.",
     "description": "VinuChain Name Service (VNS) lets you register human-readable .vinu domain names on the VinuChain testnet. VNS is an ENS-compatible name system that maps wallet addresses, smart contracts, and metadata to memorable .vinu names.",
-    "categories": ["Other"],
+    "categories": [
+      "Other"
+    ],
     "author": "VinuChain",
     "external": true,
-    "networks": [206],
+    "networks": [
+      206
+    ],
     "twitter": "https://x.com/vinuchain",
     "telegram": "https://t.me/vinuchain",
     "discord": "https://discord.gg/vinu",
