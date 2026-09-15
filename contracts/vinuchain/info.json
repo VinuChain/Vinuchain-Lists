@@ -11,7 +11,7 @@
       "type": "staking",
       "chainId": 207,
       "description": "Special Fee Contract — manages validator creation, stake delegation, epoch rewards, lockups, and slashing",
-      "codeHash": "0x00b4e7b3c68458e0e7a79f02370bfb9153e5f4b63e484d959e9c8d77c0d88bf1"
+      "codeHash": "0x29b88152209fe22bef409376aa7f137d0e0f571f46afa1385f32320765e49e50"
     },
     {
       "name": "NodeDriverAuth",
