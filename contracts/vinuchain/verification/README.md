@@ -61,7 +61,7 @@ solc --optimize --optimize-runs=10000 --evm-version=istanbul --bin-runtime \
 sha256sum /tmp/sfcbuild/SFC.bin-runtime   # compare to the table above
 
 # 2. confirm it matches what is deployed
-curl -s -X POST https://vinufoundation-rpc.com -H 'Content-Type: application/json' \
+curl -s -X POST https://testnet-rpc.vinuchain.org -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"eth_getCode","params":["0xFC00FACE00000000000000000000000000000000","latest"],"id":1}' \
   | python3 -c 'import sys,json,hashlib;b=bytes.fromhex(json.load(sys.stdin)["result"][2:]);print(len(b),hashlib.sha256(b).hexdigest())'
 ```

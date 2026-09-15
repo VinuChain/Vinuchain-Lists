@@ -24,7 +24,7 @@ const EXPECTED_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206);
 const RPC_URL =
   process.env.VNS_ORACLE_RPC_URL ||
   process.env.VINUCHAIN_RPC_URL ||
-  'https://vinufoundation-rpc.com';
+  'https://testnet-rpc.vinuchain.org';
 const PRIVATE_KEY =
   process.env.VNS_DEPLOYER_PRIVATE_KEY ||
   process.env.VNS_ORACLE_PRIVATE_KEY ||

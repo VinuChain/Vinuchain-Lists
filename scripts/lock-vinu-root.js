@@ -13,7 +13,7 @@
  *
  * Required env:
  *   VNS_ORACLE_PRIVATE_KEY   - Root owner key (same EOA per CLAUDE.md gotchas)
- *   VNS_ORACLE_RPC_URL       - default: https://vinufoundation-rpc.com (testnet)
+ *   VNS_ORACLE_RPC_URL       - default: https://testnet-rpc.vinuchain.org (testnet)
  *   VNS_ORACLE_CHAIN_ID      - default: 206 (testnet)
  *   LOCK_VINU_CONFIRM=YES    - mandatory when passing --send
  */
@@ -25,7 +25,7 @@ const { Contract, JsonRpcProvider, Wallet } = require('ethers');
 const RPC_URL =
   process.env.VNS_ORACLE_RPC_URL ||
   process.env.VINUCHAIN_RPC_URL ||
-  'https://vinufoundation-rpc.com';
+  'https://testnet-rpc.vinuchain.org';
 const EXPECTED_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206);
 const PRIVATE_KEY = process.env.VNS_ORACLE_PRIVATE_KEY;
 const SHOULD_SEND = process.argv.includes('--send');

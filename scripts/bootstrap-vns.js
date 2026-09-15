@@ -51,7 +51,7 @@ const ARTIFACTS = path.join(ROOT, 'contracts/vns/source/artifacts/contracts');
 
 const NETWORKS = {
   testnet: {
-    chainId: 206, rpc: 'https://vinufoundation-rpc.com', state: 'deployment-testnet-bootstrap.json',
+    chainId: 206, rpc: 'https://testnet-rpc.vinuchain.org', state: 'deployment-testnet-bootstrap.json',
     adminKey: 'VNS_NAMESPACE_ADMIN_KEY', updaterKey: 'VNS_ORACLE_UPDATER_KEY',
   },
   mainnet: {

@@ -78,7 +78,7 @@ describe('VNS pricing oracle registry', () => {
   it('guards automated oracle updates with the target chain and V3 TWAP pricing', () => {
     const updater = read('scripts/update-vns-oracle.js');
 
-    expect(updater).to.include("'https://vinufoundation-rpc.com'");
+    expect(updater).to.include("'https://testnet-rpc.vinuchain.org'");
     expect(updater).to.include('process.env.VNS_ORACLE_RPC_URLS');
     expect(updater).to.include('resolveCheckedProvider(');
     expect(updater).to.include("await rawJsonRpc(url, 'eth_blockNumber')");
