@@ -43,7 +43,7 @@ module.exports = {
   // VINUCHAIN_TESTNET_RPC_URL) to point at private/archive nodes in CI.
   RPC_URLS_BY_CHAIN_ID: {
     207: 'https://rpc.vinuchain.org',
-    206: 'https://vinufoundation-rpc.com',
+    206: 'https://testnet-rpc.vinuchain.org',
   },
 
   // URL validation

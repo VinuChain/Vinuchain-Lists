@@ -20,7 +20,7 @@
  * Required env:
  *   VNS_ORACLE_PRIVATE_KEY     - current owner key
  *   NEW_OWNER (or --new-owner) - destination EOA (must be a 20-byte hex, non-zero)
- *   VNS_ORACLE_RPC_URL         - default: https://vinufoundation-rpc.com
+ *   VNS_ORACLE_RPC_URL         - default: https://testnet-rpc.vinuchain.org
  *   VNS_ORACLE_CHAIN_ID        - default: 206
  *   EXPECTED_CURRENT_OWNER     - default: 0xf9c82B1117e8BeA97843042521B8FBC93044f347
  *   TRANSFER_CONFIRM           - must equal "I UNDERSTAND ONE-STEP TRANSFER" when --send
@@ -35,7 +35,7 @@ const { Contract, JsonRpcProvider, Wallet, isAddress, ZeroAddress } = require('e
 const RPC_URL =
   process.env.VNS_ORACLE_RPC_URL ||
   process.env.VINUCHAIN_RPC_URL ||
-  'https://vinufoundation-rpc.com';
+  'https://testnet-rpc.vinuchain.org';
 const EXPECTED_CHAIN_ID = Number(process.env.VNS_ORACLE_CHAIN_ID || 206);
 const PRIVATE_KEY = process.env.VNS_ORACLE_PRIVATE_KEY;
 const EXPECTED_CURRENT_OWNER = (

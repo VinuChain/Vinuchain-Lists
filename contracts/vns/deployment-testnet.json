@@ -2,7 +2,7 @@
   "name": "VinuChain Name Service",
   "tld": "vinu",
   "chainId": 206,
-  "rpcUrl": "https://vinufoundation-rpc.com",
+  "rpcUrl": "https://testnet-rpc.vinuchain.org",
   "deployer": "0xf9c82B1117e8BeA97843042521B8FBC93044f347",
   "upstream": {
     "package": "@ensdomains/ens-contracts",

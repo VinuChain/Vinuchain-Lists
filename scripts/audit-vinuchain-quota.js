@@ -5,7 +5,7 @@ const path = require('path');
 const { ethers } = require('ethers');
 
 const TESTNET_CHAIN_ID = 206n;
-const TESTNET_RPC = process.env.TESTNET_RPC || 'https://vinufoundation-rpc.com';
+const TESTNET_RPC = process.env.TESTNET_RPC || 'https://testnet-rpc.vinuchain.org';
 const EXPLORER_API =
   process.env.TESTNET_EXPLORER_API || 'https://testnet.vinuexplorer.org/api/v2';
 const QUOTA_PROXY = '0x824B93dE7221cf8a35FBd29d5202f6eFa3A29C5D';

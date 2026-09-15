@@ -43,7 +43,7 @@ function rpcUrlsWithFallback(fallback, ...values) {
 }
 
 const TARGET_RPC_URLS = rpcUrlsWithFallback(
-  'https://vinufoundation-rpc.com',
+  'https://testnet-rpc.vinuchain.org',
   process.env.VNS_ORACLE_RPC_URLS,
   process.env.VNS_ORACLE_RPC_URL,
   process.env.VINUCHAIN_RPC_URL,

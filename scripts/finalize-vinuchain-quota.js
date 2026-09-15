@@ -5,7 +5,7 @@ const path = require("path");
 const { ethers } = require("ethers");
 
 const TESTNET_CHAIN_ID = 206n;
-const TESTNET_RPC = process.env.TESTNET_RPC || "https://vinufoundation-rpc.com";
+const TESTNET_RPC = process.env.TESTNET_RPC || "https://testnet-rpc.vinuchain.org";
 const INFO_PATH = path.join(process.cwd(), "contracts/vinuchain/info.json");
 const CORRECTED_PAYBACK_V2 = "0x89D1cBD9DEAaB4dFf6f800a336FBDd9A5c6829e4";
 const KNOWN_BUG_PAYBACK_V2 = "0xdEA4687FDBA2528d1b30222e199c90b63AF8c850";
