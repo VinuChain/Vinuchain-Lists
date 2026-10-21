@@ -59,7 +59,7 @@
     "@nomicfoundation/hardhat-ethers": "^4.2.0",
     "@nomicfoundation/hardhat-ethers-chai-matchers": "^3.0.11",
     "@nomicfoundation/hardhat-mocha": "^4.0.0",
-    "@nomicfoundation/hardhat-network-helpers": "^3.0.11",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.12",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "chai": "^6.3.0",
