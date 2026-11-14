@@ -953,9 +953,12 @@ async function main() {
   if (!PRIVATE_KEY) {
     throw new Error(
       'VNS_ORACLE_PRIVATE_KEY is not set. The send path needs the oracle-owner ' +
-        'private key. In CI, set it via: ' +
-        '`gh secret set VNS_ORACLE_PRIVATE_KEY --env vns-oracle-prod ' +
-        '--repo VinuChain/vinuchain-lists`. Locally, source it from a ' +
+        'private key. In CI, set it as an environment secret on the environment ' +
+        'the workflow binds to (`vns-oracle-prod` for testnet, ' +
+        '`vns-oracle-mainnet` for mainnet) in the repository that runs the ' +
+        'workflow, never at repository level: ' +
+        '`gh secret set VNS_ORACLE_PRIVATE_KEY --env vns-oracle-prod` from a ' +
+        'clone of that repository. Locally, source it from a ' +
         'gitignored .env file. See ' +
         'VinuChain-Docs/technical-docs/smart-contracts/vinuchain-name-service.md ' +
         '→ "Oracle refresh runbook" for the complete procedure.',

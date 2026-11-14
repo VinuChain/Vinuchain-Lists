@@ -85,6 +85,18 @@ jobs:
       - name: Dry-run price resolution
         run: npm run vns:oracle:dry-run
 
+      # See the testnet workflow: name the missing-secret failure up front so it
+      # shows as an annotation instead of a bare non-zero exit from the updater.
+      - name: Check oracle signer secret is configured
+        if: github.event_name == 'schedule' || inputs.mode == 'send'
+        env:
+          VNS_ORACLE_PRIVATE_KEY: ${{ secrets.VNS_MAINNET_ORACLE_PRIVATE_KEY }}
+        run: |
+          if [ -z "$VNS_ORACLE_PRIVATE_KEY" ]; then
+            echo '::error title=VNS_MAINNET_ORACLE_PRIVATE_KEY is not set::Set it as an environment secret on the vns-oracle-mainnet environment (Settings -> Environments -> vns-oracle-mainnet), not at repository level. Without it the send path cannot sign, and the mainnet oracle goes stale 12h after the last successful update.'
+            exit 1
+          fi
+
       - name: Submit oracle update
         if: github.event_name == 'schedule' || inputs.mode == 'send'
         env:
@@ -92,10 +104,18 @@ jobs:
         run: npm run vns:oracle:update
 
       - name: Report failure (deduped GH issue)
+        # Same rule as the testnet workflow: never let the reporter fail the run
+        # a second time. With issues disabled the dedup lookup exits non-zero and
+        # this step's own error would bury the incident it is meant to report.
+        continue-on-error: true
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "$(gh api "repos/${{ github.repository }}" --jq .has_issues)" != "true" ]; then
+            echo '::notice title=Failure report skipped::Issues are disabled on this repository, so the deduped failure issue cannot be filed. Fix the failing step above; the failed MAINNET workflow run is the alert.'
+            exit 0
+          fi
           LABEL='oracle-cron-failure-mainnet'
           gh label create "$LABEL" --color B60205 --description 'VNS mainnet oracle update failed' --force >/dev/null 2>&1 || true
           OPEN_ISSUE=$(gh issue list --state open --label "$LABEL" --limit 1 --json number --jq '.[0].number' || echo '')

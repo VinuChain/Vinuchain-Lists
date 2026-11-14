@@ -103,6 +103,21 @@ jobs:
       - name: Dry-run price resolution
         run: npm run vns:oracle:dry-run
 
+      # A missing environment secret is the single most common way this job
+      # fails, and the updater's own message only shows up in the raw log tail.
+      # Fail here instead so GitHub renders a named annotation pointing at the
+      # fix (Settings -> Environments -> vns-oracle-prod) rather than leaving
+      # operators to grep a bare "exit code 1".
+      - name: Check oracle signer secret is configured
+        if: github.event_name == 'schedule' || inputs.mode == 'send'
+        env:
+          VNS_ORACLE_PRIVATE_KEY: ${{ secrets.VNS_ORACLE_PRIVATE_KEY }}
+        run: |
+          if [ -z "$VNS_ORACLE_PRIVATE_KEY" ]; then
+            echo '::error title=VNS_ORACLE_PRIVATE_KEY is not set::Set it as an environment secret on the vns-oracle-prod environment (Settings -> Environments -> vns-oracle-prod), not at repository level. Without it the send path cannot sign, and the oracle goes stale 12h after the last successful update.'
+            exit 1
+          fi
+
       - name: Submit oracle update
         if: github.event_name == 'schedule' || inputs.mode == 'send'
         env:
@@ -110,10 +125,22 @@ jobs:
         run: npm run vns:oracle:update
 
       - name: Report failure (deduped GH issue)
+        # The job has ALREADY failed by the time this step runs, so it must
+        # never be the thing that turns the run red a second time. If the
+        # repository has issues disabled (it does at the time of writing) the
+        # deduped-issue path cannot work at all: `gh issue list` exits non-zero
+        # and the run picks up a second annotation ("repository has disabled
+        # issues") that buries the real error. Skip cleanly instead — a failed
+        # run already notifies the workflow owner.
+        continue-on-error: true
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "$(gh api "repos/${{ github.repository }}" --jq .has_issues)" != "true" ]; then
+            echo '::notice title=Failure report skipped::Issues are disabled on this repository, so the deduped failure issue cannot be filed. Fix the failing step above; the failed workflow run is the alert.'
+            exit 0
+          fi
           # Dedup: if there's already an open issue with the same label, just
           # comment on it instead of creating a new one. Three consecutive
           # failures will accumulate three comments on the same issue, which

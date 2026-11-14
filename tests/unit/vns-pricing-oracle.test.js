@@ -105,6 +105,13 @@ describe('VNS pricing oracle registry', () => {
       'poolCanCorroborate && requirePoolGuard && !allowSingleSource',
     );
     expect(updater).to.not.include('targetChainId === MAINNET_CHAIN_ID');
+
+    // The missing-secret diagnostic has to name the environment secret an
+    // operator can actually set, and must not send them to another repository:
+    // this workflow also runs from forks of the canonical repo.
+    expect(updater).to.include('`gh secret set VNS_ORACLE_PRIVATE_KEY --env vns-oracle-prod`');
+    expect(updater).to.include('`vns-oracle-mainnet` for mainnet');
+    expect(updater).to.not.include('VinuChain/vinuchain-lists');
   });
 
   it('keeps oracle maxAge defaults consistent across deploy, update, and workflow paths', () => {
@@ -122,6 +129,31 @@ describe('VNS pricing oracle registry', () => {
     expect(workflow).to.include('VNS_ORACLE_RPC_URLS');
     expect(workflow).to.include('vars.VNS_ORACLE_RPC_URLS || vars.VNS_ORACLE_RPC_URL');
     expect(workflow).to.include("cron: '17 */4 * * *'");
+  });
+
+  it('keeps the failure reporter non-fatal and skips it when issues are disabled', () => {
+    for (const file of [
+      '.github/workflows/vns-oracle-update.yml',
+      '.github/workflows/vns-oracle-update-mainnet.yml',
+    ]) {
+      const workflow = normalizeNewlines(read(file));
+
+      // The reporter only runs after the job has already failed, so it must not
+      // be able to fail the run a second time. It also has to no-op when the
+      // repository has Issues disabled: `gh issue list` exits non-zero there and
+      // the resulting annotation buries the real incident. Both workflows hit
+      // this at once on 2026-11-14.
+      expect(workflow).to.include('name: Report failure (deduped GH issue)');
+      expect(workflow).to.include('continue-on-error: true');
+      expect(workflow).to.include('--jq .has_issues');
+      expect(workflow).to.include('::notice title=Failure report skipped::');
+
+      // A missing signer secret is the most common send-path failure; it gets a
+      // named annotation instead of a bare exit code from the node script.
+      expect(workflow).to.include('name: Check oracle signer secret is configured');
+      expect(workflow).to.include('if [ -z "$VNS_ORACLE_PRIVATE_KEY" ]');
+      expect(workflow).to.include('::error title=VNS_');
+    }
   });
 
   it('caps VinuUsdOracle setter rails so owner cannot widen tolerances in a single tx', () => {
